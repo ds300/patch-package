@@ -11,6 +11,9 @@
         "semicolon": [
             true,
             "never"
+        ],
+        "interface-name": [
+            false
         ]
     },
     "rulesDirectory": []

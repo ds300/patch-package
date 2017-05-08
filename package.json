@@ -34,12 +34,15 @@
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",
     "@types/node": "^7.0.18",
+    "@types/tmp": "^0.0.33",
     "jest": "^20.0.0",
     "ts-jest": "^20.0.1",
     "tslint": "^5.2.0",
     "typescript": "^2.3.2"
   },
   "dependencies": {
-    "app-root-path": "^2.0.1"
+    "app-root-path": "^2.0.1",
+    "shell-escape": "^0.2.0",
+    "tmp": "^0.0.31"
   }
 }

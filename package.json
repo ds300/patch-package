@@ -1,0 +1,45 @@
+{
+  "name": "patch-package",
+  "version": "1.0.0",
+  "description": "When forking just won't work, patch it.",
+  "main": "dist/index.js",
+  "repository": "https://github.com/ds300/patch-package",
+  "author": "David Sheldrick",
+  "license": "MIT",
+  "bin": {
+    "patch-package": "./index.js"
+  },
+  "scripts": {
+    "precommit": "lint-staged",
+    "prepublish": "tsc",
+    "test": "jest"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "tslint --fix -c tslint.json -p tsconfig.json",
+      "git add"
+    ]
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
+  },
+  "devDependencies": {
+    "@types/app-root-path": "^1.2.4",
+    "@types/node": "^7.0.18",
+    "jest": "^20.0.0",
+    "ts-jest": "^20.0.1",
+    "tslint": "^5.2.0",
+    "typescript": "^2.3.2"
+  },
+  "dependencies": {
+    "app-root-path": "^2.0.1"
+  }
+}

@@ -1,3 +1,4 @@
+import { green } from "chalk"
 import { execSync as exec } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
@@ -33,9 +34,16 @@ export default function makePatch(packageName: string, appPath: string) {
       fs.mkdirSync(patchesDir)
     }
 
+    // remove exsiting patch for this package, if any
+    fs.readdirSync(patchesDir).forEach((fileName) => {
+      if (fileName.startsWith(packageName + ":")) {
+        fs.unlinkSync(path.join(patchesDir, fileName))
+      }
+    })
+
     const patchFileName = `${packageName}:${packageVersion}.patch`
-    console.log(`Creating patch file ${patchFileName}`)
     fs.writeFileSync(path.join(patchesDir, patchFileName), patch)
+    console.log(`Created patch file ${patchFileName} ${green("✔")}`)
   } finally {
     tmpDir.removeCallback()
   }

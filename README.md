@@ -1,6 +1,6 @@
 # patch-package 📦👌
 
-### When forking is too much, patch it.
+### When forking is too hard, patch it.
 
 patch-package lets you easily and persistently fix bugs in (or add functionality to) packages in your
 `node_modules` folder, and share the changes with your team.
@@ -22,7 +22,7 @@ In package.json
 
 ## Usage
 
-Make changes to the files of a particular module in your node_modules folder,
+Make changes to the files of a particular package in your node_modules folder,
 e.g. react-native. Then run:
 
     patch-package react-native

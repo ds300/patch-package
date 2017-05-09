@@ -50,7 +50,8 @@ Use exactly the same process as for making patches in the first place, i.e. make
 
 ### Applying patches
 
-Run patch-package without arguments to apply all patches in your project.
+Patches are applied automatically by the `prepare` npm/yarn hook. To do it manually,
+run patch-package without arguments to apply all patches in your project.
 patch-package cannot apply individual packages just yet, but you can use the unix `patch`
 command, of course.
 

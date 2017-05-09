@@ -36,34 +36,13 @@ export default function findPatchFiles(appPath: string) {
       applyPatch(path.resolve(patchesDirectory, filename), packageName)
 
       if (packageJson.version !== version) {
-        console.warn(`
-${red("Warning:")} Patch file version mismatch
-
-  Patch file applied to ${packageName}@${bold(packageJson.version)} but was created for ${packageName}@${bold(version)}
-
-  This is probably OK. Check that your stuff still works and then run
-
-    ${bold(`patch-package ${packageName}`)}
-
-  to make this warning disappear
-`)
+        printVersionMismatchWarning(packageName, packageJson.version, version)
       } else {
         console.log(`${bold(packageName)}@${version} ${green("✔")}`)
       }
     } catch (e) {
       // completely failed to apply patch
-      console.error(`
-${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(packageName)}`)}
-
-  Patch was made for version ${green.bold(version)}
-  Meanwhile node_modules/${bold(packageName)} is version ${red.bold(packageJson.version)}
-
-  Run:
-
-     ${bold(`patch --forward -p1 -i patches/${filename}`)}
-
-  To generate rejection files and see just what the heck happened.
-`)
+      printPatchApplictionFailureError(packageName, packageJson.version, version, filename)
       process.exit(1)
     }
   })
@@ -79,4 +58,45 @@ function applyPatch(patchFilePath: string, packageName: string) {
     // the patch just failed for some reason.
     exec("patch --reverse --dry-run -p1 -i " + patchFilePath)
   }
+}
+
+function printVersionMismatchWarning(packageName: string, actualVersion: string, originalVersion: string) {
+  console.warn(`
+${red("Warning:")} Patch file version mismatch
+
+  Patch file created for
+
+    ${packageName}@${bold(originalVersion)}
+
+  applied to
+
+    ${packageName}@${bold(actualVersion)}
+
+  This is probably OK, but to be safe, please check that your patch still makes
+  sense and fix the patched files if not. Then run
+
+    ${bold(`patch-package ${packageName}`)}
+
+  to update the patch and make this warning disappear.
+`)
+}
+
+function printPatchApplictionFailureError(
+  packageName: string,
+  actualVersion: string,
+  originalVersion: string,
+  patchFileName: string,
+) {
+  console.error(`
+${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(packageName)}`)}
+
+  Patch was made for version ${green.bold(originalVersion)}
+  Meanwhile node_modules/${bold(packageName)} is version ${red.bold(actualVersion)}
+
+  Run:
+
+     ${bold(`patch --forward -p1 -i patches/${patchFileName}`)}
+
+  To generate rejection files and see just what the heck happened.
+`)
 }

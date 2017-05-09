@@ -1,16 +1,24 @@
 # patch-package 📦👌
 
-### Can't wait for the fix? Forking too tedious? Patch it!
+### Can't wait for the PR to land? Need a quick fix? Patch it!
 
-patch-package lets you easily and persistently make small changes to packages in your
-`node_modules` folder, and share the results with your team. This is especially useful
-if you or somebody else fixes a bug or adds a feature in one of your dependencies,
-but you can't wait for the change to be reviewed, merged, and then published.
+patch-package lets you easily make small necessary changes to packages in your
+`node_modules` folder, without the headache of forking them.
 
-You simply make local changes to one of the package directories under `node_modules`, then
-run `patch-package <package-name>` and it will create a patch file
-for you to commit. The patch will be gracefully applied any time the contents of `node_modules`
-gets updated by yarn/npm, and, of course, you'll receive warnings if things ever change.
+```sh
+# fix a bug in one of your deps
+vim node_modules/some-package/brokenFile.js
+# run patch-package to generate a .patch file for that package in ./patches
+patch-package some-package
+# commit the patch file
+git add -A
+git commit -m "fix brokenFile.js in some-package"
+```
+
+Patches created by `patch-package` are automatically and gracefully applied
+any time the contents of node_modules is changed by npm/yarn. You get warnings
+if the versions of patched dependencies change, and errors when the patch can
+no longer be applied.
 
 ## Set-up
 
@@ -24,17 +32,29 @@ In package.json
 
 ## Usage
 
-Make changes to the files of a particular package in your node_modules folder,
-e.g. react-native. Then run:
+### Making patches
 
-    patch-package react-native
+First make changes to the files of a particular package in your node_modules folder,
 
-If this is the first
-time you've used `patch-package`, it will create a folder called `patches` in
-the root dir of your app. Inside will be a file called `react-native:0.44.0.patch` or something,
+    patch-package <package-name>
+
+where package-name matches the name of the package you made changes to.
+
+If this is the time you've used `patch-package`, it will create a folder called `patches` in
+the root dir of your app. Inside will be a file called `package-name:0.44.0.patch` or something,
 which is a diff between normal old react-native and your fixed version. Commit this and you and your team will enjoy the same changes from here on out.
 
-Repeat the same process to update the patch file, or just delete it if you don't need the changes anymore.
+### Updating patches
+
+Use exactly the same process as for making patches in the first place, i.e. make more changes, run patch-package, commit the changes to the patch file.
+
+### Applying patches
+
+Run patch-package without arguments to apply all patches in your project.
+patch-package cannot apply individual packages just yet, but you can use the unix `patch`
+command, of course.
+
+    patch --forward -p1 -i patches/package-name:0.44.2.patch
 
 ## Benefits of patching over forking
 
@@ -48,15 +68,17 @@ Repeat the same process to update the patch file, or just delete it if you don't
 - The change would be useful to other people as-is.
 - You can afford to make a proper PR to upstream.
 
-## Isn't this totally insanely dangerous?
+## Isn't this insanely dangerous?
 
 Nawh. It's not like monkey patching or anything. You're just fixing your
 dependencies.
 
 - Patches are easy to review. We do that all day anyway.
 - If the dependency gets a version bump, you get a warning telling you there's a mismatch. If everything is still working a-ok, just run `patch-package <package-name>` again and the warning goes away.
-- If the dependency changes so much that the patch can't be applied, you get a error and have to resolve the conflicts, or just remove the patch file if shit got fixed upstream.
+- If the dependency changes so much that the patch can't be applied, you get a full-blown error and have to resolve the conflicts, or just remove the patch file if shit got fixed upstream.
 
 ## License
 
 MIT
+
+[![Empowered by Futurice's open source sponsorship program](https://img.shields.io/badge/sponsor-chilicorn-ff69b4.svg)](http://futurice.com/blog/sponsoring-free-time-open-source-activities?utm_source=github&utm_medium=spice&utm_campaign=patch-package)

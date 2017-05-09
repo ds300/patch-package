@@ -37,7 +37,9 @@
     "@types/node": "^7.0.18",
     "@types/rimraf": "^0.0.28",
     "@types/tmp": "^0.0.33",
+    "husky": "^0.13.3",
     "jest": "^20.0.0",
+    "lint-staged": "^3.4.1",
     "ts-jest": "^20.0.1",
     "tslint": "^5.2.0",
     "typescript": "^2.3.2"

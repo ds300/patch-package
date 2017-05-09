@@ -25,9 +25,13 @@ export default function makePatch(packageName: string, appPath: string) {
     packageManager.add(packageName, packageVersion)
 
     exec(`git init`, { cwd: tmpDir.name })
+    // unignore node_modules to get nested changes
+    fs.writeFileSync(path.join(tmpDir.name, ".gitignore"), "!/node_modules\n")
     exec(shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]), { cwd: tmpDir.name })
+    exec(`git commit -m init`, { cwd: tmpDir.name })
     exec(shellEscape(["cp", "-RL", packagePath, path.join(tmpDir.name, "node_modules")]))
-    const patch = exec(`git diff`, { cwd: tmpDir.name }).toString()
+    exec(shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]), { cwd: tmpDir.name })
+    const patch = exec(`git diff HEAD`, { cwd: tmpDir.name }).toString()
 
     const patchesDir = path.join(appPath, "patches")
     if (!fs.existsSync(patchesDir)) {

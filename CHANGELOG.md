@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Fix patch creation logic around nested node_modules
+
 ## 1.2.0
 
 - Enable picking up changes in nested node_modules folders.

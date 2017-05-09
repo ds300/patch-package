@@ -3,12 +3,12 @@
 ### Can't afford to wait for that PR to land? Need a quick fix right now?
 
 patch-package lets you easily make small necessary changes to packages in your
-`node_modules` folder, without the headache of forking them.
+`node_modules` folder, without the headache of forking repos or worse.
 
 ```sh
 # fix a bug in one of your deps
 vim node_modules/some-package/brokenFile.js
-# run patch-package to generate a .patch file for that package in ./patches
+# run patch-package to create a .patch file
 patch-package some-package
 # commit the patch file
 git add patches/some-package:3.14.15.patch
@@ -38,11 +38,11 @@ First make changes to the files of a particular package in your node_modules fol
 
     patch-package package-name
 
-where `package-name` matches the name of the package you made changes to.
+where `package-name` matches the name of the package you made changes to. This could take several minutes if you don't use Yarn yet.
 
 If this is the first time you've used `patch-package`, it will create a folder called `patches` in
 the root dir of your app. Inside will be a file called `package-name:0.44.0.patch` or something,
-which is a diff between normal old `package-name` and your fixed version. Commit this and you and your team will enjoy the same changes from here on out.
+which is a diff between normal old `package-name` and your fixed version. Commit this to share the fix with your team.
 
 ### Updating patches
 
@@ -50,7 +50,7 @@ Use exactly the same process as for making patches in the first place, i.e. make
 
 ### Applying patches
 
-Patches are applied automatically by the `prepare` npm/yarn hook. To do it manually,
+Patches are applied automatically by the `prepare` npm/yarn hook if you followed the set-up guide above. For manual use,
 run patch-package without arguments to apply all patches in your project.
 patch-package cannot apply individual packages just yet, but you can use the unix `patch`
 command, of course.

@@ -11,7 +11,7 @@ vim node_modules/some-package/brokenFile.js
 # run patch-package to generate a .patch file for that package in ./patches
 patch-package some-package
 # commit the patch file
-git add -A
+git add patches/some-package:3.14.15.patch
 git commit -m "fix brokenFile.js in some-package"
 ```
 

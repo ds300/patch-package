@@ -1,6 +1,6 @@
 # patch-package 📦👌
 
-### Can't wait for the PR to land? Need a quick fix? Patch it!
+### Can't afford to wait for that PR to land? Need a quick fix right now?
 
 patch-package lets you easily make small necessary changes to packages in your
 `node_modules` folder, without the headache of forking them.

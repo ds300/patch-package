@@ -64,9 +64,9 @@ ${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(package
 
   To generate rejection files and see just what the heck happened.
 `)
+      process.exit(1)
     }
   })
-  process.exit(1)
 }
 
 function applyPatch(patchFilePath: string, packageName: string) {

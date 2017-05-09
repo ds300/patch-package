@@ -1,3 +1,3 @@
 export interface PackageManager {
-  add(packageName: string, version: string): void
+  install(): void
 }

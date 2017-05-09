@@ -34,15 +34,15 @@ In package.json
 
 ### Making patches
 
-First make changes to the files of a particular package in your node_modules folder,
+First make changes to the files of a particular package in your node_modules folder, then run
 
-    patch-package <package-name>
+    patch-package package-name
 
-where package-name matches the name of the package you made changes to.
+where `package-name` matches the name of the package you made changes to.
 
-If this is the time you've used `patch-package`, it will create a folder called `patches` in
+If this is the first time you've used `patch-package`, it will create a folder called `patches` in
 the root dir of your app. Inside will be a file called `package-name:0.44.0.patch` or something,
-which is a diff between normal old react-native and your fixed version. Commit this and you and your team will enjoy the same changes from here on out.
+which is a diff between normal old `package-name` and your fixed version. Commit this and you and your team will enjoy the same changes from here on out.
 
 ### Updating patches
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0
+
+- Require yarn as a peer dependency
+- Remove support for NPM
+
+Moving fast and breaking things. It turns out yarn doesn't run the
+prepare hook after removing a package, so we use patch-package to
+patch a local version of yarn. I'm not proud of this. Probably
+wouldn't have released this in the first place if I had known that
+yarn didn't have all the right hooks. Oh well. Now I have a reason
+to contribute to Yarn I guess.
+
 ## 1.2.1
 
 - Fix patch creation logic around nested node_modules

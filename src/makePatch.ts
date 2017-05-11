@@ -17,7 +17,8 @@ export default function makePatch(packageName: string, appPath: string) {
   const packageVersion = require(packageJsonPath).version
 
   const tmpRepo = tmp.dirSync({ unsafeCleanup: true })
-  const tmpNodeModulesBackup = tmp.dirSync()
+  const tmpRepoNodeModulesPath = path.join(tmpRepo.name, "node_modules")
+  const tmpRepoPackagePath = path.join(tmpRepoNodeModulesPath, packageName)
 
   try {
     const patchesDir = path.join(appPath, "patches")
@@ -34,38 +35,21 @@ export default function makePatch(packageName: string, appPath: string) {
       })
     }
 
-    // back up the user's node_modules
-    exec(shellEscape(["mv", path.join(appPath, "node_modules"), path.join(tmpNodeModulesBackup.name, "node_modules")]))
-
-    // reinstall the user's node_modules without the changes for this package
-    exec("yarn")
-
-    // move the clean package to the tmp repo
-    const tmpPackagePath = path.join(tmpRepo.name, "node_modules", packageName)
-    fs.mkdirSync(path.join(tmpRepo.name, "node_modules"))
-    exec(shellEscape(["mv", packagePath, tmpPackagePath]))
-
-    // commit it
-    fs.writeFileSync(path.join(tmpRepo.name, ".gitignore"), "!/node_modules\n")
     const tmpExec = (cmd: string) => exec(cmd, { cwd: tmpRepo.name })
+    // reinstall a clean version of the user's node_modules in our tmp location
+    exec(shellEscape(["cp", path.join(appPath, "package.json"), tmpRepo.name]))
+    tmpExec(`yarn`)
+
+    // commit the package
+    fs.writeFileSync(path.join(tmpRepo.name, ".gitignore"), "!/node_modules\n")
     tmpExec(`git init`)
     tmpExec(shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]))
     tmpExec(`git commit -m init`)
 
     // replace package with user's version
-    rimraf.sync(tmpPackagePath)
+    rimraf.sync(tmpRepoPackagePath)
+    exec(shellEscape(["cp", "-R", packagePath, tmpRepoPackagePath]))
 
-    // copy user's custom version to temp repo
-    tmpExec(
-      shellEscape(
-        [
-          "cp",
-          "-R",
-          path.join(tmpNodeModulesBackup.name, "node_modules", packageName),
-          tmpPackagePath,
-        ],
-      ),
-    )
     // add their files to the index
     tmpExec(shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]))
     // get diff of changes
@@ -84,8 +68,5 @@ export default function makePatch(packageName: string, appPath: string) {
     throw e
   } finally {
     tmpRepo.removeCallback()
-    rimraf.sync(nodeModulesPath)
-    fs.renameSync(path.join(tmpNodeModulesBackup.name, "node_modules"), nodeModulesPath)
-    tmpNodeModulesBackup.removeCallback()
   }
 }

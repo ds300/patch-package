@@ -1,6 +1,6 @@
 {
   "name": "patch-package",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "When forking just won't work, patch it.",
   "main": "dist/index.js",
   "repository": "https://github.com/ds300/patch-package",
@@ -49,5 +49,8 @@
     "rimraf": "^2.6.1",
     "shell-escape": "^0.2.0",
     "tmp": "^0.0.31"
+  },
+  "peerDependencies": {
+    "yarn": "^0.23.4"
   }
 }

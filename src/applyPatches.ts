@@ -48,7 +48,7 @@ export default function findPatchFiles(appPath: string) {
   })
 }
 
-function applyPatch(patchFilePath: string, packageName: string) {
+export function applyPatch(patchFilePath: string, packageName: string) {
   try {
     exec("patch --forward -p1 --no-backup-if-mismatch -i " + patchFilePath)
   } catch (e) {

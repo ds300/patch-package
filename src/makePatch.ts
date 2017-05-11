@@ -71,9 +71,14 @@ export default function makePatch(packageName: string, appPath: string) {
     // get diff of changes
     const patch = tmpExec(`git diff HEAD`).toString()
 
-    const patchFileName = `${packageName}:${packageVersion}.patch`
-    fs.writeFileSync(path.join(patchesDir, patchFileName), patch)
-    console.log(`Created patch file ${patchFileName} ${green("✔")}`)
+    if (patch.trim() === "") {
+      console.warn(`⁉️  Not creating patch file for package '${packageName}'`)
+      console.warn(`⁉️  There don't appear to be any changes.`)
+    } else {
+      const patchFileName = `${packageName}:${packageVersion}.patch`
+      fs.writeFileSync(path.join(patchesDir, patchFileName), patch)
+      console.log(`Created file patches/${patchFileName} ${green("✔")}`)
+    }
   } catch (e) {
     console.error(e)
     throw e

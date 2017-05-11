@@ -2,9 +2,11 @@ import { bold, cyan, italic } from "chalk"
 import { argv } from "process"
 import applyPatches from "./applyPatches"
 import getAppRootPath from "./getAppRootPath"
+import install from "./install"
 import makePatch from "./makePatch"
 
 const appPath = getAppRootPath()
+install(appPath)
 if (argv.length === 2) {
   applyPatches(appPath)
 } else {

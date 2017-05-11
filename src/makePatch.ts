@@ -38,6 +38,7 @@ export default function makePatch(packageName: string, appPath: string) {
     const tmpExec = (cmd: string) => exec(cmd, { cwd: tmpRepo.name })
     // reinstall a clean version of the user's node_modules in our tmp location
     exec(shellEscape(["cp", path.join(appPath, "package.json"), tmpRepo.name]))
+    exec(shellEscape(["cp", path.join(appPath, "yarn.lock"), tmpRepo.name]))
     tmpExec(`yarn`)
 
     // commit the package

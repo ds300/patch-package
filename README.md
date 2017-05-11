@@ -22,7 +22,7 @@ no longer be applied.
 
 ## Set-up
 
-You'll need `patch-package`, and also to run a project-local copy of `yarn` (so patch-package can patch it... don't worry, it's a one-line change)
+You'll need `patch-package`, and also to run a project-local copy of `yarn` (so patch-package can patch it... don't worry, it's a [one-line change](./yarn.patch))
 
     yarn add -D patch-package yarn
 

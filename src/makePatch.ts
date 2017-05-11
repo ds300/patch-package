@@ -5,9 +5,6 @@ import * as path from "path"
 import * as rimraf from "rimraf"
 import * as shellEscape from "shell-escape"
 import * as tmp from "tmp"
-import Npm from "./Npm"
-import { PackageManager } from "./PackageManager"
-import Yarn from "./Yarn"
 
 export default function makePatch(packageName: string, appPath: string) {
   const nodeModulesPath = path.join(appPath, "node_modules")
@@ -37,12 +34,11 @@ export default function makePatch(packageName: string, appPath: string) {
       })
     }
 
-
     // back up the user's node_modules
     exec(shellEscape(["mv", path.join(appPath, "node_modules"), path.join(tmpNodeModulesBackup.name, "node_modules")]))
 
     // reinstall the user's node_modules without the changes for this package
-    getPackageManager(appPath).install()
+    exec("yarn")
 
     // move the clean package to the tmp repo
     const tmpPackagePath = path.join(tmpRepo.name, "node_modules", packageName)
@@ -86,14 +82,5 @@ export default function makePatch(packageName: string, appPath: string) {
     rimraf.sync(nodeModulesPath)
     fs.renameSync(path.join(tmpNodeModulesBackup.name, "node_modules"), nodeModulesPath)
     tmpNodeModulesBackup.removeCallback()
-  }
-}
-
-function getPackageManager(cwd: string): PackageManager {
-  try {
-    exec("which yarn")
-    return new Yarn(cwd)
-  } catch (e) {
-    return new Npm(cwd)
   }
 }

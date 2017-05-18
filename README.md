@@ -22,7 +22,7 @@ no longer be applied.
 
 ## Set-up
 
-You'll need `patch-package`, and also to run a project-local copy of `yarn` (so patch-package can patch it... don't worry, it's a [one-line change](./yarn.patch))
+You'll need `patch-package`, and also to run a project-local copy of `yarn` (so patch-package can patch it... don't worry, it's a [one-line change](./yarn.patch) ([why is this necessary?](#why-patch-yarn)))
 
     yarn add -D patch-package yarn
 
@@ -46,7 +46,7 @@ First make changes to the files of a particular package in your node_modules fol
 
     patch-package package-name
 
-where `package-name` matches the name of the package you made changes to. This could take several minutes if you don't use Yarn yet.
+where `package-name` matches the name of the package you made changes to.
 
 If this is the first time you've used `patch-package`, it will create a folder called `patches` in
 the root dir of your app. Inside will be a file called `package-name:0.44.0.patch` or something,
@@ -85,6 +85,14 @@ dependencies.
 - Patches are easy to review. We do that all day anyway.
 - If the dependency gets a version bump, you get a warning telling you there's a mismatch. If everything is still working a-ok, just run `patch-package <package-name>` again and the warning goes away.
 - If the dependency changes so much that the patch can't be applied, you get a full-blown error and have to resolve the conflicts, or just remove the patch file if shit got fixed upstream.
+
+## Why patch Yarn?
+
+Most times when you do a `yarn`, `yarn add`, `yarn remove`, or `yarn install` (which is the same as just `yarn`) Yarn will completely replace the contents of your node_modules with freshly unpackaged modules. patch-package uses the `prepare` hook to modify these fresh modules, so that they behave well according to your will.
+
+Plain unpatched Yarn only runs the `prepare` hook after `yarn` and `yarn add`, but not after `yarn remove`. patch-package requires a local copy of yarn so that it can patch it to run the `prepare` hook after `yarn remove` and thus make sure that your node_modules is always* patched and ready to go.
+
+\* If you ever use `npm` by accident or run `yarn remove` from a non-root project directory, things might break. But just run `yarn` again to restore order.
 
 ## License
 

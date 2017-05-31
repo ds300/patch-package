@@ -52,8 +52,5 @@
     "rimraf": "^2.6.1",
     "shell-escape": "^0.2.0",
     "tmp": "^0.0.31"
-  },
-  "peerDependencies": {
-    "yarn": "^0.23.4"
   }
 }

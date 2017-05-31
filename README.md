@@ -22,21 +22,15 @@ no longer be applied.
 
 ## Set-up
 
-You'll need `patch-package`, and also to run a project-local copy of `yarn` (so patch-package can patch it... don't worry, it's a [one-line change](./yarn.patch) ([why is this necessary?](#why-patch-yarn)))
+You'll need `patch-package` and, optionally, a [project-local copy of `yarn`](#why-patch-yarn)
 
-    yarn add -D patch-package yarn
+    yarn add --dev patch-package
 
 In package.json
 
     "scripts": {
       "prepare": "patch-package"
     }
-
-Run
-
-    which yarn
-
-The output should be `./node_modules/.bin/yarn`. If not, make sure `./node_modules/.bin/` is at the start of your `PATH` environment variable.
 
 ## Usage
 
@@ -90,7 +84,17 @@ dependencies.
 
 Most times when you do a `yarn`, `yarn add`, `yarn remove`, or `yarn install` (which is the same as just `yarn`) Yarn will completely replace the contents of your node_modules with freshly unpackaged modules. patch-package uses the `prepare` hook to modify these fresh modules, so that they behave well according to your will.
 
-Plain unpatched Yarn only runs the `prepare` hook after `yarn` and `yarn add`, but not after `yarn remove`. patch-package requires a local copy of yarn so that it can patch it to run the `prepare` hook after `yarn remove` and thus make sure that your node_modules is always* patched and ready to go.
+Plain unpatched Yarn only runs the `prepare` hook after `yarn` and `yarn add`, but not after `yarn remove`. patch-package benefits from a local copy of yarn so that it can patch it to run the `prepare` hook after `yarn remove` and thus make sure that your node_modules is always* patched and ready to go. It's a [simple one-line change](./yarn.patch)
+
+All that you need to do to enable this patch is install a project-local copy of yarn:
+
+yarn add --dev yarn
+
+And then run
+
+    which yarn
+
+The output should be `./node_modules/.bin/yarn`. If not, make sure `./node_modules/.bin/` is at the start of your `PATH` environment variable.
 
 \* If you ever use `npm` by accident or run `yarn remove` from a non-root project directory, things might break. But just run `yarn` again to restore order.
 

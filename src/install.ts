@@ -1,4 +1,4 @@
-import { red } from "chalk"
+import { red, yellow } from "chalk"
 import { existsSync } from "fs"
 import { join } from "path"
 import { applyPatch } from "./applyPatches"
@@ -12,7 +12,7 @@ export default function install(appPath: string) {
     if (existsSync(join(appPath, "node_modules", "yarn"))) {
       printIncompatibleYarnError()
     } else {
-      printNoYarnError()
+      printNoYarnWarning()
     }
   }
 }
@@ -25,9 +25,11 @@ version of yarn. Please update both.`)}
 `)
 }
 
-function printNoYarnError() {
-  console.error(`
-${red.bold("***ERROR***")}
-${red(`patch-package requires yarn as a local peer-dependency`)}
+function printNoYarnWarning() {
+  console.warn(`
+${yellow.bold("***Warning***")}
+${`patch-package currently only works after \`yarn remove\` when you install a
+project-local copy of yarn.`}
+See https://github.com/ds300/patch-package#why-patch-yarn for details
 `)
 }

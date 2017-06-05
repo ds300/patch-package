@@ -50,7 +50,8 @@ export default function findPatchFiles(appPath: string) {
 
 export function applyPatch(patchFilePath: string, packageName: string) {
   try {
-    exec("patch --forward -p1 --no-backup-if-mismatch -i " + patchFilePath)
+    exec("patch -p1 --dry-run -i " + patchFilePath)
+    exec("patch -p1 --no-backup-if-mismatch -i " + patchFilePath)
   } catch (e) {
     // patch cli tool has no way to fail gracefully if patch was already applied,
     // so to check, we need to try a dry-run of applying the patch in reverse, and
@@ -62,7 +63,10 @@ export function applyPatch(patchFilePath: string, packageName: string) {
 
 function printVersionMismatchWarning(packageName: string, actualVersion: string, originalVersion: string) {
   console.warn(`
-${red("Warning:")} Patch file version mismatch
+${red("Warning:")} patch-package detected a patch file version mismatch
+
+  Don't worry! This is probably fine. The patch was still applied
+  successfully. Here's the deets:
 
   Patch file created for
 
@@ -72,12 +76,13 @@ ${red("Warning:")} Patch file version mismatch
 
     ${packageName}@${bold(actualVersion)}
 
-  This is probably OK, but to be safe, please check that your patch still makes
-  sense and fix the patched files if not. Then run
+  This warning is just to give you a heads-up. There is a small chance of
+  breakage even though the patch was applied successfully. Make sure the package
+  still behaves like you expect (you wrote tests, right?) and then run
 
     ${bold(`patch-package ${packageName}`)}
 
-  to update the patch and make this warning disappear.
+  to update the version in the patch file name and make this warning go away.
 `)
 }
 
@@ -90,13 +95,39 @@ function printPatchApplictionFailureError(
   console.error(`
 ${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(packageName)}`)}
 
-  Patch was made for version ${green.bold(originalVersion)}
-  Meanwhile node_modules/${bold(packageName)} is version ${red.bold(actualVersion)}
+  This error was caused because ${bold(packageName)} has changed since you
+  made the patch file for it. This introduced conflicts with your patch,
+  just like a merge conflict in Git when separate incompatible changes are
+  made to the same piece of code.
 
-  Run:
+  Maybe this means your patch file is no longer necessary, in which case
+  hooray! Just delete it!
 
-     ${bold(`patch --forward -p1 -i patches/${patchFileName}`)}
+  Otherwise, you need to manually fix the patch file. Or generate a new one
 
-  To generate rejection files and see just what the heck happened.
+  To generate a new one, just repeat the steps you made to generate the first
+  one, but accounting for the changes in ${packageName}.
+
+  i.e. make changes, run \`patch-package ${packageName}\`, and commit.
+
+  To manually fix a patch file, Run:
+
+     ${bold(`patch -p1 -i patches/${patchFileName} --verbose --dry-run`)}
+
+  To list rejected hunks. A 'hunk' is a section of patch file that describes
+  one contiguous area of changes. They are delimited by empty lines and numbered
+  starting from 1.
+
+  Remove the conflicting hunks, then manually edit files in
+
+    node_modules/${packageName}
+
+  to reflect the changes that the conflicting hunks were supposed to make.
+
+  Then run \`patch-package ${packageName}\`
+
+  Info:
+    Patch was made for version ${green.bold(originalVersion)}
+    Meanwhile node_modules/${bold(packageName)} is version ${red.bold(actualVersion)}
 `)
 }

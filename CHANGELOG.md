@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.0
+
+- Add support for npm5
+- Make yarn patching a cli option, off by default
+
+## 2.1.1
+
+Improve error messages
+
+## 2.1.0
+
+Reduce yarn error to a warning
+
 ## 2.0.0
 
 - Require yarn as a peer dependency

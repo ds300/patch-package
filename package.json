@@ -36,6 +36,7 @@
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",
     "@types/chalk": "^0.4.31",
+    "@types/jest": "^19.2.4",
     "@types/minimist": "^1.2.0",
     "@types/node": "^7.0.18",
     "@types/rimraf": "^0.0.28",

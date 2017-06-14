@@ -5,6 +5,7 @@ import * as path from "path"
 import * as rimraf from "rimraf"
 import * as shellEscape from "shell-escape"
 import * as tmp from "tmp"
+import resolveRelativeFileDependencies from "./resolveRelativeFileDependencies"
 
 export default function makePatch(
   packageName: string,
@@ -23,6 +24,7 @@ export default function makePatch(
 
   const tmpRepo = tmp.dirSync({ unsafeCleanup: true })
   const tmpRepoNodeModulesPath = path.join(tmpRepo.name, "node_modules")
+  const tmpRepoPackageJsonPath = path.join(tmpRepo.name, "package.json")
   const tmpRepoPackagePath = path.join(tmpRepoNodeModulesPath, packageName)
 
   try {
@@ -43,6 +45,17 @@ export default function makePatch(
     const tmpExec = (cmd: string) => exec(cmd, { cwd: tmpRepo.name })
     // reinstall a clean version of the user's node_modules in our tmp location
     exec(shellEscape(["cp", path.join(appPath, "package.json"), tmpRepo.name]))
+    // resolve relative file paths in package.json
+    fs.writeFileSync(
+      tmpRepoPackageJsonPath,
+      JSON.stringify(
+        resolveRelativeFileDependencies(
+          appPath,
+          require(tmpRepoPackageJsonPath),
+        ),
+      ),
+    )
+
     if (packageManager === "yarn") {
       exec(shellEscape(["cp", path.join(appPath, "yarn.lock"), tmpRepo.name]))
       tmpExec(`yarn`)

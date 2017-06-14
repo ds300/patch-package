@@ -16,13 +16,13 @@ git commit -m "fix brokenFile.js in some-package"
 ```
 
 Patches created by `patch-package` are automatically and gracefully applied
-any time the contents of node_modules is changed by Yarn. You get warnings
-if the versions of patched dependencies change, and errors when the patch can
-no longer be applied.
+any time the contents of node_modules is installed by `npm`(>=5) or `yarn`. You get helpful warnings
+if the versions of patched dependencies change, and helpful errors when patches can
+no longer be applied due to upstream conflicts.
 
 ## Set-up
 
-You'll need `patch-package` and, optionally, a [project-local copy of `yarn`](#why-patch-yarn)
+You'll need `patch-package`. If you use `yarn`, you [might like to have a local copy of that too](#why-patch-yarn).
 
     yarn add --dev patch-package
 
@@ -64,6 +64,7 @@ command, of course.
 - Sometimes forks need extra build steps, e.g. with react-native for Android. Forget that noise.
 - Get told in big red letters when the dependency changed and you need to check that your fix is still valid.
 - Keep your patches colocated with the code that depends on them.
+- Patches can be reviewed as part of your normal review process, forks probably can't
 
 ## When to fork instead
 
@@ -71,14 +72,10 @@ command, of course.
 - The change would be useful to other people as-is.
 - You can afford to make a proper PR to upstream.
 
-## Isn't this insanely dangerous?
+## Isn't this dangerous?
 
-Nawh. It's not like monkey patching or anything. You're just fixing your
-dependencies.
-
-- Patches are easy to review. We do that all day anyway.
-- If the dependency gets a version bump, you get a warning telling you there's a mismatch. If everything is still working a-ok, just run `patch-package <package-name>` again and the warning goes away.
-- If the dependency changes so much that the patch can't be applied, you get a full-blown error and have to resolve the conflicts, or just remove the patch file if shit got fixed upstream.
+Nah. You're just fixing your dependencies. Just don't do anything wild with it
+unless you're certain you're the only consumer of the effected dependency.
 
 ## Why patch Yarn?
 

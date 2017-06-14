@@ -5,6 +5,9 @@
     ],
     "jsRules": {},
     "rules": {
+        "ordered-imports": [
+            false
+        ],
         "arrow-parens": false,
         "no-console": [
             false

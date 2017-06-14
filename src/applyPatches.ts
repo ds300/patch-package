@@ -15,9 +15,8 @@ export default function findPatchFiles(appPath: string) {
 
   if (files.length === 0) {
     console.log(cyan("No patch files found"))
-  } else {
-    console.log("Applying patches to node_modules...")
   }
+
   files.forEach(filename => {
     const [packageName, version] = filename.slice(0, -6).split(":")
     const packageDir = path.join(appPath, "node_modules", packageName)

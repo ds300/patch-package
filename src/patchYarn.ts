@@ -2,12 +2,20 @@ import { red, yellow } from "chalk"
 import { existsSync } from "fs"
 import { join } from "path"
 import { applyPatch } from "./applyPatches"
+import { bold, green } from "chalk"
 
 const yarnPatchFile = join(__dirname, "../yarn.patch")
 
 export default function patchYarn(appPath: string) {
   try {
     applyPatch(yarnPatchFile, "yarn")
+    const yarnVersion = require(join(
+      appPath,
+      "node_modules",
+      "yarn",
+      "package.json",
+    )).version
+    console.log(`${bold("yarn")}@${yarnVersion} ${green("✔")}`)
   } catch (e) {
     if (existsSync(join(appPath, "node_modules", "yarn"))) {
       printIncompatibleYarnError()

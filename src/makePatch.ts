@@ -6,14 +6,17 @@ import * as rimraf from "rimraf"
 import * as shellEscape from "shell-escape"
 import * as tmp from "tmp"
 
-export default function makePatch(packageName: string, appPath: string) {
+export default function makePatch(
+  packageName: string,
+  appPath: string,
+  packageManager: "yarn" | "npm",
+) {
   const nodeModulesPath = path.join(appPath, "node_modules")
   const packagePath = path.join(nodeModulesPath, packageName)
   const packageJsonPath = path.join(packagePath, "package.json")
   if (!fs.existsSync(packageJsonPath)) {
-    throw new Error(
-      `Unable to find local ${packageName} package.json at ${packageJsonPath}`,
-    )
+    printNoPackageFoundError(packageName, packageJsonPath)
+    process.exit(1)
   }
 
   const packageVersion = require(packageJsonPath).version
@@ -40,15 +43,45 @@ export default function makePatch(packageName: string, appPath: string) {
     const tmpExec = (cmd: string) => exec(cmd, { cwd: tmpRepo.name })
     // reinstall a clean version of the user's node_modules in our tmp location
     exec(shellEscape(["cp", path.join(appPath, "package.json"), tmpRepo.name]))
-    exec(shellEscape(["cp", path.join(appPath, "yarn.lock"), tmpRepo.name]))
-    tmpExec(`yarn`)
+    if (packageManager === "yarn") {
+      exec(shellEscape(["cp", path.join(appPath, "yarn.lock"), tmpRepo.name]))
+      tmpExec(`yarn`)
+    } else {
+      exec(
+        shellEscape([
+          "cp",
+          path.join(appPath, "package-lock.json"),
+          tmpRepo.name,
+        ]),
+      )
+      tmpExec(`npm i`)
+    }
 
     // commit the package
-    fs.writeFileSync(path.join(tmpRepo.name, ".gitignore"), "!/node_modules\n")
-    tmpExec(`git init`)
-    tmpExec(
-      shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]),
+    fs.writeFileSync(
+      path.join(tmpRepo.name, ".gitignore"),
+      "!/node_modules\n\n",
     )
+    tmpExec(`git init`)
+    const stageFiles = () => {
+      tmpExec(
+        shellEscape([
+          "git",
+          "add",
+          "-f",
+          path.join("node_modules", packageName),
+        ]),
+      )
+      tmpExec(
+        shellEscape([
+          "git",
+          "rm",
+          "--cached",
+          path.join("node_modules", packageName, "package.json"),
+        ]),
+      )
+    }
+    stageFiles()
     tmpExec(`git commit -m init`)
 
     // replace package with user's version
@@ -56,9 +89,8 @@ export default function makePatch(packageName: string, appPath: string) {
     exec(shellEscape(["cp", "-R", packagePath, tmpRepoPackagePath]))
 
     // add their files to the index
-    tmpExec(
-      shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]),
-    )
+    stageFiles()
+
     // get diff of changes
     const patch = tmpExec(`git diff HEAD`).toString()
 
@@ -76,4 +108,15 @@ export default function makePatch(packageName: string, appPath: string) {
   } finally {
     tmpRepo.removeCallback()
   }
+}
+
+function printNoPackageFoundError(
+  packageName: string,
+  packageJsonPath: string,
+) {
+  console.error(
+    `No such package ${packageName}
+
+  File not found: ${packageJsonPath}`,
+  )
 }

@@ -5,7 +5,7 @@ import { applyPatch } from "./applyPatches"
 
 const yarnPatchFile = join(__dirname, "../yarn.patch")
 
-export default function install(appPath: string) {
+export default function patchYarn(appPath: string) {
   try {
     applyPatch(yarnPatchFile, "yarn")
   } catch (e) {
@@ -28,8 +28,6 @@ version of yarn. Please update both.`)}
 function printNoYarnWarning() {
   console.warn(`
 ${yellow.bold("***Warning***")}
-${`patch-package currently only works after \`yarn remove\` when you install a
-project-local copy of yarn.`}
-See https://github.com/ds300/patch-package#why-patch-yarn for details
+You asked patch-package to patch yarn, but you don't seem to have yarn installed
 `)
 }

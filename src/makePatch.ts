@@ -11,7 +11,9 @@ export default function makePatch(packageName: string, appPath: string) {
   const packagePath = path.join(nodeModulesPath, packageName)
   const packageJsonPath = path.join(packagePath, "package.json")
   if (!fs.existsSync(packageJsonPath)) {
-    throw new Error(`Unable to find local ${packageName} package.json at ${packageJsonPath}`)
+    throw new Error(
+      `Unable to find local ${packageName} package.json at ${packageJsonPath}`,
+    )
   }
 
   const packageVersion = require(packageJsonPath).version
@@ -27,7 +29,7 @@ export default function makePatch(packageName: string, appPath: string) {
       fs.mkdirSync(patchesDir)
     } else {
       // remove exsiting patch for this package, if any
-      fs.readdirSync(patchesDir).forEach((fileName) => {
+      fs.readdirSync(patchesDir).forEach(fileName => {
         if (fileName.startsWith(packageName + ":")) {
           console.log("removing", path.join(patchesDir, fileName))
           fs.unlinkSync(path.join(patchesDir, fileName))
@@ -44,7 +46,9 @@ export default function makePatch(packageName: string, appPath: string) {
     // commit the package
     fs.writeFileSync(path.join(tmpRepo.name, ".gitignore"), "!/node_modules\n")
     tmpExec(`git init`)
-    tmpExec(shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]))
+    tmpExec(
+      shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]),
+    )
     tmpExec(`git commit -m init`)
 
     // replace package with user's version
@@ -52,7 +56,9 @@ export default function makePatch(packageName: string, appPath: string) {
     exec(shellEscape(["cp", "-R", packagePath, tmpRepoPackagePath]))
 
     // add their files to the index
-    tmpExec(shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]))
+    tmpExec(
+      shellEscape(["git", "add", "-f", path.join("node_modules", packageName)]),
+    )
     // get diff of changes
     const patch = tmpExec(`git diff HEAD`).toString()
 

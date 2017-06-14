@@ -11,21 +11,21 @@ export default function findPatchFiles(appPath: string) {
   }
   const files = fs
     .readdirSync(patchesDirectory)
-    .filter((filename) => filename.match(/^.+:.+\.patch$/))
+    .filter(filename => filename.match(/^.+:.+\.patch$/))
 
   if (files.length === 0) {
     console.log(cyan("No patch files found"))
   } else {
     console.log("Applying patches to node_modules...")
   }
-  files.forEach((filename) => {
+  files.forEach(filename => {
     const [packageName, version] = filename.slice(0, -6).split(":")
     const packageDir = path.join(appPath, "node_modules", packageName)
 
     if (!fs.existsSync(packageDir)) {
       console.warn(
-        `${red("Warning:")} Patch file found for package ${packageName}`
-        + ` which is not present at ${packageDir}`,
+        `${red("Warning:")} Patch file found for package ${packageName}` +
+          ` which is not present at ${packageDir}`,
       )
       return null
     }
@@ -42,7 +42,12 @@ export default function findPatchFiles(appPath: string) {
       }
     } catch (e) {
       // completely failed to apply patch
-      printPatchApplictionFailureError(packageName, packageJson.version, version, filename)
+      printPatchApplictionFailureError(
+        packageName,
+        packageJson.version,
+        version,
+        filename,
+      )
       process.exit(1)
     }
   })
@@ -53,15 +58,19 @@ export function applyPatch(patchFilePath: string, packageName: string) {
     exec("patch -p1 --dry-run -i " + patchFilePath)
     exec("patch -p1 --no-backup-if-mismatch -i " + patchFilePath)
   } catch (e) {
-    // patch cli tool has no way to fail gracefully if patch was already applied,
-    // so to check, we need to try a dry-run of applying the patch in reverse, and
-    // if that works it means the patch was already applied sucessfully. Otherwise
-    // the patch just failed for some reason.
+    // patch cli tool has no way to fail gracefully if patch was already
+    // applied, so to check, we need to try a dry-run of applying the patch in
+    // reverse, and if that works it means the patch was already applied
+    // sucessfully. Otherwise the patch just failed for some reason.
     exec("patch --reverse --dry-run -p1 -i " + patchFilePath)
   }
 }
 
-function printVersionMismatchWarning(packageName: string, actualVersion: string, originalVersion: string) {
+function printVersionMismatchWarning(
+  packageName: string,
+  actualVersion: string,
+  originalVersion: string,
+) {
   console.warn(`
 ${red("Warning:")} patch-package detected a patch file version mismatch
 
@@ -93,7 +102,9 @@ function printPatchApplictionFailureError(
   patchFileName: string,
 ) {
   console.error(`
-${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(packageName)}`)}
+${red.bold("**ERROR**")} ${red(
+    `Failed to apply patch for package ${bold(packageName)}`,
+  )}
 
   This error was caused because ${bold(packageName)} has changed since you
   made the patch file for it. This introduced conflicts with your patch,
@@ -128,6 +139,8 @@ ${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(package
 
   Info:
     Patch was made for version ${green.bold(originalVersion)}
-    Meanwhile node_modules/${bold(packageName)} is version ${red.bold(actualVersion)}
+    Meanwhile node_modules/${bold(packageName)} is version ${red.bold(
+    actualVersion,
+  )}
 `)
 }

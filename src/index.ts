@@ -27,7 +27,9 @@ Usage:
     ${bold("patch-package")}${italic("[ <package-name>]")}
 
 
-  Without arguments, the ${bold("patch-package")} command will attempt to find and apply
+  Without arguments, the ${bold(
+    "patch-package",
+  )} command will attempt to find and apply
   patch files to your project. It looks for files named like
 
      ./patches/<package-name>:<version>.patch

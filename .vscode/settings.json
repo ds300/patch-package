@@ -1,6 +1,8 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "editor.formatOnPaste": true,
+  "prettier.semi": false,
+  "prettier.trailingComma": "all",
   "editor.formatOnSave": true,
   "tslint.enable": true
 }

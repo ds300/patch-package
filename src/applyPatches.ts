@@ -126,8 +126,10 @@ ${red.bold("**ERROR**")} ${red(
      ${bold(`patch -p1 -i patches/${patchFileName} --verbose --dry-run`)}
 
   To list rejected hunks. A 'hunk' is a section of patch file that describes
-  one contiguous area of changes. They are delimited by empty lines and numbered
-  starting from 1.
+  one contiguous area of changes. They are numbered from 1 and begin with lines
+  that look like this:
+
+    diff --git a/node_modules/thing/thing.js b/node_modules/thing/thing.json
 
   Remove the conflicting hunks, then manually edit files in
 

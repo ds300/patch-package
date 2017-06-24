@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.1
+
+- Make update-notifier message show local install
+
 ## 3.2.0
 
 - Add update-notifier to notify users of patch-package updates

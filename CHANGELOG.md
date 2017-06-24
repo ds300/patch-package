@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0
+
+- Add support for scoped packages
+
 ## 3.0.0
 
 - Add support for npm5

@@ -54,6 +54,7 @@
     "minimist": "^1.2.0",
     "rimraf": "^2.6.1",
     "shell-escape": "^0.2.0",
-    "tmp": "^0.0.31"
+    "tmp": "^0.0.31",
+    "update-notifier": "^2.2.0"
   }
 }

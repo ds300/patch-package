@@ -3,14 +3,14 @@ import { execSync as exec } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 import { env } from "process"
+import {getPatchFiles} from "./patchFs"
 
 export default function findPatchFiles(appPath: string) {
   const patchesDirectory = path.join(appPath, "patches")
   if (!fs.existsSync(patchesDirectory)) {
     return []
   }
-  const files = fs
-    .readdirSync(patchesDirectory)
+  const files = getPatchFiles(patchesDirectory)
     .filter(filename => filename.match(/^.+:.+\.patch$/))
 
   if (files.length === 0) {

@@ -6,6 +6,7 @@ import * as rimraf from "rimraf"
 import * as shellEscape from "shell-escape"
 import * as tmp from "tmp"
 import resolveRelativeFileDependencies from "./resolveRelativeFileDependencies"
+import { getPatchFiles } from "./patchFs"
 
 export default function makePatch(
   packageName: string,
@@ -34,7 +35,7 @@ export default function makePatch(
       fs.mkdirSync(patchesDir)
     } else {
       // remove exsiting patch for this package, if any
-      fs.readdirSync(patchesDir).forEach(fileName => {
+      getPatchFiles(patchesDir).forEach(fileName => {
         if (fileName.startsWith(packageName + ":")) {
           console.log("removing", path.join(patchesDir, fileName))
           fs.unlinkSync(path.join(patchesDir, fileName))
@@ -112,7 +113,12 @@ export default function makePatch(
       console.warn(`⁉️  There don't appear to be any changes.`)
     } else {
       const patchFileName = `${packageName}:${packageVersion}.patch`
-      fs.writeFileSync(path.join(patchesDir, patchFileName), patch)
+      const patchPath = path.join(patchesDir, patchFileName)
+      if (!fs.existsSync(path.dirname(patchPath))) {
+        // scoped package
+        fs.mkdirSync(path.dirname(patchPath))
+      }
+      fs.writeFileSync(patchPath, patch)
       console.log(`Created file patches/${patchFileName} ${green("✔")}`)
     }
   } catch (e) {

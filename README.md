@@ -1,24 +1,22 @@
 # patch-package 📦👌
 
-### Can't afford to wait for that PR to land? Need a quick fix right now?
+## Can't afford to wait for that PR to land? Need a quick fix right now?
 
-patch-package lets you easily make small necessary changes to packages in your
-`node_modules` folder, without the headache of forking repos or worse.
+`patch-package` lets app authors instantly make small necessary fixes to npm
+dependencies
 
 ```sh
 # fix a bug in one of your deps
 vim node_modules/some-package/brokenFile.js
 # run patch-package to create a .patch file
 patch-package some-package
-# commit the patch file
+# commit the patch file to share the fix with your team
 git add patches/some-package:3.14.15.patch
 git commit -m "fix brokenFile.js in some-package"
 ```
 
 Patches created by `patch-package` are automatically and gracefully applied
-any time the contents of node_modules is installed by `npm`(>=5) or `yarn`. You get helpful warnings
-if the versions of patched dependencies change, and helpful errors when patches can
-no longer be applied due to upstream conflicts.
+any time the contents of node_modules is installed by `npm`(>=5) or `yarn`. If a patched dependency gets a version bump the patch file you created might not make sense anymore, so `patch-package` will explicitly prompt you to check.
 
 ## Set-up
 
@@ -75,7 +73,7 @@ command, of course.
 ## Isn't this dangerous?
 
 Nah. You're just fixing your dependencies. Just don't do anything wild with it
-unless you're certain you're the only consumer of the effected dependency.
+unless you're certain you're the only consumer of the affected dependency.
 
 ## Why patch Yarn?
 

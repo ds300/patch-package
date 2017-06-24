@@ -85,7 +85,7 @@ Plain unpatched Yarn only runs the `prepare` hook after `yarn` and `yarn add`, b
 
 All that you need to do to enable this patch is install a project-local copy of yarn:
 
-yarn add --dev yarn
+    yarn add --dev yarn
 
 And then run
 
@@ -93,7 +93,7 @@ And then run
 
 The output should be `./node_modules/.bin/yarn`. If not, make sure `./node_modules/.bin/` is at the start of your `PATH` environment variable.
 
-\* If you ever use `npm` by accident or run `yarn remove` from a non-root project directory, things might break. But just run `yarn` again to restore order.
+\* If you ever run `yarn remove` from a non-root project directory, things might break. But just run `yarn` again to restore order.
 
 ## License
 

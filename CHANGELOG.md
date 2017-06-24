@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.0
+
+- Add update-notifier to notify users of patch-package updates
+
 ## 3.1.0
 
 - Add support for scoped packages

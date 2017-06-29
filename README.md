@@ -2,7 +2,7 @@
 
 ## Can't afford to wait for that PR to land? Need a quick fix right now?
 
-`patch-package` lets app authors instantly make small necessary fixes to npm
+`patch-package` lets app authors instantly make and keep small necessary fixes to npm
 dependencies
 
 ```sh

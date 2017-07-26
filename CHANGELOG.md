@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.3.0
+
+- Use `+` instead of `:` in patch file names because `:` is illegal on Windows.
 ## 3.2.1
 
 - Make update-notifier message show local install

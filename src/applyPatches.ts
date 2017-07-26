@@ -3,22 +3,25 @@ import { execSync as exec } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 import { env } from "process"
-import {getPatchFiles} from "./patchFs"
+import { getPatchFiles } from "./patchFs"
 
 export default function findPatchFiles(appPath: string) {
   const patchesDirectory = path.join(appPath, "patches")
   if (!fs.existsSync(patchesDirectory)) {
     return []
   }
-  const files = getPatchFiles(patchesDirectory)
-    .filter(filename => filename.match(/^.+:.+\.patch$/))
+  const files = getPatchFiles(patchesDirectory).filter(filename =>
+    filename.match(/^.+(:|\+).+\.patch$/),
+  )
 
   if (files.length === 0) {
     console.log(cyan("No patch files found"))
   }
 
   files.forEach(filename => {
-    const [packageName, version] = filename.slice(0, -6).split(":")
+    const [_, packageName, __, version] = filename.match(
+      /^(.+?)(:|\+)(.+)\.patch$/,
+    ) as string[]
     const packageDir = path.join(appPath, "node_modules", packageName)
 
     if (!fs.existsSync(packageDir)) {

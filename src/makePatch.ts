@@ -36,7 +36,10 @@ export default function makePatch(
     } else {
       // remove exsiting patch for this package, if any
       getPatchFiles(patchesDir).forEach(fileName => {
-        if (fileName.startsWith(packageName + ":")) {
+        if (
+          fileName.startsWith(packageName + ":") ||
+          fileName.startsWith(packageName + "+")
+        ) {
           console.log("removing", path.join(patchesDir, fileName))
           fs.unlinkSync(path.join(patchesDir, fileName))
         }
@@ -112,7 +115,7 @@ export default function makePatch(
       console.warn(`⁉️  Not creating patch file for package '${packageName}'`)
       console.warn(`⁉️  There don't appear to be any changes.`)
     } else {
-      const patchFileName = `${packageName}:${packageVersion}.patch`
+      const patchFileName = `${packageName}+${packageVersion}.patch`
       const patchPath = path.join(patchesDir, patchFileName)
       if (!fs.existsSync(path.dirname(patchPath))) {
         // scoped package

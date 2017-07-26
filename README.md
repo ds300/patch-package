@@ -11,7 +11,7 @@ vim node_modules/some-package/brokenFile.js
 # run patch-package to create a .patch file
 patch-package some-package
 # commit the patch file to share the fix with your team
-git add patches/some-package:3.14.15.patch
+git add patches/some-package+3.14.15.patch
 git commit -m "fix brokenFile.js in some-package"
 ```
 
@@ -41,7 +41,7 @@ First make changes to the files of a particular package in your node_modules fol
 where `package-name` matches the name of the package you made changes to.
 
 If this is the first time you've used `patch-package`, it will create a folder called `patches` in
-the root dir of your app. Inside will be a file called `package-name:0.44.0.patch` or something,
+the root dir of your app. Inside will be a file called `package-name+0.44.0.patch` or something,
 which is a diff between normal old `package-name` and your fixed version. Commit this to share the fix with your team.
 
 ### Updating patches
@@ -55,7 +55,7 @@ run patch-package without arguments to apply all patches in your project.
 patch-package cannot apply individual packages just yet, but you can use the unix `patch`
 command, of course.
 
-    patch --forward -p1 -i patches/package-name:0.44.2.patch
+    patch --forward -p1 -i patches/package-name+0.44.2.patch
 
 ## Benefits of patching over forking
 

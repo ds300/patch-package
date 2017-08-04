@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.1
+
+- Use `fs-extra` to copy files instead of the `cp` shell command, which doesn't
+  work on Windows
+
 ## 3.3.0
 
 - Use `+` instead of `:` in patch file names because `:` is illegal on Windows.

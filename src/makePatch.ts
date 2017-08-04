@@ -7,6 +7,7 @@ import * as shellEscape from "shell-escape"
 import * as tmp from "tmp"
 import resolveRelativeFileDependencies from "./resolveRelativeFileDependencies"
 import { getPatchFiles } from "./patchFs"
+import * as fsExtra from "fs-extra"
 
 export default function makePatch(
   packageName: string,
@@ -48,7 +49,10 @@ export default function makePatch(
 
     const tmpExec = (cmd: string) => exec(cmd, { cwd: tmpRepo.name })
     // reinstall a clean version of the user's node_modules in our tmp location
-    exec(shellEscape(["cp", path.join(appPath, "package.json"), tmpRepo.name]))
+    fsExtra.copySync(
+      path.join(appPath, "package.json"),
+      path.join(tmpRepo.name, "package.json"),
+    )
     // resolve relative file paths in package.json
     fs.writeFileSync(
       tmpRepoPackageJsonPath,
@@ -61,15 +65,15 @@ export default function makePatch(
     )
 
     if (packageManager === "yarn") {
-      exec(shellEscape(["cp", path.join(appPath, "yarn.lock"), tmpRepo.name]))
+      fsExtra.copySync(
+        path.join(appPath, "yarn.lock"),
+        path.join(tmpRepo.name, "yarn.lock"),
+      )
       tmpExec(`yarn`)
     } else {
-      exec(
-        shellEscape([
-          "cp",
-          path.join(appPath, "package-lock.json"),
-          tmpRepo.name,
-        ]),
+      fsExtra.copySync(
+        path.join(appPath, "package-lock.json"),
+        path.join(tmpRepo.name, "package-lock.json"),
       )
       tmpExec(`npm i`)
     }
@@ -103,7 +107,7 @@ export default function makePatch(
 
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)
-    exec(shellEscape(["cp", "-R", packagePath, tmpRepoPackagePath]))
+    fsExtra.copySync(packagePath, tmpRepoPackagePath, { recursive: true })
 
     // add their files to the index
     stageFiles()

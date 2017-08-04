@@ -50,10 +50,10 @@
   },
   "dependencies": {
     "chalk": "^1.1.3",
+    "cross-spawn": "^5.1.0",
     "fs-extra": "^4.0.1",
     "minimist": "^1.2.0",
     "rimraf": "^2.6.1",
-    "shell-escape": "^0.2.0",
     "tmp": "^0.0.31",
     "update-notifier": "^2.2.0"
   }

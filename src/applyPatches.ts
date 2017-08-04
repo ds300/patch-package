@@ -1,8 +1,8 @@
 import { blue, bold, cyan, green, red } from "chalk"
-import { execSync as exec } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 import { env } from "process"
+import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 
 export default function findPatchFiles(appPath: string) {
@@ -57,14 +57,16 @@ export default function findPatchFiles(appPath: string) {
 
 export function applyPatch(patchFilePath: string, packageName: string) {
   try {
-    exec("patch -p1 --dry-run -i " + patchFilePath)
-    exec("patch -p1 --no-backup-if-mismatch -i " + patchFilePath)
+    spawnSafeSync("git", ["apply", "--check", patchFilePath], {
+      noStderrOnError: true,
+    })
+    spawnSafeSync("git", ["apply", patchFilePath], { noStderrOnError: true })
   } catch (e) {
     // patch cli tool has no way to fail gracefully if patch was already
     // applied, so to check, we need to try a dry-run of applying the patch in
     // reverse, and if that works it means the patch was already applied
     // sucessfully. Otherwise the patch just failed for some reason.
-    exec("patch --reverse --dry-run -p1 -i " + patchFilePath)
+    spawnSafeSync("git", ["apply", "--reverse", "--check", patchFilePath])
   }
 }
 

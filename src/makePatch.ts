@@ -1,11 +1,10 @@
 import { green } from "chalk"
-import { execSync as exec } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 import * as rimraf from "rimraf"
-import * as shellEscape from "shell-escape"
 import * as tmp from "tmp"
 import resolveRelativeFileDependencies from "./resolveRelativeFileDependencies"
+import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 
@@ -47,7 +46,8 @@ export default function makePatch(
       })
     }
 
-    const tmpExec = (cmd: string) => exec(cmd, { cwd: tmpRepo.name })
+    const tmpExec = (command: string, args?: string[]) =>
+      spawnSafeSync(command, args, { cwd: tmpRepo.name })
     // reinstall a clean version of the user's node_modules in our tmp location
     fsExtra.copySync(
       path.join(appPath, "package.json"),
@@ -75,7 +75,7 @@ export default function makePatch(
         path.join(appPath, "package-lock.json"),
         path.join(tmpRepo.name, "package-lock.json"),
       )
-      tmpExec(`npm i`)
+      tmpExec("npm", ["i"])
     }
 
     // commit the package
@@ -83,27 +83,17 @@ export default function makePatch(
       path.join(tmpRepo.name, ".gitignore"),
       "!/node_modules\n\n",
     )
-    tmpExec(`git init`)
+    tmpExec("git", ["init"])
     const stageFiles = () => {
-      tmpExec(
-        shellEscape([
-          "git",
-          "add",
-          "-f",
-          path.join("node_modules", packageName),
-        ]),
-      )
-      tmpExec(
-        shellEscape([
-          "git",
-          "rm",
-          "--cached",
-          path.join("node_modules", packageName, "package.json"),
-        ]),
-      )
+      tmpExec("git", ["add", "-f", path.join("node_modules", packageName)])
+      tmpExec("git", [
+        "rm",
+        "--cached",
+        path.join("node_modules", packageName, "package.json"),
+      ])
     }
     stageFiles()
-    tmpExec(`git commit -m init`)
+    tmpExec("git", ["commit", "-m", "init"])
 
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)
@@ -113,7 +103,7 @@ export default function makePatch(
     stageFiles()
 
     // get diff of changes
-    const patch = tmpExec(`git diff HEAD`).toString()
+    const patch = tmpExec("git", ["diff", "HEAD"]).output.toString()
 
     if (patch.trim() === "") {
       console.warn(`⁉️  Not creating patch file for package '${packageName}'`)

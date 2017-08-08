@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.3.2
+
+Windows fixes:
+
+- Use `cross-spawn` for spawning child processes
+- Use `git apply` for applying patches, rather than `patch`
+
 ## 3.3.1
 
 - Use `fs-extra` to copy files instead of the `cp` shell command, which doesn't

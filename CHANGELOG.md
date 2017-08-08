@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.3
+
+- Fix bug introduced in 3.3.2
+- Add progress reporting during patch making
+
 ## 3.3.2
 
 Windows fixes:

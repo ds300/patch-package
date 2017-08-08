@@ -1,6 +1,6 @@
 {
   "name": "patch-package",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "When forking just won't work, patch it.",
   "main": "dist/index.js",
   "repository": "https://github.com/ds300/patch-package",
@@ -28,7 +28,11 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js"]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",

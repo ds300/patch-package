@@ -103,7 +103,7 @@ export default function makePatch(
     stageFiles()
 
     // get diff of changes
-    const patch = tmpExec("git", ["diff", "HEAD"]).output.toString()
+    const patch = tmpExec("git", ["diff", "HEAD"]).stdout.toString()
 
     if (patch.trim() === "") {
       console.warn(`⁉️  Not creating patch file for package '${packageName}'`)

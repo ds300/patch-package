@@ -40,11 +40,17 @@ export default function makePatch(
           fileName.startsWith(packageName + ":") ||
           fileName.startsWith(packageName + "+")
         ) {
-          console.log("removing", path.join(patchesDir, fileName))
+          console.info(
+            green("☑"),
+            "Removing existing",
+            path.relative(process.cwd(), path.join(patchesDir, fileName)),
+          )
           fs.unlinkSync(path.join(patchesDir, fileName))
         }
       })
     }
+
+    console.info(green("☑"), "Creating temporary folder")
 
     const tmpExec = (command: string, args?: string[]) =>
       spawnSafeSync(command, args, { cwd: tmpRepo.name })
@@ -69,16 +75,19 @@ export default function makePatch(
         path.join(appPath, "yarn.lock"),
         path.join(tmpRepo.name, "yarn.lock"),
       )
+      console.info(green("☑"), "Building clean node_modules with yarn")
       tmpExec(`yarn`)
     } else {
       fsExtra.copySync(
         path.join(appPath, "package-lock.json"),
         path.join(tmpRepo.name, "package-lock.json"),
       )
+      console.info(green("☑"), "Building clean node_modules with npm")
       tmpExec("npm", ["i"])
     }
 
     // commit the package
+    console.info(green("☑"), "Diffing your files with clean files")
     fs.writeFileSync(
       path.join(tmpRepo.name, ".gitignore"),
       "!/node_modules\n\n",
@@ -116,7 +125,7 @@ export default function makePatch(
         fs.mkdirSync(path.dirname(patchPath))
       }
       fs.writeFileSync(patchPath, patch)
-      console.log(`Created file patches/${patchFileName} ${green("✔")}`)
+      console.log(`${green("✔")} Created file patches/${patchFileName}`)
     }
   } catch (e) {
     console.error(e)

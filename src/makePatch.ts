@@ -117,6 +117,7 @@ export default function makePatch(
     if (patch.trim() === "") {
       console.warn(`⁉️  Not creating patch file for package '${packageName}'`)
       console.warn(`⁉️  There don't appear to be any changes.`)
+      process.exit(1)
     } else {
       const patchFileName = `${packageName}+${packageVersion}.patch`
       const patchPath = path.join(patchesDir, patchFileName)

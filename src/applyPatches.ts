@@ -1,7 +1,6 @@
-import { blue, bold, cyan, green, red } from "chalk"
+import { bold, cyan, green, red } from "chalk"
 import * as fs from "fs"
 import * as path from "path"
-import { env } from "process"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 
@@ -19,9 +18,9 @@ export default function findPatchFiles(appPath: string) {
   }
 
   files.forEach(filename => {
-    const [_, packageName, __, version] = filename.match(
-      /^(.+?)(:|\+)(.+)\.patch$/,
-    ) as string[]
+    const match = filename.match(/^(.+?)(:|\+)(.+)\.patch$/) as string[]
+    const packageName = match[1]
+    const version = match[3]
     const packageDir = path.join(appPath, "node_modules", packageName)
 
     if (!fs.existsSync(packageDir)) {
@@ -35,7 +34,7 @@ export default function findPatchFiles(appPath: string) {
     const packageJson = require(path.join(packageDir, "package.json"))
 
     try {
-      applyPatch(path.resolve(patchesDirectory, filename), packageName)
+      applyPatch(path.resolve(patchesDirectory, filename))
 
       if (packageJson.version !== version) {
         printVersionMismatchWarning(packageName, packageJson.version, version)
@@ -55,7 +54,7 @@ export default function findPatchFiles(appPath: string) {
   })
 }
 
-export function applyPatch(patchFilePath: string, packageName: string) {
+export function applyPatch(patchFilePath: string) {
   try {
     spawnSafeSync("git", ["apply", "--check", patchFilePath], {
       logStdErrOnError: false,
@@ -66,7 +65,9 @@ export function applyPatch(patchFilePath: string, packageName: string) {
     // applied, so to check, we need to try a dry-run of applying the patch in
     // reverse, and if that works it means the patch was already applied
     // sucessfully. Otherwise the patch just failed for some reason.
-    spawnSafeSync("git", ["apply", "--reverse", "--check", patchFilePath])
+    spawnSafeSync("git", ["apply", "--reverse", "--check", patchFilePath], {
+      logStdErrOnError: false,
+    })
   }
 }
 

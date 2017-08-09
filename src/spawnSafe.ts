@@ -1,6 +1,12 @@
 import { sync as spawnSync } from "cross-spawn"
 
-const defaultOptions = {
+export interface SpawnSafeOptions {
+  throwOnError?: boolean
+  logStdErrOnError?: boolean
+  cwd?: string
+}
+
+const defaultOptions: SpawnSafeOptions = {
   logStdErrOnError: true,
   throwOnError: true,
 }
@@ -8,11 +14,7 @@ const defaultOptions = {
 export default function spawnSafeSync(
   command: string,
   args?: string[],
-  options?: {
-    throwOnError?: boolean
-    logStdErrOnError?: boolean
-    cwd?: string
-  },
+  options?: SpawnSafeOptions,
 ) {
   const mergedOptions = Object.assign({}, defaultOptions, options)
   const result = spawnSync(command, args, options)

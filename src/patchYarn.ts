@@ -8,7 +8,7 @@ const yarnPatchFile = join(__dirname, "../yarn.patch")
 
 export default function patchYarn(appPath: string) {
   try {
-    applyPatch(yarnPatchFile, "yarn")
+    applyPatch(yarnPatchFile)
     const yarnVersion = require(join(
       appPath,
       "node_modules",

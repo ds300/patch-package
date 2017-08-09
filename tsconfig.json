@@ -7,6 +7,8 @@
     ],
     "strict": true,
     "outDir": "dist",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "inlineSourceMap": true,
     "inlineSources": true
   },

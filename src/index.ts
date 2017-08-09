@@ -1,4 +1,4 @@
-import { bold, cyan, italic } from "chalk"
+import { bold, italic } from "chalk"
 import * as process from "process"
 import applyPatches from "./applyPatches"
 import getAppRootPath from "./getAppRootPath"

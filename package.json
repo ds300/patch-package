@@ -29,7 +29,11 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "src/.*(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js"]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",
@@ -47,7 +51,7 @@
     "prettier": "^1.5.3",
     "ts-jest": "^20.0.10",
     "tslint": "^5.2.0",
-    "typescript": "^2.3.4"
+    "typescript": "^2.4.2"
   },
   "dependencies": {
     "chalk": "^1.1.3",

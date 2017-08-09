@@ -5,10 +5,11 @@ import * as path from "path"
 import * as tmp from "tmp"
 
 describe("patch-package", () => {
-  it("should produce patches which can be applied with yarn", () => {
-    // make sure it's installed
-    spawnSync("yarn", ["link"])
+  // make sure it's installed
+  spawnSync("yarn", ["build"])
+  spawnSync("yarn", ["link"])
 
+  it("should produce patches which can be applied with yarn", () => {
     // create temp dir
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
 

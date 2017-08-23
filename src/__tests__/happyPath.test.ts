@@ -1,14 +1,12 @@
 import spawnSync from "../spawnSafe"
+import { patchPackageTarballPath } from "./testProjects"
 import * as fs from "fs"
 import * as path from "path"
 
 import * as tmp from "tmp"
 
 describe("patch-package", () => {
-  // make sure it's installed
-  spawnSync("yarn", ["build"])
-  spawnSync("yarn", ["link"])
-
+  const patchPackageBin = "./node_modules/.bin/patch-package"
   it("should produce patches which can be applied with yarn", () => {
     // create temp dir
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
@@ -21,6 +19,7 @@ describe("patch-package", () => {
       "name": "test",
       "private": true,
       "dependencies": {
+        "patch-package": "file:${patchPackageTarballPath}",
         "left-pad": "1.1.3"
       },
       "scripts": {
@@ -46,7 +45,7 @@ describe("patch-package", () => {
     fs.writeFileSync(leftPadPath, mutatedLeftPadSource)
 
     // make patch
-    tmpSpawn("patch-package", ["left-pad"])
+    tmpSpawn(patchPackageBin, ["left-pad"])
 
     // snapshot it
     const patchContents = fs
@@ -86,6 +85,7 @@ describe("patch-package", () => {
       "name": "test",
       "private": true,
       "dependencies": {
+        "patch-package": "file:${patchPackageTarballPath}",
         "left-pad": "1.1.3"
       },
       "scripts": {
@@ -111,7 +111,7 @@ describe("patch-package", () => {
     fs.writeFileSync(leftPadPath, mutatedLeftPadSource)
 
     // make patch
-    tmpSpawn("patch-package", ["left-pad"])
+    tmpSpawn(patchPackageBin, ["left-pad"])
 
     // snapshot it
     const patchContents = fs

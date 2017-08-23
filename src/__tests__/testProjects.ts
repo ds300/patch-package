@@ -5,6 +5,14 @@ import * as path from "path"
 
 import spawnSafe from "../spawnSafe"
 
+export const patchPackageTarballPath = path.resolve(
+  fs
+    .readdirSync("./")
+    .filter(
+      name => name.endsWith(".tgz") && name.startsWith("patch-package"),
+    )[0],
+)
+
 export function initTestProject(testProjectName: string) {
   // copy left-pad-breakage repo to temp folder
   const tmpDir = tmp.dirSync({
@@ -38,6 +46,7 @@ export function initTestProject(testProjectName: string) {
       )
     },
     install() {
+      spawnSync("yarn", ["add", "file:" + patchPackageTarballPath])
       return spawnSync("yarn", ["install"])
     },
   }

@@ -16,7 +16,7 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
-    "test": "jest"
+    "test": "yarn pack && jest"
   },
   "lint-staged": {
     "*.ts": [
@@ -29,11 +29,7 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "src/.*(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ]
+    "moduleFileExtensions": ["ts", "tsx", "js"]
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",

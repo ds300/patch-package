@@ -1,12 +1,6 @@
-import spawnSync from "../spawnSafe"
-
 import { initTestProject } from "./testProjects"
 
 describe("patch-package", () => {
-  // make sure patch-package is installed
-  spawnSync("yarn", ["build"])
-  spawnSync("yarn", ["link"])
-
   // copy left-pad-breakage repo to temp folder
   const project = initTestProject("left-pad-breakage")
 

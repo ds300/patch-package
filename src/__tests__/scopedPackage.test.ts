@@ -1,12 +1,6 @@
-import spawnSync from "../spawnSafe"
-
 import { initTestProject } from "./testProjects"
 
 describe("patch-package", () => {
-  // make sure it's installed
-  spawnSync("yarn", ["build"])
-  spawnSync("yarn", ["link"])
-
   const project = initTestProject("scoped-package")
   project.install()
 
@@ -27,7 +21,7 @@ describe("patch-package", () => {
       `import { add } from "./index";
 export = patch-package;`,
     )
-    project.spawnSync("patch-package", ["@types/lodash"])
+    project.spawnSync("yarn", ["patch-package", "@types/lodash"])
     expect(project.readFileSync("patches", "@types", "lodash+4.14.72.patch"))
   })
 })

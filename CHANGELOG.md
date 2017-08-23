@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.4
+
+- Pass --unsafe-paths option to `git apply` to let it work on arbitrary
+  file paths (i.e. files which are not in a git repo or files which are
+  outside of the working directory)
+
 ## 3.3.3
 
 - Fix bug introduced in 3.3.2

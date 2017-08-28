@@ -1,4 +1,7 @@
 # Changelog
+## 3.3.5
+- Resolve paths in patch files for situations where the git root is not
+the same as the app root.
 
 ## 3.3.4
 

@@ -2,9 +2,15 @@ import { bold, cyan, green, red } from "chalk"
 import * as fs from "fs"
 import * as path from "path"
 import spawnSafeSync from "./spawnSafe"
-import { getPatchFiles } from "./patchFs"
+import { getPatchFiles, temporarilyResolvePathsAgainstGitRoot } from "./patchFs"
+import { getGitRootPath } from "./git"
 
 export default function findPatchFiles(appPath: string) {
+  const gitRootPath = getGitRootPath()
+  const appNotAtGitRoot =
+    gitRootPath !== null &&
+    path.normalize(appPath) !== path.normalize(gitRootPath)
+
   const patchesDirectory = path.join(appPath, "patches")
   if (!fs.existsSync(patchesDirectory)) {
     return []
@@ -34,7 +40,16 @@ export default function findPatchFiles(appPath: string) {
     const packageJson = require(path.join(packageDir, "package.json"))
 
     try {
-      applyPatch(path.resolve(patchesDirectory, filename))
+      const patchFilePath =
+        gitRootPath !== null && appNotAtGitRoot
+          ? temporarilyResolvePathsAgainstGitRoot(
+              gitRootPath,
+              appPath,
+              path.resolve(patchesDirectory, filename),
+            )
+          : path.resolve(patchesDirectory, filename)
+
+      applyPatch(patchFilePath)
 
       if (packageJson.version !== version) {
         printVersionMismatchWarning(packageName, packageJson.version, version)
@@ -63,6 +78,7 @@ export function applyPatch(patchFilePath: string) {
         logStdErrOnError: false,
       },
     )
+
     spawnSafeSync("git", ["apply", "--unsafe-paths", patchFilePath], {
       logStdErrOnError: false,
     })

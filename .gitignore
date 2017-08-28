@@ -58,3 +58,4 @@ typings/
 .env
 
 dist/
+patch-package.test.tgz

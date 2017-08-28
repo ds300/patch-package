@@ -5,13 +5,7 @@ import * as path from "path"
 
 import spawnSafe from "../spawnSafe"
 
-export const patchPackageTarballPath = path.resolve(
-  fs
-    .readdirSync("./")
-    .filter(
-      name => name.endsWith(".tgz") && name.startsWith("patch-package"),
-    )[0],
-)
+export const patchPackageTarballPath = path.resolve("./patch-package.test.tgz")
 
 export function initTestProject(testProjectName: string) {
   // copy left-pad-breakage repo to temp folder

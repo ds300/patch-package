@@ -1,5 +1,7 @@
-import * as fs from "fs"
+import * as fs from "fs-extra"
 import * as path from "path"
+import * as tmp from "tmp"
+import * as os from "os"
 
 function _getPatchFiles(
   rootPatchesDir: string,
@@ -21,4 +23,51 @@ function _getPatchFiles(
 
 export function getPatchFiles(patchesDir: string) {
   return _getPatchFiles(patchesDir)
+}
+
+function relativeToGitRoot(
+  gitRoot: string,
+  appRoot: string,
+  filePath: string,
+): string {
+  return path.relative(gitRoot, path.resolve(appRoot, filePath))
+}
+
+// only exported for testing
+export function resolvePathsInPatchFile(
+  gitRoot: string,
+  appRoot: string,
+  patchFileContents: string,
+): string {
+  // only need to replace lines starting with `---` and `+++` since
+  // git ignores lines starting with `diff`
+  return patchFileContents
+    .split(/\r?\n/)
+    .map(line => {
+      if (line.startsWith("+++") || line.startsWith("---")) {
+        return (
+          line.slice(0, 6) + relativeToGitRoot(gitRoot, appRoot, line.slice(6))
+        )
+      } else {
+        return line
+      }
+    })
+    .join(os.EOL)
+}
+
+export function temporarilyResolvePathsAgainstGitRoot(
+  gitRootPath: string,
+  appRootPath: string,
+  patchFilePath: string,
+): string {
+  const existingPatchFileContents = fs.readFileSync(patchFilePath).toString()
+  const resolvedPatchFileContents = resolvePathsInPatchFile(
+    gitRootPath,
+    appRootPath,
+    existingPatchFileContents,
+  )
+
+  const tmpFile = tmp.fileSync({ unsafeCleanup: true })
+  fs.writeFileSync(tmpFile.name, resolvedPatchFileContents)
+  return tmpFile.name
 }

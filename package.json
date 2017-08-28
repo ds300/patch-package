@@ -16,7 +16,7 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
-    "test": "yarn pack && jest"
+    "test": "yarn prepublish && yarn pack --filename patch-package.test.tgz && jest"
   },
   "lint-staged": {
     "*.ts": [

@@ -1,7 +1,7 @@
 import * as fs from "fs-extra"
 import * as path from "path"
 import * as tmp from "tmp"
-import * as os from "os"
+import * as slash from "slash"
 
 function _getPatchFiles(
   rootPatchesDir: string,
@@ -30,7 +30,7 @@ function relativeToGitRoot(
   appRoot: string,
   filePath: string,
 ): string {
-  return path.relative(gitRoot, path.resolve(appRoot, filePath))
+  return slash(path.relative(gitRoot, path.resolve(appRoot, filePath)))
 }
 
 // only exported for testing
@@ -42,7 +42,7 @@ export function resolvePathsInPatchFile(
   // only need to replace lines starting with `---` and `+++` since
   // git ignores lines starting with `diff`
   return patchFileContents
-    .split(/\r?\n/)
+    .split("\n")
     .map(line => {
       if (line.startsWith("+++") || line.startsWith("---")) {
         return (
@@ -52,7 +52,7 @@ export function resolvePathsInPatchFile(
         return line
       }
     })
-    .join(os.EOL)
+    .join("\n")
 }
 
 export function temporarilyResolvePathsAgainstGitRoot(

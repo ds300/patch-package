@@ -1,4 +1,8 @@
 # Changelog
+
+## 3.3.6
+- Use posix paths and line separators even on windows, for git's sake.
+
 ## 3.3.5
 - Resolve paths in patch files for situations where the git root is not
 the same as the app root.

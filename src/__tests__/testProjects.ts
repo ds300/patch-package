@@ -7,7 +7,10 @@ import spawnSafe from "../spawnSafe"
 
 export const patchPackageTarballPath = path.resolve("./patch-package.test.tgz")
 
-export function initTestProject(testProjectName: string) {
+export function initTestProject(
+  testProjectName: string,
+  packageManager: "yarn" | "npm" = "yarn",
+) {
   // copy left-pad-breakage repo to temp folder
   const tmpDir = tmp.dirSync({
     unsafeCleanup: true,
@@ -20,7 +23,6 @@ export function initTestProject(testProjectName: string) {
   // remove node_modules if present
   rimraf.sync(path.join(tmpDir.name, "node_modules"))
 
-  // yarn install
   const spawnSync: typeof spawnSafe = (command, args, options?) =>
     spawnSafe(command, args, Object.assign({ cwd: tmpDir.name }, options))
 
@@ -40,8 +42,13 @@ export function initTestProject(testProjectName: string) {
       )
     },
     install() {
-      spawnSync("yarn", ["add", "file:" + patchPackageTarballPath])
-      return spawnSync("yarn", ["install"])
+      if (packageManager === "yarn") {
+        spawnSync("yarn", ["add", "file:" + patchPackageTarballPath])
+        return spawnSync("yarn", ["install"])
+      } else {
+        spawnSync("npm", ["i"])
+        return spawnSync("npm", ["i", "file:" + patchPackageTarballPath])
+      }
     },
   }
 }

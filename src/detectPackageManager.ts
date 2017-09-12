@@ -3,7 +3,7 @@ import * as path from "path"
 import * as chalk from "chalk"
 import * as process from "process"
 
-export type PackageManager = "yarn" | "npm"
+export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
 
 export default function detectPackageManager(
   appRootPath: string,
@@ -12,20 +12,23 @@ export default function detectPackageManager(
   const packageLockExists = fs.existsSync(
     path.join(appRootPath, "package-lock.json"),
   )
+  const shrinkWrapExists = fs.existsSync(
+    path.join(appRootPath, "npm-shrinkwrap.json"),
+  )
   const yarnLockExists = fs.existsSync(path.join(appRootPath, "yarn.lock"))
-  if (packageLockExists && yarnLockExists) {
+  if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
     if (overridePackageManager) {
       return overridePackageManager
     } else {
       printSelectingDefaultMessage()
-      return "npm"
+      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
     }
-  } else if (packageLockExists) {
+  } else if (packageLockExists || shrinkWrapExists) {
     if (overridePackageManager === "yarn") {
       printNoYarnLockfileError()
       process.exit(1)
     } else {
-      return "npm"
+      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
     }
   } else if (yarnLockExists) {
     return "yarn"
@@ -47,8 +50,10 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 function printNoLockfilesError() {
   console.error(`
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
-    `No package-lock.json or yarn.lock file. You must use either npm@>=5 or yarn
-to manage this project's dependencies.`,
+    `No package-lock.json, npm-shrinkwrap.json, or yarn.lock file.
+
+You must use either npm@>=5, yarn, or npm-shrinkwrap to manage this project's
+dependencies.`,
   )}
 `)
 }

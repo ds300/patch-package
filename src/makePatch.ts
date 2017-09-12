@@ -7,11 +7,12 @@ import resolveRelativeFileDependencies from "./resolveRelativeFileDependencies"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
+import { PackageManager } from "./detectPackageManager"
 
 export default function makePatch(
   packageName: string,
   appPath: string,
-  packageManager: "yarn" | "npm",
+  packageManager: PackageManager,
 ) {
   const nodeModulesPath = path.join(appPath, "node_modules")
   const packagePath = path.join(nodeModulesPath, packageName)
@@ -78,10 +79,17 @@ export default function makePatch(
       console.info(green("☑"), "Building clean node_modules with yarn")
       tmpExec(`yarn`)
     } else {
-      fsExtra.copySync(
-        path.join(appPath, "package-lock.json"),
-        path.join(tmpRepo.name, "package-lock.json"),
-      )
+      if (packageManager === "npm-shrinkwrap") {
+        fsExtra.copySync(
+          path.join(appPath, "npm-shrinkwrap.json"),
+          path.join(tmpRepo.name, "npm-shrinkwrap.json"),
+        )
+      } else {
+        fsExtra.copySync(
+          path.join(appPath, "package-lock.json"),
+          path.join(tmpRepo.name, "package-lock.json"),
+        )
+      }
       console.info(green("☑"), "Building clean node_modules with npm")
       tmpExec("npm", ["i"])
     }

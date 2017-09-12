@@ -1,0 +1,13 @@
+{
+  "name": "shrinkwrap",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "prepare": "patch-package"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "left-pad": "^1.1.3"
+  }
+}

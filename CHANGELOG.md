@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.4.0
+- Add npm shrinkwrap support
+
 ## 3.3.6
 - Use posix paths and line separators even on windows, for git's sake.
 

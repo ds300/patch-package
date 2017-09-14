@@ -3,7 +3,10 @@ import * as fs from "fs"
 import * as path from "path"
 import * as rimraf from "rimraf"
 import * as tmp from "tmp"
-import resolveRelativeFileDependencies from "./resolveRelativeFileDependencies"
+import {
+  resolveRelativeFileDependenciesInPackageJson,
+  resolveRelativeFileDependenciesInPackageLock,
+} from "./resolveRelativeFileDependencies"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
@@ -64,7 +67,7 @@ export default function makePatch(
     fs.writeFileSync(
       tmpRepoPackageJsonPath,
       JSON.stringify(
-        resolveRelativeFileDependencies(
+        resolveRelativeFileDependenciesInPackageJson(
           appPath,
           require(tmpRepoPackageJsonPath),
         ),
@@ -79,17 +82,22 @@ export default function makePatch(
       console.info(green("☑"), "Building clean node_modules with yarn")
       tmpExec(`yarn`)
     } else {
-      if (packageManager === "npm-shrinkwrap") {
-        fsExtra.copySync(
-          path.join(appPath, "npm-shrinkwrap.json"),
-          path.join(tmpRepo.name, "npm-shrinkwrap.json"),
-        )
-      } else {
-        fsExtra.copySync(
-          path.join(appPath, "package-lock.json"),
-          path.join(tmpRepo.name, "package-lock.json"),
-        )
-      }
+      const lockFileName =
+        packageManager === "npm-shrinkwrap"
+          ? "npm-shrinkwrap.json"
+          : "package-lock.json"
+
+      const lockFileContents = JSON.parse(
+        fsExtra.readFileSync(path.join(appPath, lockFileName)).toString(),
+      )
+      const resolvedLockFileContents = resolveRelativeFileDependenciesInPackageLock(
+        appPath,
+        lockFileContents,
+      )
+      fs.writeFileSync(
+        path.join(tmpRepo.name, lockFileName),
+        JSON.stringify(resolvedLockFileContents),
+      )
       console.info(green("☑"), "Building clean node_modules with npm")
       tmpExec("npm", ["i"])
     }

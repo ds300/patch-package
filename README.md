@@ -38,7 +38,11 @@ In package.json
 
 First make changes to the files of a particular package in your node_modules folder, then run
 
-    patch-package package-name
+    yarn patch-package package-name
+    
+or, if you don't have yarn
+
+    npm prepare -- package-name
 
 where `package-name` matches the name of the package you made changes to.
 

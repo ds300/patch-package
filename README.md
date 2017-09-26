@@ -63,6 +63,14 @@ command, of course.
 
     patch --forward -p1 -i patches/package-name+0.44.2.patch
 
+### Beware whitespace
+
+If you edit generated patch files manually, be careful that the editor you use does not strip whitespace. This can cause patch application to fail.
+
+Windows users should be sure to have the `autocrlf` global config option set to `true`. If not, or to be sure, run this:
+
+    git config --global core.autocrlf true
+
 ## Benefits of patching over forking
 
 - Sometimes forks need extra build steps, e.g. with react-native for Android. Forget that noise.

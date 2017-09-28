@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.1
+
+- Fix CRLF handling on Windows
+
 ## 3.4.0
 - Add npm shrinkwrap support
 

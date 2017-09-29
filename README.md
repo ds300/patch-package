@@ -35,6 +35,14 @@ In package.json
 For Windows support, add the following line to the project's `.gitattributes` file:
 
     patches/*.patch eol=lf
+
+If you made this change after finding that your patch fails to apply on Windows, make sure to check out the patches directory again:
+
+    rm -rf patches
+    git checkout HEAD patches
+
+Note that this fix only works if you're using Git for source control. For other systems, consult the user documentation for how to enforce LF line endings on windows for .patch files.
+
 ## Usage
 
 ### Making patches

@@ -1,0 +1,11 @@
+{
+  "name": "broken-patch-file",
+  "version": "1.0.0",
+  "description": "a project",
+  "main": "index.js",
+  "author": "Mr someoone",
+  "license": "ISC",
+  "dependencies": {
+    "left-pad": "^1.1.3"
+  }
+}

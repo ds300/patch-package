@@ -4,6 +4,7 @@ export interface SpawnSafeOptions {
   throwOnError?: boolean
   logStdErrOnError?: boolean
   cwd?: string
+  env?: object
 }
 
 const defaultOptions: SpawnSafeOptions = {

@@ -3,7 +3,7 @@ import * as fs from "fs-extra"
 import * as rimraf from "rimraf"
 import * as path from "path"
 
-import spawnSafe from "../spawnSafe"
+import spawnSafe, { SpawnSafeOptions } from "../spawnSafe"
 
 export const patchPackageTarballPath = path.resolve("./patch-package.test.tgz")
 
@@ -41,13 +41,24 @@ export function initTestProject(
         data,
       )
     },
-    install() {
+    runPatchPackage(options?: SpawnSafeOptions) {
       if (packageManager === "yarn") {
-        spawnSync("yarn", ["add", "file:" + patchPackageTarballPath])
-        return spawnSync("yarn", ["install"])
+        return spawnSync("yarn", ["patch-package"], options)
       } else {
-        spawnSync("npm", ["i"])
-        return spawnSync("npm", ["i", "file:" + patchPackageTarballPath])
+        return spawnSync("./node_modules/.bin/patch-package", [], options)
+      }
+    },
+    install(options?: SpawnSafeOptions) {
+      if (packageManager === "yarn") {
+        spawnSync("yarn", ["add", "file:" + patchPackageTarballPath], options)
+        return spawnSync("yarn", ["install"], options)
+      } else {
+        spawnSync("npm", ["i"], options)
+        return spawnSync(
+          "npm",
+          ["i", "file:" + patchPackageTarballPath],
+          options,
+        )
       }
     },
   }

@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`patch-package complains with windows error when the patch can't be applied on windows 1`] = `
+"
+**ERROR** Failed to apply patch for package left-pad
+
+  This error was caused because Git cannot apply the following patch file:
+
+    patches/left-pad+1.1.3.patch
+
+  This is usually caused by inconsistent whitespace in the patch file.
+
+
+  It seems you're running Windows. Make sure you have a .gitattributes file
+  in the root of your project with the following line:
+
+    patches/*.patch eof=lf
+
+  Then check out the patch files again to make them work properly
+
+    rm -rf patches
+    git checkout HEAD patches
+    
+error Command failed with exit code 1.
+"
+`;
+
+exports[`patch-package complains without windows error when the patch can't be applied on macOS 1`] = `
+"
+**ERROR** Failed to apply patch for package left-pad
+
+  This error was caused because Git cannot apply the following patch file:
+
+    patches/left-pad+1.1.3.patch
+
+  This is usually caused by inconsistent whitespace in the patch file.
+
+error Command failed with exit code 1.
+"
+`;

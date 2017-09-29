@@ -4,6 +4,8 @@ import * as path from "path"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles, temporarilyResolvePathsAgainstGitRoot } from "./patchFs"
 import { getGitRootPath } from "./git"
+import * as os from "os"
+import { env } from "process"
 
 export default function findPatchFiles(appPath: string) {
   const gitRootPath = getGitRootPath()
@@ -58,12 +60,16 @@ export default function findPatchFiles(appPath: string) {
       }
     } catch (e) {
       // completely failed to apply patch
-      printPatchApplictionFailureError(
-        packageName,
-        packageJson.version,
-        version,
-        filename,
-      )
+      if (packageJson.version === version) {
+        printBrokenPatchFileError(packageName, filename)
+      } else {
+        printPatchApplictionFailureError(
+          packageName,
+          packageJson.version,
+          version,
+          filename,
+        )
+      }
       process.exit(1)
     }
   })
@@ -124,6 +130,34 @@ ${red("Warning:")} patch-package detected a patch file version mismatch
 
   to update the version in the patch file name and make this warning go away.
 `)
+}
+
+function printBrokenPatchFileError(packageName: string, patchFileName: string) {
+  console.error(`
+${red.bold("**ERROR**")} ${red(
+    `Failed to apply patch for package ${bold(packageName)}`,
+  )}
+
+  This error was caused because Git cannot apply the following patch file:
+
+    patches/${patchFileName}
+
+  This is usually caused by inconsistent whitespace in the patch file.
+`)
+
+  if (os.platform() === "win32" || env.PATCH_PACKAGE_TEST_WINDOWS) {
+    console.error(`
+  It seems you're running Windows. Make sure you have a .gitattributes file
+  in the root of your project with the following line:
+
+    patches/*.patch eof=lf
+
+  Then check out the patch files again to make them work properly
+
+    rm -rf patches
+    git checkout HEAD patches
+    `)
+  }
 }
 
 function printPatchApplictionFailureError(

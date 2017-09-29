@@ -4,8 +4,6 @@ import * as path from "path"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles, temporarilyResolvePathsAgainstGitRoot } from "./patchFs"
 import { getGitRootPath } from "./git"
-import * as os from "os"
-import removeCarriageReturns from "./removeCarriageReturns"
 
 export default function findPatchFiles(appPath: string) {
   const gitRootPath = getGitRootPath()
@@ -71,14 +69,7 @@ export default function findPatchFiles(appPath: string) {
   })
 }
 
-const runningOnWindows = os.platform() === "win32"
-
 export function applyPatch(patchFilePath: string) {
-  let originalVersion = null as Buffer | null
-  if (runningOnWindows) {
-    originalVersion = fs.readFileSync(patchFilePath)
-    fs.writeFileSync(patchFilePath, removeCarriageReturns(originalVersion))
-  }
   try {
     spawnSafeSync(
       "git",
@@ -103,10 +94,6 @@ export function applyPatch(patchFilePath: string) {
         logStdErrOnError: false,
       },
     )
-  } finally {
-    if (originalVersion !== null) {
-      fs.writeFileSync(patchFilePath, originalVersion)
-    }
   }
 }
 

@@ -32,6 +32,9 @@ In package.json
       "prepare": "patch-package"
     }
 
+For Windows support, add the following line to the project's `.gitattributes` file:
+
+    patches/*.patch eol=lf
 ## Usage
 
 ### Making patches
@@ -39,7 +42,7 @@ In package.json
 First make changes to the files of a particular package in your node_modules folder, then run
 
     yarn patch-package package-name
-    
+
 or, if you don't have yarn
 
     npm prepare -- package-name
@@ -66,10 +69,6 @@ command, of course.
 ### Beware whitespace
 
 If you edit generated patch files manually, be careful that the editor you use does not strip whitespace. This can cause patch application to fail.
-
-Windows users should be sure to have the `autocrlf` global config option set to `true`. If not, or to be sure, run this:
-
-    git config --global core.autocrlf true
 
 ## Benefits of patching over forking
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.2
+
+- Revert previous fix and suggest editing .gitattributes as an alternative
+
 ## 3.4.1
 
 - Fix CRLF handling on Windows

@@ -150,7 +150,7 @@ ${red.bold("**ERROR**")} ${red(
   It seems you're running Windows. Make sure you have a .gitattributes file
   in the root of your project with the following line:
 
-    patches/*.patch eof=lf
+    patches/*.patch eol=lf
 
   Then check out the patch files again to make them work properly
 

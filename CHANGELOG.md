@@ -1,4 +1,7 @@
 # Changelog
+## 3.4.3
+
+- Fix typo in error message
 
 ## 3.4.2
 

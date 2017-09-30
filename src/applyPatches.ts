@@ -77,15 +77,11 @@ export default function findPatchFiles(appPath: string) {
 
 export function applyPatch(patchFilePath: string) {
   try {
-    spawnSafeSync(
-      "git",
-      ["apply", "--check", "--unsafe-paths", patchFilePath],
-      {
-        logStdErrOnError: false,
-      },
-    )
+    spawnSafeSync("git", ["apply", "--check", patchFilePath], {
+      logStdErrOnError: false,
+    })
 
-    spawnSafeSync("git", ["apply", "--unsafe-paths", patchFilePath], {
+    spawnSafeSync("git", ["apply", patchFilePath], {
       logStdErrOnError: false,
     })
   } catch (e) {
@@ -93,13 +89,9 @@ export function applyPatch(patchFilePath: string) {
     // applied, so to check, we need to try a dry-run of applying the patch in
     // reverse, and if that works it means the patch was already applied
     // sucessfully. Otherwise the patch just failed for some reason.
-    spawnSafeSync(
-      "git",
-      ["apply", "--reverse", "--check", "--unsafe-paths", patchFilePath],
-      {
-        logStdErrOnError: false,
-      },
-    )
+    spawnSafeSync("git", ["apply", "--reverse", "--check", patchFilePath], {
+      logStdErrOnError: false,
+    })
   }
 }
 

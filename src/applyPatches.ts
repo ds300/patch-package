@@ -186,7 +186,7 @@ ${red.bold("**ERROR**")} ${red(
   one contiguous area of changes. They are numbered from 1 and begin with lines
   that look like this:
 
-    diff --git a/node_modules/thing/thing.js b/node_modules/thing/thing.json
+    @@ -48,5 +49,6 @@ function foo(bar) {
 
   Remove the conflicting hunks, then manually edit files in
 

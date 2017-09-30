@@ -1,4 +1,9 @@
 # Changelog
+
+## 3.4.4
+
+- Don't use `git apply` with `--unsafe-paths` since it is useless.
+
 ## 3.4.3
 
 - Fix typo in error message

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.5
+
+- Fix description of a hunk in error message
+
 ## 3.4.4
 
 - Don't use `git apply` with `--unsafe-paths` since it is useless.

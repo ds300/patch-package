@@ -14,7 +14,7 @@ exports[`patch-package complains with windows error when the patch can't be appl
   It seems you're running Windows. Make sure you have a .gitattributes file
   in the root of your project with the following line:
 
-    patches/*.patch eof=lf
+    patches/*.patch eol=lf
 
   Then check out the patch files again to make them work properly
 

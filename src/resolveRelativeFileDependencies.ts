@@ -1,4 +1,4 @@
-import { resolve } from "path"
+import { resolve } from "./path"
 
 interface PackageJson {
   dependencies?: {

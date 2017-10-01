@@ -1,6 +1,6 @@
 import { red, yellow } from "chalk"
 import { existsSync } from "fs"
-import { join } from "path"
+import { join } from "./path"
 import { applyPatch } from "./applyPatches"
 import { bold, green } from "chalk"
 

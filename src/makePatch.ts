@@ -1,6 +1,6 @@
 import { green } from "chalk"
 import * as fs from "fs"
-import * as path from "path"
+import * as path from "./path"
 import * as rimraf from "rimraf"
 import * as tmp from "tmp"
 import {
@@ -11,6 +11,7 @@ import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
+import * as slash from "slash"
 
 export default function makePatch(
   packageName: string,
@@ -110,11 +111,15 @@ export default function makePatch(
     )
     tmpExec("git", ["init"])
     const stageFiles = () => {
-      tmpExec("git", ["add", "-f", path.join("node_modules", packageName)])
+      tmpExec("git", [
+        "add",
+        "-f",
+        slash(path.join("node_modules", packageName)),
+      ])
       tmpExec("git", [
         "rm",
         "--cached",
-        path.join("node_modules", packageName, "package.json"),
+        slash(path.join("node_modules", packageName, "package.json")),
       ])
     }
     stageFiles()

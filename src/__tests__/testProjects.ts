@@ -1,11 +1,15 @@
 import * as tmp from "tmp"
 import * as fs from "fs-extra"
 import * as rimraf from "rimraf"
-import * as path from "path"
+import * as path from "../path"
 
 import spawnSafe, { SpawnSafeOptions } from "../spawnSafe"
 
-export const patchPackageTarballPath = path.resolve("./patch-package.test.tgz")
+export const patchPackageTarballPath = path.resolve(
+  fs
+    .readdirSync(".")
+    .filter(nm => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
+)
 
 export function initTestProject(
   testProjectName: string,

@@ -1,7 +1,7 @@
 import spawnSync from "../spawnSafe"
 import { patchPackageTarballPath } from "./testProjects"
 import * as fs from "fs"
-import * as path from "path"
+import * as path from "../path"
 
 import * as tmp from "tmp"
 

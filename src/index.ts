@@ -1,10 +1,12 @@
-import { bold, italic, red } from "chalk"
+import { bold, italic } from "chalk"
 import * as process from "process"
+import * as minimist from "minimist"
+
 import applyPatches from "./applyPatches"
 import getAppRootPath from "./getAppRootPath"
 import patchYarn from "./patchYarn"
 import makePatch from "./makePatch"
-import * as minimist from "minimist"
+import makeRegExp from "./makeRegExp"
 import detectPackageManager from "./detectPackageManager"
 
 const appPath = getAppRootPath()
@@ -13,43 +15,17 @@ const argv = minimist(process.argv.slice(2), {
 })
 const packageNames = argv._
 
-function makeRegexp(
-  reString: string,
-  name: string,
-  defaultValue: RegExp,
-  caseSensitive: boolean,
-): RegExp {
-  if (!reString) {
-    return defaultValue
-  } else {
-    try {
-      return new RegExp(reString, caseSensitive ? "" : "i")
-    } catch (_) {
-      console.error(`${red.bold("***ERROR***")}
-Invalid format for option --${name}
-
-  Unable to convert the string ${JSON.stringify(
-    reString,
-  )} to a regular expression.
-`)
-
-      process.exit(1)
-      return /unreachable/
-    }
-  }
-}
-
 if (argv.help || argv.h) {
   printHelp()
 } else {
   if (packageNames.length) {
-    const include = makeRegexp(
+    const include = makeRegExp(
       argv.include,
       "include",
       /.*/,
       argv["case-sensitive-path-filtering"],
     )
-    const exclude = makeRegexp(
+    const exclude = makeRegExp(
       argv.exclude,
       "exclude",
       /^$/,
@@ -118,17 +94,15 @@ Usage:
      ${bold("--exclude <regexp>")}
 
          Ignore paths matching the regexp when creating patch files.
-
          Paths are relative to the root dir of the package to be patched.
 
      ${bold("--include <regexp>")}
 
-         Only consider paths matching the regexp when creating patch files
-
+         Only consider paths matching the regexp when creating patch files.
          Paths are relative to the root dir of the package to be patched.
 
      ${bold("--case-sensitive-path-filtering")}
 
-         Make regexps used in --include or --exclude filters case-sensitive
+         Make regexps used in --include or --exclude filters case-sensitive.
 `)
 }

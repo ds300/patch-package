@@ -14,7 +14,7 @@
     "prepublish": "yarn run clean && yarn run build",
     "prepush": "jest",
     "build": "tsc",
-    "clean": "rm -rf dist && rm patch-package.test*.tgz",
+    "clean": "rm -rf dist && rm -f patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
     "test": "yarn prepublish && yarn pack --filename patch-package.test.$(date +%s).tgz && jest"
   },

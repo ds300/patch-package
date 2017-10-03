@@ -53,7 +53,7 @@ First make changes to the files of a particular package in your node_modules fol
 
 or, if you don't have yarn
 
-    npm prepare -- package-name
+    npm run prepare -- package-name
 
 where `package-name` matches the name of the package you made changes to.
 

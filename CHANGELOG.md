@@ -1,4 +1,7 @@
 # Changelog
+## 3.5.0
+
+- Add support for filtering particular paths
 
 ## 3.4.6
 

@@ -61,6 +61,28 @@ If this is the first time you've used `patch-package`, it will create a folder c
 the root dir of your app. Inside will be a file called `package-name+0.44.0.patch` or something,
 which is a diff between normal old `package-name` and your fixed version. Commit this to share the fix with your team.
 
+#### Options
+
+ - `--use-yarn`
+
+   By default, patch-package checks whether you use npm or yarn based on
+   which lockfile you have. If you have both, it uses npm by default.
+   Set this option to override that default and always use yarn.
+
+ - `--exclude <regexp>`
+
+   Ignore paths matching the regexp when creating patch files.
+   Paths are relative to the root dir of the package to be patched.
+
+ - `--include <regexp>`
+
+   Only consider paths matching the regexp when creating patch files.
+   Paths are relative to the root dir of the package to be patched.
+
+ - `--case-sensitive-path-filtering`
+
+   Make regexps used in --include or --exclude filters case-sensitive.
+
 ### Updating patches
 
 Use exactly the same process as for making patches in the first place, i.e. make more changes, run patch-package, commit the changes to the patch file.

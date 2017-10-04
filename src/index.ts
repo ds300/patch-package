@@ -1,25 +1,43 @@
 import { bold, italic } from "chalk"
 import * as process from "process"
+import * as minimist from "minimist"
+
 import applyPatches from "./applyPatches"
 import getAppRootPath from "./getAppRootPath"
 import patchYarn from "./patchYarn"
 import makePatch from "./makePatch"
-import * as minimist from "minimist"
+import makeRegExp from "./makeRegExp"
 import detectPackageManager from "./detectPackageManager"
 
 const appPath = getAppRootPath()
-const argv = minimist(process.argv.slice(2), { boolean: true })
+const argv = minimist(process.argv.slice(2), {
+  boolean: ["use-yarn", "patch-yarn", "case-sensitive-path-filtering"],
+})
 const packageNames = argv._
 
 if (argv.help || argv.h) {
   printHelp()
 } else {
   if (packageNames.length) {
+    const include = makeRegExp(
+      argv.include,
+      "include",
+      /.*/,
+      argv["case-sensitive-path-filtering"],
+    )
+    const exclude = makeRegExp(
+      argv.exclude,
+      "exclude",
+      /^$/,
+      argv["case-sensitive-path-filtering"],
+    )
     packageNames.forEach((packageName: string) => {
       makePatch(
         packageName,
         appPath,
         detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
+        include,
+        exclude,
       )
     })
   } else {
@@ -72,5 +90,19 @@ Usage:
          By default, patch-package checks whether you use npm or yarn based on
          which lockfile you have. If you have both, it uses npm by default.
          Set this option to override that default and always use yarn.
+
+     ${bold("--exclude <regexp>")}
+
+         Ignore paths matching the regexp when creating patch files.
+         Paths are relative to the root dir of the package to be patched.
+
+     ${bold("--include <regexp>")}
+
+         Only consider paths matching the regexp when creating patch files.
+         Paths are relative to the root dir of the package to be patched.
+
+     ${bold("--case-sensitive-path-filtering")}
+
+         Make regexps used in --include or --exclude filters case-sensitive.
 `)
 }

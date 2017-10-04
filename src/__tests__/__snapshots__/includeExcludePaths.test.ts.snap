@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test include-exclude-paths: exclude all but flip 1`] = `
+"SNAPSHOT: exclude all but flip
+diff --git a/node_modules/lodash/flip.js b/node_modules/lodash/flip.js
+index c28dd78..584b377 100644
+--- a/node_modules/lodash/flip.js
++++ b/node_modules/lodash/flip.js
+@@ -25,4 +25,4 @@ function flip(func) {
+   return createWrap(func, WRAP_FLIP_FLAG);
+ }
+ 
+-module.exports = flip;
++module.patchPackage = flip;
+END SNAPSHOT"
+`;
+
+exports[`Test include-exclude-paths: no base files 1`] = `
+"SNAPSHOT: no base files
+diff --git a/node_modules/lodash/flip.js b/node_modules/lodash/flip.js
+index c28dd78..584b377 100644
+--- a/node_modules/lodash/flip.js
++++ b/node_modules/lodash/flip.js
+@@ -25,4 +25,4 @@ function flip(func) {
+   return createWrap(func, WRAP_FLIP_FLAG);
+ }
+ 
+-module.exports = flip;
++module.patchPackage = flip;
+diff --git a/node_modules/lodash/fp/__.js b/node_modules/lodash/fp/__.js
+deleted file mode 100644
+index 4af98de..0000000
+--- a/node_modules/lodash/fp/__.js
++++ /dev/null
+@@ -1 +0,0 @@
+-module.exports = require('./placeholder');
+diff --git a/node_modules/lodash/newFile.md b/node_modules/lodash/newFile.md
+new file mode 100644
+index 0000000..3b2aed8
+--- /dev/null
++++ b/node_modules/lodash/newFile.md
+@@ -0,0 +1 @@
++this is a new file
+END SNAPSHOT"
+`;
+
+exports[`Test include-exclude-paths: only __.js being deleted 1`] = `
+"SNAPSHOT: only __.js being deleted
+diff --git a/node_modules/lodash/fp/__.js b/node_modules/lodash/fp/__.js
+deleted file mode 100644
+index 4af98de..0000000
+--- a/node_modules/lodash/fp/__.js
++++ /dev/null
+@@ -1 +0,0 @@
+-module.exports = require('./placeholder');
+END SNAPSHOT"
+`;
+
+exports[`Test include-exclude-paths: only base files, no clone files 1`] = `
+"SNAPSHOT: only base files, no clone files
+diff --git a/node_modules/lodash/_baseClamp.js b/node_modules/lodash/_baseClamp.js
+index a1c5692..c52e38e 100644
+--- a/node_modules/lodash/_baseClamp.js
++++ b/node_modules/lodash/_baseClamp.js
+@@ -19,4 +19,4 @@ function baseClamp(number, lower, upper) {
+   return number;
+ }
+ 
+-module.exports = baseClamp;
++module.patchPackage = baseClamp;
+END SNAPSHOT"
+`;

@@ -17,6 +17,8 @@ export default function makePatch(
   packageName: string,
   appPath: string,
   packageManager: PackageManager,
+  includePaths: RegExp,
+  excludePaths: RegExp,
 ) {
   const nodeModulesPath = path.join(appPath, "node_modules")
   const packagePath = path.join(nodeModulesPath, packageName)
@@ -110,30 +112,39 @@ export default function makePatch(
       "!/node_modules\n\n",
     )
     tmpExec("git", ["init"])
-    const stageFiles = () => {
-      tmpExec("git", [
-        "add",
-        "-f",
-        slash(path.join("node_modules", packageName)),
-      ])
-      tmpExec("git", [
-        "rm",
-        "--cached",
-        slash(path.join("node_modules", packageName, "package.json")),
-      ])
-    }
-    stageFiles()
+    // don't commit package.json though
+    fs.unlinkSync(
+      path.join(tmpRepo.name, "node_modules", packageName, "package.json"),
+    )
+    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
+
     tmpExec("git", ["commit", "-m", "init"])
 
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)
     fsExtra.copySync(packagePath, tmpRepoPackagePath, { recursive: true })
 
-    // add their files to the index
-    stageFiles()
+    // remove package.json again
+    fs.unlinkSync(
+      path.join(tmpRepo.name, "node_modules", packageName, "package.json"),
+    )
+
+    // stage all files
+    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
+
+    // unstage any ignored files so they don't show up in the diff
+    tmpExec("git", ["diff", "--cached", "--name-only"]).stdout
+      .toString()
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .forEach(fileName => {
+        if (!fileName.match(includePaths) || fileName.match(excludePaths)) {
+          tmpExec("git", ["reset", "HEAD", fileName])
+        }
+      })
 
     // get diff of changes
-    const patch = tmpExec("git", ["diff", "HEAD"]).stdout.toString()
+    const patch = tmpExec("git", ["diff", "--cached"]).stdout.toString()
 
     if (patch.trim() === "") {
       console.warn(`⁉️  Not creating patch file for package '${packageName}'`)

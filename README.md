@@ -112,6 +112,15 @@ And then run
 
 The output should be `./node_modules/.bin/yarn`. If not, make sure `./node_modules/.bin/` is at the start of your `PATH` environment variable.
 
+Then update package.json:
+
+```patch
+ "scripts": {
+-  "prepare": "patch-package"
++  "prepare": "patch-package --patch-yarn"
+ }
+```
+
 \* If you ever run `yarn remove` from a non-root project directory, things might break. But just run `yarn` again to restore order.
 
 ## License

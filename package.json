@@ -1,6 +1,6 @@
 {
   "name": "patch-package",
-  "version": "3.4.6",
+  "version": "3.5.0",
   "description": "When forking just won't work, patch it.",
   "main": "dist/index.js",
   "repository": "https://github.com/ds300/patch-package",

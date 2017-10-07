@@ -51,9 +51,9 @@ First make changes to the files of a particular package in your node_modules fol
 
     yarn patch-package package-name
 
-or, if you don't have yarn
+or use npx (included with `npm > 5.2`)
 
-    npm run prepare -- package-name
+    npx patch-package package-name
 
 where `package-name` matches the name of the package you made changes to.
 

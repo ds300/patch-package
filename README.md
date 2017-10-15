@@ -1,4 +1,4 @@
-# patch-package 📦👌
+<h1><img src="./patch-package.svg" height="30" /> patch-package</h1>
 
 ## Can't afford to wait for that PR to land? Need a quick fix right now?
 

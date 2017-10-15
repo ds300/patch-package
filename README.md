@@ -1,5 +1,6 @@
-<img src="./patch-package.png" height="50" /> 
 <h1>patch-package</h1>
+
+<img src="./patch-package-banner.png" height="60" />
 
 ## Can't afford to wait for that PR to land? Need a quick fix right now?
 

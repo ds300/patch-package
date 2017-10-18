@@ -1,4 +1,9 @@
 # Changelog
+
+## 3.5.1
+
+- Ignore end-of-line whitespace when creating and applying patch files
+
 ## 3.5.0
 
 - Add support for filtering particular paths

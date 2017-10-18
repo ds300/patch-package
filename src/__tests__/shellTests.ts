@@ -11,9 +11,11 @@ export function runShellTest(projectName: string) {
       recursive: true,
     })
 
-    const output = spawnSync(`./${projectName}.sh`, [patchPackageTarballPath], {
+    const result = spawnSync(`./${projectName}.sh`, [patchPackageTarballPath], {
       cwd: tmpDir.name,
-    }).stdout.toString()
+    })
+
+    const output = result.stdout.toString() + "\n" + result.stderr.toString()
 
     it("should produce output", () => {
       expect(output.trim()).toBeTruthy()
@@ -33,7 +35,7 @@ export function runShellTest(projectName: string) {
             expect(snapshot).toMatchSnapshot()
           })
         } else {
-          throw new Error("bad snapshot formate")
+          throw new Error("bad snapshot format")
         }
       })
     }

@@ -16,7 +16,9 @@ fi
 (>&2 echo "END SNAPSHOT")
 
 echo "make a change to line a"
+node strip-whitespace.js
 sed -i '' -e 's/a/patch-package/g' node_modules/alphabet/index.js
+node add-whitespace.js 2
 
 echo "make patch file for line a"
 patch-package alphabet

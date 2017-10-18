@@ -10,14 +10,14 @@ END SNAPSHOT"
 exports[`Test ignore-whitespace: line a changed 1`] = `
 "SNAPSHOT: line a changed
 diff --git a/node_modules/alphabet/index.js b/node_modules/alphabet/index.js
-index 7811d3b..f680ec4 100644
+index 7811d3b..454414b 100644
 --- a/node_modules/alphabet/index.js
 +++ b/node_modules/alphabet/index.js
 @@ -1,4 +1,4 @@
 -// a
-+// patch-package   
- // b 
- // c
- // d   
++// patch-package
+ // b   
+ // c 
+ // d
 END SNAPSHOT"
 `;

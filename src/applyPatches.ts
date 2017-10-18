@@ -77,13 +77,27 @@ export default function findPatchFiles(appPath: string) {
 
 export function applyPatch(patchFilePath: string) {
   try {
-    spawnSafeSync("git", ["apply", "--check", patchFilePath], {
-      logStdErrOnError: false,
-    })
+    spawnSafeSync(
+      "git",
+      [
+        "apply",
+        "--check",
+        "--ignore-whitespace",
+        "--whitespace=nowarn",
+        patchFilePath,
+      ],
+      {
+        logStdErrOnError: false,
+      },
+    )
 
-    spawnSafeSync("git", ["apply", patchFilePath], {
-      logStdErrOnError: false,
-    })
+    spawnSafeSync(
+      "git",
+      ["apply", "--ignore-whitespace", "--whitespace=nowarn", patchFilePath],
+      {
+        logStdErrOnError: false,
+      },
+    )
   } catch (e) {
     // patch cli tool has no way to fail gracefully if patch was already
     // applied, so to check, we need to try a dry-run of applying the patch in

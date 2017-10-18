@@ -144,7 +144,11 @@ export default function makePatch(
       })
 
     // get diff of changes
-    const patch = tmpExec("git", ["diff", "--cached"]).stdout.toString()
+    const patch = tmpExec("git", [
+      "diff",
+      "--cached",
+      "--ignore-space-at-eol",
+    ]).stdout.toString()
 
     if (patch.trim() === "") {
       console.warn(`⁉️  Not creating patch file for package '${packageName}'`)

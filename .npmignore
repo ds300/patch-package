@@ -7,4 +7,5 @@ yarn.lock
 typings/
 .vscode/
 coverage/
-patch-package.test.tgz
+test/
+patch-package*.tgz

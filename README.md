@@ -81,14 +81,9 @@ Use exactly the same process as for making patches in the first place, i.e. make
 
 Patches are applied automatically by the `prepare` npm/yarn hook if you followed the set-up guide above. For manual use,
 run patch-package without arguments to apply all patches in your project.
-patch-package cannot apply individual packages just yet, but you can use the unix `patch`
-command, of course.
+patch-package cannot apply individual packages just yet, but you can use `git`, of course
 
-    patch --forward -p1 -i patches/package-name+0.44.2.patch
-
-### Beware whitespace
-
-If you edit generated patch files manually, be careful that the editor you use does not strip whitespace. This can cause patch application to fail.
+    git apply --ignore-whitespace patches/package-name+0.44.2.patch
 
 ## Benefits of patching over forking
 
@@ -105,8 +100,12 @@ If you edit generated patch files manually, be careful that the editor you use d
 
 ## Isn't this dangerous?
 
-Nah. You're just fixing your dependencies. Just don't do anything wild with it
-unless you're certain you're the only consumer of the affected dependency.
+Nah. The technique is quite robust. Here are some things to keep in mind though:
+
+- It's easy to forget to run `yarn` or `npm` when switching between branches that do and don't have patch files.
+- Long lived patches can be costly to maintain if they affect an area of code that is updated regularly and you want to update the package regularly too.
+- Big semantic changes can be hard to review. Keep them small and obvious or add plenty of comments.
+- Changes can also impact the behaviour of other untouched packages. It's normally obvious when this will happen, and often desired, but be careful nonetheless. 
 
 ## Why patch Yarn?
 

@@ -1,11 +1,7 @@
-<h1>patch-package</h1>
-
-<img src="./patch-package-banner.png" height="60" />
-
-## Can't afford to wait for that PR to land? Need a quick fix right now?
+<img src="./patch-package-banner.png" height="80" alt="patch-package" />
 
 `patch-package` lets app authors instantly make and keep small necessary fixes to npm
-dependencies
+dependencies. It's a vital band-aid for those of us living on the bleeding edge.
 
 ```sh
 # fix a bug in one of your deps
@@ -20,7 +16,10 @@ git commit -m "fix brokenFile.js in some-package"
 ```
 
 Patches created by `patch-package` are automatically and gracefully applied
-any time the contents of node_modules is installed by `npm`(>=5) or `yarn`. If a patched dependency gets a version bump the patch file you created might not make sense anymore, so `patch-package` will explicitly prompt you to check.
+when you use `npm`(>=5) or `yarn`.
+
+No more waiting around for pull requests to be merged and published.
+No more forking repos and using `git://` links just to fix that one tiny thing that's preventing your app from working.
 
 ## Set-up
 

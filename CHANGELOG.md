@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.2
+
+- Update README
+
 ## 3.5.1
 
 - Ignore end-of-line whitespace when creating and applying patch files

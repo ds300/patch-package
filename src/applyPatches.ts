@@ -2,7 +2,7 @@ import { bold, cyan, green, red } from "chalk"
 import * as fs from "fs"
 import * as path from "path"
 import spawnSafeSync from "./spawnSafe"
-import { getPatchFiles, temporarilyResolvePathsAgainstGitRoot } from "./patchFs"
+import { getPatchFiles, removeGitHeadersFromPath } from "./patchFs"
 import { getGitRootPath } from "./git"
 import * as os from "os"
 import { env } from "process"
@@ -44,11 +44,7 @@ export default function findPatchFiles(appPath: string) {
     try {
       const patchFilePath =
         gitRootPath !== null && appNotAtGitRoot
-          ? temporarilyResolvePathsAgainstGitRoot(
-              gitRootPath,
-              appPath,
-              path.resolve(patchesDirectory, filename),
-            )
+          ? removeGitHeadersFromPath(path.resolve(patchesDirectory, filename))
           : path.resolve(patchesDirectory, filename)
 
       applyPatch(patchFilePath)

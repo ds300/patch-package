@@ -5,6 +5,8 @@ dependencies. It's a vital band-aid for those of us living on the bleeding edge.
 
 ```sh
 # fix a bug in one of your deps
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/ds300/patch-package.svg)](https://greenkeeper.io/)
 vim node_modules/some-package/brokenFile.js
 
 # run patch-package to create a .patch file

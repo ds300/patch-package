@@ -4,8 +4,6 @@ import * as path from "path"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles, removeGitHeadersFromPath } from "./patchFs"
 import { getGitRootPath } from "./git"
-import * as os from "os"
-import { env } from "process"
 
 export default function findPatchFiles(appPath: string) {
   const gitRootPath = getGitRootPath()
@@ -146,20 +144,6 @@ ${red.bold("**ERROR**")} ${red(
 
   This is usually caused by inconsistent whitespace in the patch file.
 `)
-
-  if (os.platform() === "win32" || env.PATCH_PACKAGE_TEST_WINDOWS) {
-    console.error(`
-  It seems you're running Windows. Make sure you have a .gitattributes file
-  in the root of your project with the following line:
-
-    patches/*.patch eol=lf
-
-  Then check out the patch files again to make them work properly
-
-    rm -rf patches
-    git checkout HEAD patches
-    `)
-  }
 }
 
 function printPatchApplictionFailureError(

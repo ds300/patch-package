@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.5.3
+
+- Change the way patch files are re-written when the project root dir is not the same as the git root dir.
+- Remove redundant windows warning about whitespace
+
 ## 3.5.2
 
 - Update README

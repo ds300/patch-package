@@ -12,7 +12,6 @@
   "scripts": {
     "precommit": "tsc --noEmit && lint-staged",
     "prepublish": "yarn run clean && yarn run build",
-    "prepush": "jest",
     "build": "tsc",
     "clean": "rm -rf dist && rm -f patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
@@ -29,11 +28,7 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "src/.*(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ]
+    "moduleFileExtensions": ["ts", "tsx", "js"]
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",

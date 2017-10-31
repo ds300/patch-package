@@ -3,14 +3,8 @@ import * as fs from "fs"
 import * as path from "path"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles, removeGitHeadersFromPath } from "./patchFs"
-import { getGitRootPath } from "./git"
 
 export default function findPatchFiles(appPath: string) {
-  const gitRootPath = getGitRootPath()
-  const appNotAtGitRoot =
-    gitRootPath !== null &&
-    path.normalize(appPath) !== path.normalize(gitRootPath)
-
   const patchesDirectory = path.join(appPath, "patches")
   if (!fs.existsSync(patchesDirectory)) {
     return []
@@ -40,12 +34,7 @@ export default function findPatchFiles(appPath: string) {
     const packageJson = require(path.join(packageDir, "package.json"))
 
     try {
-      const patchFilePath =
-        gitRootPath !== null && appNotAtGitRoot
-          ? removeGitHeadersFromPath(path.resolve(patchesDirectory, filename))
-          : path.resolve(patchesDirectory, filename)
-
-      applyPatch(patchFilePath)
+      applyPatch(path.resolve(patchesDirectory, filename))
 
       if (packageJson.version !== version) {
         printVersionMismatchWarning(packageName, packageJson.version, version)
@@ -70,6 +59,18 @@ export default function findPatchFiles(appPath: string) {
 }
 
 export function applyPatch(patchFilePath: string) {
+  // first find out if the patch file was made by patch-package
+  const firstLine = fs
+    .readFileSync(patchFilePath)
+    .slice(0, "patch-package\n".length)
+    .toString()
+
+  // if not then remove git headers before applying to make sure git
+  // doesn't skip files that aren't in the index
+  if (firstLine !== "patch-package\n") {
+    patchFilePath = removeGitHeadersFromPath(patchFilePath)
+  }
+
   try {
     spawnSafeSync(
       "git",

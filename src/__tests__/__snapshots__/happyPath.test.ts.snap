@@ -1,8 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`patch-package should produce patches which can be applied with npm 1`] = `
-"diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
-index 26f73ff..d4cc4af 100644
+"patch-package
 --- a/node_modules/left-pad/index.js
 +++ b/node_modules/left-pad/index.js
 @@ -22,9 +22,9 @@ var cache = [
@@ -47,8 +46,7 @@ index 26f73ff..d4cc4af 100644
 `;
 
 exports[`patch-package should produce patches which can be applied with yarn 1`] = `
-"diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
-index 26f73ff..b083802 100644
+"patch-package
 --- a/node_modules/left-pad/index.js
 +++ b/node_modules/left-pad/index.js
 @@ -22,9 +22,9 @@ var cache = [

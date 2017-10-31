@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.6.0
+
+- Remove git headers from patch files to prevent git from thinking files are part of the index
+
 ## 3.5.3
 
 - Change the way patch files are re-written when the project root dir is not the same as the git root dir.

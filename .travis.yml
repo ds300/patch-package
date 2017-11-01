@@ -2,4 +2,4 @@ language: node_js
 node_js:
 - '6'
 - '8'
-script: yarn test -- --runInBand src/__tests__/addingAndDeletingFiles.test.ts
+script: yarn test -- --runInBand src/__tests__/includeExcludePaths.test.ts

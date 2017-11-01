@@ -6,6 +6,9 @@
   "repository": "https://github.com/ds300/patch-package",
   "author": "David Sheldrick",
   "license": "MIT",
+  "engines": {
+    "npm": ">=5"
+  },
   "bin": {
     "patch-package": "./index.js"
   },

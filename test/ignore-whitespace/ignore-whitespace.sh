@@ -17,7 +17,7 @@ fi
 
 echo "make a change to line a"
 node strip-whitespace.js
-sed -i '' -e 's/a/patch-package/g' node_modules/alphabet/index.js
+node replace.js node_modules/alphabet/index.js 'a' 'patch-package'
 node add-whitespace.js 2
 
 echo "make patch file for line a"

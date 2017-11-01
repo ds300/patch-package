@@ -2,7 +2,6 @@
 set -e
 
 echo "add patch-package"
-yarn
 yarn add $1
 
 echo "edit some files"

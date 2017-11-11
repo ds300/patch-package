@@ -28,7 +28,7 @@ export default function patchYarn(appPath: string) {
 function printIncompatibleYarnError() {
   console.error(`
 ${red.bold("***ERROR***")}
-${red(`This version of patch-package in incompatible with your current local
+${red(`This version of patch-package is incompatible with your current local
 version of yarn. Please update both.`)}
 `)
 }

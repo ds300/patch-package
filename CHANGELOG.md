@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.6.1
+
+- Fix bug where patch-package was complaining about failing when it had, in fact, succeeded. See #31
+
 ## 3.6.0
 
 - Remove git headers from patch files to prevent git from thinking files are part of the index

@@ -31,7 +31,7 @@ if (argv.help || argv.h) {
     const exclude = makeRegExp(
       argv.exclude,
       "exclude",
-      /^$/,
+      /package\.json$/,
       argv["case-sensitive-path-filtering"],
     )
     packageNames.forEach((packageName: string) => {
@@ -99,10 +99,14 @@ Usage:
          Ignore paths matching the regexp when creating patch files.
          Paths are relative to the root dir of the package to be patched.
 
+         Default: 'package\\.json$'
+
      ${bold("--include <regexp>")}
 
          Only consider paths matching the regexp when creating patch files.
          Paths are relative to the root dir of the package to be patched.
+
+         Default '.*'
 
      ${bold("--case-sensitive-path-filtering")}
 

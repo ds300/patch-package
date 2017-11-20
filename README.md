@@ -64,10 +64,14 @@ which is a diff between normal old `package-name` and your fixed version. Commit
    Ignore paths matching the regexp when creating patch files.
    Paths are relative to the root dir of the package to be patched.
 
+   Default value: `package\\.json$`
+
  - `--include <regexp>`
 
    Only consider paths matching the regexp when creating patch files.
    Paths are relative to the root dir of the package to be patched.
+
+   Default value: `.*`
 
  - `--case-sensitive-path-filtering`
 
@@ -105,7 +109,7 @@ Nah. The technique is quite robust. Here are some things to keep in mind though:
 - It's easy to forget to run `yarn` or `npm` when switching between branches that do and don't have patch files.
 - Long lived patches can be costly to maintain if they affect an area of code that is updated regularly and you want to update the package regularly too.
 - Big semantic changes can be hard to review. Keep them small and obvious or add plenty of comments.
-- Changes can also impact the behaviour of other untouched packages. It's normally obvious when this will happen, and often desired, but be careful nonetheless. 
+- Changes can also impact the behaviour of other untouched packages. It's normally obvious when this will happen, and often desired, but be careful nonetheless.
 
 ## Why patch Yarn?
 

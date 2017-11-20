@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.0
+
+- Ignore all package.json files by default
+- Exit with appropriate error when git is not available
+
 ## 3.6.1
 
 - Fix bug where patch-package was complaining about failing when it had, in fact, succeeded. See #31

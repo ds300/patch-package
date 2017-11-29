@@ -10,6 +10,7 @@
     "patch-package": "./index.js"
   },
   "scripts": {
+    "postinstall": "cd ../../ && ./node_modules/.bin/patch-package",
     "precommit": "tsc --noEmit && lint-staged",
     "prepublish": "yarn run clean && yarn run build",
     "build": "tsc",

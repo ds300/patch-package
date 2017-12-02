@@ -1,4 +1,8 @@
 # Changelog
+## 5.0.0
+
+- Remove yarn patching code
+- Recommend postinstall-prepare in README for yarn compatibiltiy
 
 ## 4.0.0
 

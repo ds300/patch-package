@@ -1,10 +1,10 @@
 <img src="./patch-package-banner.png" height="80" alt="patch-package" />
 
-`patch-package` lets app authors instantly make and keep small necessary fixes to npm
+`patch-package` lets app authors instantly make and keep fixes to npm
 dependencies. It's a vital band-aid for those of us living on the bleeding edge.
 
 ```sh
-# fix a bug in one of your deps
+# fix a bug in one of your dependencies
 vim node_modules/some-package/brokenFile.js
 
 # run patch-package to create a .patch file
@@ -19,19 +19,28 @@ Patches created by `patch-package` are automatically and gracefully applied
 when you use `npm`(>=5) or `yarn`.
 
 No more waiting around for pull requests to be merged and published.
-No more forking repos and using `git://` links just to fix that one tiny thing that's preventing your app from working.
+No more forking repos just to fix that one tiny thing preventing your app from working.
 
 ## Set-up
-
-You'll need `patch-package`. If you use `yarn`, you [might like to have a local copy of that too](#why-patch-yarn).
-
-    yarn add --dev patch-package
 
 In package.json
 
     "scripts": {
       "prepare": "patch-package"
     }
+
+Then
+
+### npm
+
+    npm i patch-package --save-dev
+
+
+### yarn
+
+    yarn add --dev patch-package postinstall-prepare
+
+To understand why yarn needs the `postinstall-prepare` package see: [Why use postinstall-prepare](#why-use-postinstall-prepare-with-yarn)
 
 ## Usage
 
@@ -104,39 +113,18 @@ patch-package cannot apply individual packages just yet, but you can use `git`, 
 
 ## Isn't this dangerous?
 
-Nah. The technique is quite robust. Here are some things to keep in mind though:
+Nope. The technique is quite robust. Here are some things to keep in mind though:
 
 - It's easy to forget to run `yarn` or `npm` when switching between branches that do and don't have patch files.
 - Long lived patches can be costly to maintain if they affect an area of code that is updated regularly and you want to update the package regularly too.
 - Big semantic changes can be hard to review. Keep them small and obvious or add plenty of comments.
 - Changes can also impact the behaviour of other untouched packages. It's normally obvious when this will happen, and often desired, but be careful nonetheless.
 
-## Why patch Yarn?
+## Why use postinstall-prepare with Yarn?
 
 Most times when you do a `yarn`, `yarn add`, `yarn remove`, or `yarn install` (which is the same as just `yarn`) Yarn will completely replace the contents of your node_modules with freshly unpackaged modules. patch-package uses the `prepare` hook to modify these fresh modules, so that they behave well according to your will.
 
-Plain unpatched Yarn only runs the `prepare` hook after `yarn` and `yarn add`, but not after `yarn remove`. patch-package benefits from a local copy of yarn so that it can patch it to run the `prepare` hook after `yarn remove` and thus make sure that your node_modules is always* patched and ready to go. It's a [simple one-line change](./yarn.patch)
-
-All that you need to do to enable this patch is install a project-local copy of yarn:
-
-    yarn add --dev yarn
-
-And then run
-
-    which yarn
-
-The output should be `./node_modules/.bin/yarn`. If not, make sure `./node_modules/.bin/` is at the start of your `PATH` environment variable.
-
-Then update package.json:
-
-```patch
- "scripts": {
--  "prepare": "patch-package"
-+  "prepare": "patch-package --patch-yarn"
- }
-```
-
-\* If you ever run `yarn remove` from a non-root project directory, things might break. But just run `yarn` again to restore order.
+Yarn only runs the `prepare` hook after `yarn` and `yarn add`, but not after `yarn remove`. The `postinstall-prepare` package is used to make sure your `prepare` hook gets executed even after a `yarn remove`.
 
 ## License
 

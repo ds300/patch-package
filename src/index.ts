@@ -4,7 +4,6 @@ import * as minimist from "minimist"
 
 import applyPatches from "./applyPatches"
 import getAppRootPath from "./getAppRootPath"
-import patchYarn from "./patchYarn"
 import makePatch from "./makePatch"
 import makeRegExp from "./makeRegExp"
 import detectPackageManager from "./detectPackageManager"
@@ -14,7 +13,7 @@ checkGitExists()
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
-  boolean: ["use-yarn", "patch-yarn", "case-sensitive-path-filtering"],
+  boolean: ["use-yarn", "case-sensitive-path-filtering"],
 })
 const packageNames = argv._
 
@@ -45,9 +44,6 @@ if (argv.help || argv.h) {
     })
   } else {
     console.log("patch-package: Applying patches...")
-    if (argv["patch-yarn"]) {
-      patchYarn(appPath)
-    }
     applyPatches(appPath)
   }
 }
@@ -67,16 +63,6 @@ Usage:
   patch files to your project. It looks for files named like
 
      ./patches/<package-name>+<version>.patch
-
-  Options:
-
-     ${bold("--patch-yarn")}
-
-         If you have a local copy of yarn installed for the project, this
-         option causes it to be patched so that it runs the 'prepare'
-         lifecycle hook after \`yarn remove\`.
-
-         See https://github.com/ds300/patch-package#why-patch-yarn
 
   2. Creating patch files
   =======================

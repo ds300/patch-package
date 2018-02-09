@@ -21,7 +21,11 @@ export default function spawnSafeSync(
   const result = spawnSync(command, args, options)
   if (result.error || result.status !== 0) {
     if (mergedOptions.logStdErrOnError) {
-      console.error(result.stderr.toString())
+      if (result.stderr) {
+        console.error(result.stderr.toString())
+      } else if (result.error) {
+        console.error(result.error)
+      }
     }
     if (mergedOptions.throwOnError) {
       throw result

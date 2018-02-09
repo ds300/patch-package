@@ -4,7 +4,7 @@ import * as path from "path"
 import spawnSafeSync from "./spawnSafe"
 import { getPatchFiles, removeGitHeadersFromPath } from "./patchFs"
 
-export default function findPatchFiles(appPath: string) {
+export default function findPatchFiles(appPath: string, reverse: boolean) {
   const patchesDirectory = path.join(appPath, "patches")
   if (!fs.existsSync(patchesDirectory)) {
     return []
@@ -34,7 +34,7 @@ export default function findPatchFiles(appPath: string) {
     const packageJson = require(path.join(packageDir, "package.json"))
 
     try {
-      applyPatch(path.resolve(patchesDirectory, filename))
+      applyPatch(path.resolve(patchesDirectory, filename), reverse)
 
       if (packageJson.version !== version) {
         printVersionMismatchWarning(packageName, packageJson.version, version)
@@ -58,7 +58,30 @@ export default function findPatchFiles(appPath: string) {
   })
 }
 
-export function applyPatch(patchFilePath: string) {
+export function gitApplyArgs(
+  patchFilePath: string,
+  {
+    reverse,
+    check,
+  }: {
+    reverse?: boolean
+    check?: boolean
+  },
+) {
+  const args = ["apply", "--ignore-whitespace", "--whitespace=nowarn"]
+  if (reverse) {
+    args.push("--reverse")
+  }
+  if (check) {
+    args.push("--check")
+  }
+
+  args.push(patchFilePath)
+
+  return args
+}
+
+export function applyPatch(patchFilePath: string, reverse: boolean) {
   // first find out if the patch file was made by patch-package
   const firstLine = fs
     .readFileSync(patchFilePath)
@@ -74,44 +97,23 @@ export function applyPatch(patchFilePath: string) {
   try {
     spawnSafeSync(
       "git",
-      [
-        "apply",
-        "--check",
-        "--ignore-whitespace",
-        "--whitespace=nowarn",
-        patchFilePath,
-      ],
+      gitApplyArgs(patchFilePath, { reverse, check: true }),
       {
         logStdErrOnError: false,
       },
     )
 
-    spawnSafeSync(
-      "git",
-      ["apply", "--ignore-whitespace", "--whitespace=nowarn", patchFilePath],
-      {
-        logStdErrOnError: false,
-      },
-    )
+    spawnSafeSync("git", gitApplyArgs(patchFilePath, { reverse }), {
+      logStdErrOnError: false,
+    })
   } catch (e) {
     // patch cli tool has no way to fail gracefully if patch was already
     // applied, so to check, we need to try a dry-run of applying the patch in
     // reverse, and if that works it means the patch was already applied
     // sucessfully. Otherwise the patch just failed for some reason.
-    spawnSafeSync(
-      "git",
-      [
-        "apply",
-        "--reverse",
-        "--ignore-whitespace",
-        "--whitespace=nowarn",
-        "--check",
-        patchFilePath,
-      ],
-      {
-        logStdErrOnError: false,
-      },
-    )
+    spawnSafeSync("git", gitApplyArgs(patchFilePath, { reverse: !reverse }), {
+      logStdErrOnError: false,
+    })
   }
 }
 

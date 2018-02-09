@@ -6,6 +6,7 @@
     "prefer-for-of": false,
     "trailing-comma": [false],
     "ordered-imports": [false],
+    "no-string-literal": false,
     "arrow-parens": false,
     "no-console": [false],
     "semicolon": [true, "never"],

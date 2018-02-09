@@ -13,7 +13,7 @@ checkGitExists()
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
-  boolean: ["use-yarn", "case-sensitive-path-filtering"],
+  boolean: ["use-yarn", "case-sensitive-path-filtering", "reverse"],
 })
 const packageNames = argv._
 
@@ -44,7 +44,7 @@ if (argv.help || argv.h) {
     })
   } else {
     console.log("patch-package: Applying patches...")
-    applyPatches(appPath)
+    applyPatches(appPath, !!argv["reverse"])
   }
 }
 

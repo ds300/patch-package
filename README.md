@@ -92,11 +92,27 @@ Use exactly the same process as for making patches in the first place, i.e. make
 
 ### Applying patches
 
-Patches are applied automatically by the `prepare` npm/yarn hook if you followed the set-up guide above. For manual use,
-run patch-package without arguments to apply all patches in your project.
-patch-package cannot apply individual packages just yet, but you can use `git`, of course
+Run `patch-package` without arguments to apply all patches in your project.
+
+#### Options
+
+ - `--reverse`
+
+   Un-applies all patches.
+
+   Note that this will fail if the patched files have changed since being patched. In that case, you'll probably need to re-install `node_modules`.
+
+   This option was added to help people using CircleCI avoid [an issue around caching and patch file updates](https://github.com/ds300/patch-package/issues/37) but might be useful in other contexts too.
+
+#### Notes
+
+To apply patches individually, you may use `git`:
 
     git apply --ignore-whitespace patches/package-name+0.44.2.patch
+
+or `patch` in unixy environments:
+
+    patch -p1 -i patches/package-name+0.44.2.patch
 
 ## Benefits of patching over forking
 

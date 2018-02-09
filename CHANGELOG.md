@@ -1,4 +1,9 @@
 # Changelog
+
+## 5.1.0
+
+- Add `--reverse` option for patch application. See #37
+
 ## 5.0.0
 
 - Remove yarn patching code

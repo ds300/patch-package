@@ -111,9 +111,13 @@ export function applyPatch(patchFilePath: string, reverse: boolean) {
     // applied, so to check, we need to try a dry-run of applying the patch in
     // reverse, and if that works it means the patch was already applied
     // sucessfully. Otherwise the patch just failed for some reason.
-    spawnSafeSync("git", gitApplyArgs(patchFilePath, { reverse: !reverse }), {
-      logStdErrOnError: false,
-    })
+    spawnSafeSync(
+      "git",
+      gitApplyArgs(patchFilePath, { reverse: !reverse, check: true }),
+      {
+        logStdErrOnError: false,
+      },
+    )
   }
 }
 

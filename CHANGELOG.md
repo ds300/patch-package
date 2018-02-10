@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.1
+
+- Fix idempotency regression. See #39
+
 ## 5.1.0
 
 - Add `--reverse` option for patch application. See #37

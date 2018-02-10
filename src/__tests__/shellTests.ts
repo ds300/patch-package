@@ -16,6 +16,7 @@ export function runShellTest(
 
     const result = spawnSync(`./${projectName}.sh`, [patchPackageTarballPath], {
       cwd: tmpDir.name,
+      throwOnError: false,
     })
 
     const output = result.stdout.toString() + "\n" + result.stderr.toString()
@@ -23,6 +24,10 @@ export function runShellTest(
     it("should exit with 0 status", () => {
       expect(result.status).toBe(0)
     })
+
+    if (result.status !== 0) {
+      console.error(output)
+    }
 
     it("should produce output", () => {
       expect(output.trim()).toBeTruthy()

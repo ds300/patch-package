@@ -8,7 +8,7 @@ dependencies. It's a vital band-aid for those of us living on the bleeding edge.
 vim node_modules/some-package/brokenFile.js
 
 # run patch-package to create a .patch file
-patch-package some-package
+npx patch-package some-package
 
 # commit the patch file to share the fix with your team
 git add patches/some-package+3.14.15.patch

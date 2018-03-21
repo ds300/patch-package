@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "alphabet": "file:./alphabet"
+    "alphabet": "file:./alphabet",
+    "replace": "^0.3.0"
   }
 }

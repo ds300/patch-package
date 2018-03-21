@@ -9,7 +9,7 @@ const lines = fs.readFileSync(file).toString().trim().split("\n")
 const withWhitespace = lines
   .map(
     (line, i) =>
-      line.trim() + eolWhitespace[(i + offset) % eolWhitespace.length],
+      line.trim() + eolWhitespace[(i + offset) % eolWhitespace.length]
   )
   .join("\n")
 

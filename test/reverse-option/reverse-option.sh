@@ -5,7 +5,7 @@ echo "add patch-package"
 yarn add $1
 
 echo "edit a file"
-sed -i '' -e 's/exports/patchPackage/g' node_modules/lodash/_baseClamp.js
+replace exports patchPackage node_modules/lodash/_baseClamp.js
 
 echo "add a file"
 echo "this is a new file" > node_modules/lodash/newFile.md

@@ -2,7 +2,7 @@ import { bold, italic } from "chalk"
 import * as process from "process"
 import * as minimist from "minimist"
 
-import applyPatches from "./applyPatches"
+import { applyPatchesForApp } from "./applyPatches"
 import getAppRootPath from "./getAppRootPath"
 import makePatch from "./makePatch"
 import makeRegExp from "./makeRegExp"
@@ -44,7 +44,7 @@ if (argv.help || argv.h) {
     })
   } else {
     console.log("patch-package: Applying patches...")
-    applyPatches(appPath, !!argv["reverse"])
+    applyPatchesForApp(appPath, !!argv["reverse"])
   }
 }
 

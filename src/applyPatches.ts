@@ -1,54 +1,98 @@
 import { bold, cyan, green, red } from "chalk"
 import * as fs from "fs"
 import * as path from "path"
-import spawnSafeSync from "./spawnSafe"
-import { getPatchFiles, removeGitHeadersFromPath } from "./patchFs"
+import { getPatchFiles } from "./patchFs"
+import { patch } from "./patch"
 
-export default function findPatchFiles(appPath: string, reverse: boolean) {
-  const patchesDirectory = path.join(appPath, "patches")
+type OpaqueString<S extends string> = string & { type: S }
+export type AppPath = OpaqueString<"AppPath">
+type PatchesDirectory = OpaqueString<"PatchesDirectory">
+type FileName = OpaqueString<"FileName">
+type PackageName = OpaqueString<"PackageName">
+type PackageVersion = OpaqueString<"PackageVersion">
+
+function findPatchFiles(patchesDirectory: PatchesDirectory): FileName[] {
   if (!fs.existsSync(patchesDirectory)) {
     return []
   }
-  const files = getPatchFiles(patchesDirectory).filter(filename =>
-    filename.match(/^.+(:|\+).+\.patch$/),
-  )
+
+  return getPatchFiles(patchesDirectory) as FileName[]
+}
+
+function getPatchDetailsFromFilename(filename: FileName) {
+  // ok to coerce this, since we already filtered for valid package file names
+  // in getPatchFiles
+  const match = filename.match(/^(.+?)(:|\+)(.+)\.patch$/) as string[]
+  const packageName = match[1] as PackageName
+  const version = match[3] as PackageVersion
+
+  return {
+    packageName,
+    version,
+  }
+}
+
+function getInstalledPackageVersion(
+  appPath: AppPath,
+  packageName: PackageName,
+) {
+  const packageDir = path.join(appPath, "node_modules", packageName)
+  if (!fs.existsSync(packageDir)) {
+    console.warn(
+      `${red("Warning:")} Patch file found for package ${path.posix.basename(
+        packageDir,
+      )}` + ` which is not present at ${packageDir}`,
+    )
+
+    return null
+  }
+
+  return require(path.join(packageDir, "package.json"))
+    .version as PackageVersion
+}
+
+export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
+  // TODO: get rid of this line
+  console.log("reverse", reverse)
+  const patchesDirectory = path.join(appPath, "patches") as PatchesDirectory
+  const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
     console.log(cyan("No patch files found"))
   }
 
   files.forEach(filename => {
-    const match = filename.match(/^(.+?)(:|\+)(.+)\.patch$/) as string[]
-    const packageName = match[1]
-    const version = match[3]
-    const packageDir = path.join(appPath, "node_modules", packageName)
+    const { packageName, version } = getPatchDetailsFromFilename(filename)
 
-    if (!fs.existsSync(packageDir)) {
-      console.warn(
-        `${red("Warning:")} Patch file found for package ${packageName}` +
-          ` which is not present at ${packageDir}`,
-      )
-      return null
+    const installedPackageVersion = getInstalledPackageVersion(
+      appPath,
+      packageName,
+    )
+
+    if (!installedPackageVersion) {
+      return
     }
 
-    const packageJson = require(path.join(packageDir, "package.json"))
-
     try {
-      applyPatch(path.resolve(patchesDirectory, filename), reverse)
+      patch(path.resolve(patchesDirectory, filename) as FileName /*, reverse */)
 
-      if (packageJson.version !== version) {
-        printVersionMismatchWarning(packageName, packageJson.version, version)
+      if (installedPackageVersion !== version) {
+        printVersionMismatchWarning(
+          packageName,
+          installedPackageVersion,
+          version,
+        )
       } else {
         console.log(`${bold(packageName)}@${version} ${green("✔")}`)
       }
     } catch (e) {
       // completely failed to apply patch
-      if (packageJson.version === version) {
+      if (installedPackageVersion === version) {
         printBrokenPatchFileError(packageName, filename)
       } else {
         printPatchApplictionFailureError(
           packageName,
-          packageJson.version,
+          installedPackageVersion,
           version,
           filename,
         )
@@ -58,73 +102,10 @@ export default function findPatchFiles(appPath: string, reverse: boolean) {
   })
 }
 
-export function gitApplyArgs(
-  patchFilePath: string,
-  {
-    reverse,
-    check,
-  }: {
-    reverse?: boolean
-    check?: boolean
-  },
-) {
-  const args = ["apply", "--ignore-whitespace", "--whitespace=nowarn"]
-  if (reverse) {
-    args.push("--reverse")
-  }
-  if (check) {
-    args.push("--check")
-  }
-
-  args.push(patchFilePath)
-
-  return args
-}
-
-export function applyPatch(patchFilePath: string, reverse: boolean) {
-  // first find out if the patch file was made by patch-package
-  const firstLine = fs
-    .readFileSync(patchFilePath)
-    .slice(0, "patch-package\n".length)
-    .toString()
-
-  // if not then remove git headers before applying to make sure git
-  // doesn't skip files that aren't in the index
-  if (firstLine !== "patch-package\n") {
-    patchFilePath = removeGitHeadersFromPath(patchFilePath)
-  }
-
-  try {
-    spawnSafeSync(
-      "git",
-      gitApplyArgs(patchFilePath, { reverse, check: true }),
-      {
-        logStdErrOnError: false,
-      },
-    )
-
-    spawnSafeSync("git", gitApplyArgs(patchFilePath, { reverse }), {
-      logStdErrOnError: false,
-    })
-  } catch (e) {
-    // patch cli tool has no way to fail gracefully if patch was already
-    // applied, so to check, we need to try a dry-run of applying the patch in
-    // reverse, and if that works it means the patch was already applied
-    // sucessfully. Otherwise the patch just failed for some reason.
-    spawnSafeSync(
-      "git",
-      gitApplyArgs(patchFilePath, { reverse: !reverse, check: true }),
-      {
-        logStdErrOnError: false,
-      },
-    )
-  }
-}
-
 function printVersionMismatchWarning(
-  packageName: string,
-  actualVersion: string,
-  originalVersion: string,
+  packageName: PackageName,
+  actualVersion: PackageVersion,
+  originalVersion: PackageVersion,
 ) {
   console.warn(`
 ${red("Warning:")} patch-package detected a patch file version mismatch
@@ -150,7 +131,10 @@ ${red("Warning:")} patch-package detected a patch file version mismatch
 `)
 }
 
-function printBrokenPatchFileError(packageName: string, patchFileName: string) {
+function printBrokenPatchFileError(
+  packageName: PackageName,
+  patchFileName: FileName,
+) {
   console.error(`
 ${red.bold("**ERROR**")} ${red(
     `Failed to apply patch for package ${bold(packageName)}`,
@@ -165,10 +149,10 @@ ${red.bold("**ERROR**")} ${red(
 }
 
 function printPatchApplictionFailureError(
-  packageName: string,
-  actualVersion: string,
-  originalVersion: string,
-  patchFileName: string,
+  packageName: PackageName,
+  actualVersion: PackageVersion,
+  originalVersion: PackageVersion,
+  patchFileName: FileName,
 ) {
   console.error(`
 ${red.bold("**ERROR**")} ${red(

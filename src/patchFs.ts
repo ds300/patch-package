@@ -21,7 +21,9 @@ function _getPatchFiles(
 }
 
 export function getPatchFiles(patchesDir: string) {
-  return _getPatchFiles(patchesDir)
+  return _getPatchFiles(patchesDir).filter(filename =>
+    filename.match(/^.+(:|\+).+\.patch$/),
+  )
 }
 
 export function removeGitHeadersFromSource(patchFileSource: string) {

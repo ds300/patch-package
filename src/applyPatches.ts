@@ -52,8 +52,6 @@ function getInstalledPackageVersion(
 }
 
 export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
-  // TODO: get rid of this line
-  console.log("reverse", reverse)
   const patchesDirectory = path.join(appPath, "patches") as PatchesDirectory
   const files = findPatchFiles(patchesDirectory)
 
@@ -74,7 +72,7 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
     }
 
     try {
-      patch(path.resolve(patchesDirectory, filename) as FileName /*, reverse */)
+      patch(path.resolve(patchesDirectory, filename) as FileName, reverse)
 
       if (installedPackageVersion !== version) {
         printVersionMismatchWarning(
@@ -86,6 +84,7 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
         console.log(`${bold(packageName)}@${version} ${green("✔")}`)
       }
     } catch (e) {
+      console.error(e)
       // completely failed to apply patch
       if (installedPackageVersion === version) {
         printBrokenPatchFileError(packageName, filename)

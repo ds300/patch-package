@@ -1,28 +1,48 @@
 import * as fs from "fs-extra"
 
-export function parseHunkHeaderLine(headerLine: string) {
+type HunkHeaderLineParseResult =
+  | {
+      error: true
+      message: string
+    }
+  | {
+      error: false
+      original: {
+        start: number
+        length: number
+      }
+      patched: {
+        start: number
+        length: number
+      }
+    }
+
+export function parseHunkHeaderLine(
+  headerLine: string,
+): HunkHeaderLineParseResult {
   const match = headerLine
     .trim()
     .match(/^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@.*/)
   if (!match) {
-    throw new Error(`Bad header line: '${headerLine}'`)
+    return { error: true, message: `Bad header line: '${headerLine}'` }
   }
 
   return {
+    error: false,
     original: {
-      length: Number(match[3] || 0),
       start: Number(match[1]),
+      length: Number(match[3] || 0),
     },
     patched: {
-      length: Number(match[6] || 0),
       start: Number(match[4]),
+      length: Number(match[6] || 0),
     },
   }
 }
 
 const trimRight = (s: string) => s.replace(/\s+$/, "")
 
-function invertPatchFileLines(lines: string[]) {
+function invertPatchFileLines(lines: string[]): boolean {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     if (line.startsWith("--- ")) {
@@ -46,7 +66,11 @@ function invertPatchFileLines(lines: string[]) {
       lines[i] = "rename from " + toName
       lines[++i] = "rename to " + fromName
     } else if (line.startsWith("@@ ")) {
-      const { original, patched } = parseHunkHeaderLine(line)
+      const result = parseHunkHeaderLine(line)
+      if (result.error) {
+        return false
+      }
+      const { original, patched } = result
       lines[
         i
       ] = `@@ -${patched.start},${patched.length} +${original.start},${original.length} @@`
@@ -56,16 +80,58 @@ function invertPatchFileLines(lines: string[]) {
       lines[i] = "-" + line.slice(1)
     }
   }
+  return true
 }
 
-export function patch(patchFilePath: string, reverse: boolean = false) {
-  const patchFileContents = fs.readFileSync(patchFilePath).toString()
+type Effect =
+  | { type: "delete"; path: string }
+  | { type: "rename"; fromPath: string; toPath: string }
+  | { type: "create"; path: string; contents: string }
+
+export function executeEffects(effects: Effect[]) {
+  effects.forEach(eff => {
+    switch (eff.type) {
+      case "delete":
+        fs.unlinkSync(eff.path)
+        break
+      case "rename":
+        fs.moveSync(eff.fromPath, eff.toPath)
+        break
+      case "create":
+        fs.writeFileSync(eff.path, eff.contents)
+        break
+    }
+  })
+}
+
+type PatchResult =
+  | {
+      error: false
+      effects: Effect[]
+    }
+  | {
+      error: true
+      message?: string
+    }
+
+export function patch(
+  patchFileContents: string,
+  {
+    reverse = false,
+  }: {
+    reverse?: boolean
+  } = {},
+): PatchResult {
+  const effects: Effect[] = []
   // invert patch file here first
 
   const patchFileLines = patchFileContents.split(/\r?\n/)
 
-  if (reverse) {
-    invertPatchFileLines(patchFileLines)
+  if (reverse && !invertPatchFileLines(patchFileLines)) {
+    return {
+      error: true,
+      message: "failed to reverse patch file",
+    }
   }
 
   const moves: Record<string, string> = {}
@@ -78,10 +144,10 @@ export function patch(patchFilePath: string, reverse: boolean = false) {
     }
 
     if (line.startsWith("rename from")) {
-      const startPath = line.slice("rename from ".length)
-      const endPath = patchFileLines[i++].slice("rename to ".length).trim()
-      moves[startPath] = endPath
-      fs.moveSync(startPath, endPath)
+      const fromPath = line.slice("rename from ".length)
+      const toPath = patchFileLines[i++].slice("rename to ".length).trim()
+      moves[fromPath] = toPath
+      effects.push({ type: "rename", fromPath, toPath })
       continue
     }
 
@@ -92,17 +158,28 @@ export function patch(patchFilePath: string, reverse: boolean = false) {
       // deleting a file
       // just get rid of that noise
       // slice of the 'a/'
-      fs.unlinkSync(startPath.slice(2))
+      effects.push({
+        type: "delete",
+        path: startPath.slice(2),
+      })
       // ignore hunk header
-      parseHunkHeaderLine(patchFileLines[i++])
+      const result = parseHunkHeaderLine(patchFileLines[i++])
+      if (result.error) {
+        return result
+      }
       // ignore all -lines
+      // TODO: check that the lines match the file
       while (i < patchFileLines.length && patchFileLines[i].startsWith("-")) {
         i++
       }
     } else if (startPath === "/dev/null") {
       // creating a new file
       // just grab all the contents and put it in the file
-      const { patched: { length } } = parseHunkHeaderLine(patchFileLines[i++])
+      const result = parseHunkHeaderLine(patchFileLines[i++])
+      if (result.error) {
+        return result
+      }
+      const { patched: { length } } = result
       const fileLines = []
       while (i < patchFileLines.length && patchFileLines[i].startsWith("+")) {
         fileLines.push(patchFileLines[i++].slice(1))
@@ -115,7 +192,11 @@ export function patch(patchFilePath: string, reverse: boolean = false) {
           fileLines.length,
         )
       }
-      fs.writeFileSync(endPath.slice(2), fileLines.join("\n"))
+      effects.push({
+        type: "create",
+        path: endPath.slice(2),
+        contents: fileLines.join("\n"),
+      })
     } else {
       // modifying the file in place
       // check to see if the file has moved first
@@ -129,7 +210,11 @@ export function patch(patchFilePath: string, reverse: boolean = false) {
       // iterate over hunks
       while (i < patchFileLines.length && patchFileLines[i].startsWith("@@")) {
         const hunkHeader = parseHunkHeaderLine(patchFileLines[i++])
+        if (hunkHeader.error) {
+          return hunkHeader
+        }
 
+        // contextIndex is the offest from the hunk header start but in the original file
         let contextIndex = 0
         while (
           i < patchFileLines.length &&
@@ -141,20 +226,17 @@ export function patch(patchFilePath: string, reverse: boolean = false) {
           ) {
             // context line
             // check it's the same as in the file
-            if (
-              trimRight(patchFileLines[i++].slice(1)) !==
-              trimRight(
-                fileLines[hunkHeader.original.start - 1 + contextIndex++],
-              )
-            ) {
-              console.log(fileLines)
-              throw new Error(
-                `mismatched lines '${patchFileLines[i - 1].slice(
-                  1,
-                )}' and '${fileLines[
-                  hunkHeader.original.start - 1 + contextIndex - 1
-                ]}'`,
-              )
+            const fromPatchFile = trimRight(patchFileLines[i++].slice(1))
+            const fromActualFile = trimRight(
+              fileLines[hunkHeader.original.start - 1 + contextIndex++],
+            )
+            if (fromPatchFile !== fromActualFile) {
+              return {
+                error: true,
+                message: `mismatched lines \n  ${JSON.stringify(
+                  fromPatchFile,
+                )} \n  ${JSON.stringify(fromActualFile)}`,
+              }
             }
           }
           while (
@@ -167,16 +249,17 @@ export function patch(patchFilePath: string, reverse: boolean = false) {
               trimRight(patchFileLines[i++].slice(1)) !==
               trimRight(fileLines[hunkHeader.original.start - 1 + contextIndex])
             ) {
-              throw new Error(
-                `mismatched lines '${patchFileLines[i - 1].slice(
+              return {
+                error: true,
+                message: `mismatched lines '${patchFileLines[i - 1].slice(
                   1,
                 )}' and '${fileLines[
                   hunkHeader.original.start - 1 + contextIndex
                 ]}'`,
-              )
+              }
             }
             // all good then delete the shizz
-            fileLines.splice(contextIndex, 1)
+            fileLines.splice(hunkHeader.original.start - 1 + contextIndex, 1)
           }
           while (
             i < patchFileLines.length &&
@@ -184,14 +267,29 @@ export function patch(patchFilePath: string, reverse: boolean = false) {
           ) {
             // insert the line
             // check it's the same as in the file
-            fileLines.splice(contextIndex++, 0, patchFileLines[i++].slice(1))
+            fileLines.splice(
+              hunkHeader.original.start - 1 + contextIndex++,
+              0,
+              patchFileLines[i++].slice(1),
+            )
           }
         }
       }
 
       // all done with this file?
-      fs.unlinkSync(startPathCanonical)
-      fs.writeFileSync(endPath.slice(2), fileLines.join("\n"))
+      effects.push(
+        {
+          type: "delete",
+          path: startPathCanonical,
+        },
+        {
+          type: "create",
+          path: endPath.slice(2),
+          contents: fileLines.join("\n"),
+        },
+      )
     }
   }
+
+  return { error: false, effects }
 }

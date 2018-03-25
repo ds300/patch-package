@@ -2,7 +2,7 @@ import { bold, cyan, green, red } from "chalk"
 import * as fs from "fs"
 import * as path from "path"
 import { getPatchFiles } from "./patchFs"
-import { patch } from "./patch"
+import { patch, executeEffects } from "./patch"
 
 type OpaqueString<S extends string> = string & { type: S }
 export type AppPath = OpaqueString<"AppPath">
@@ -71,9 +71,11 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
       return
     }
 
-    try {
-      patch(path.resolve(patchesDirectory, filename) as FileName, reverse)
-
+    if (
+      applyPatch(path.resolve(patchesDirectory, filename) as FileName, reverse)
+    ) {
+      // yay patch was applied successfully
+      // print warning if version mismatch
       if (installedPackageVersion !== version) {
         printVersionMismatchWarning(
           packageName,
@@ -83,9 +85,9 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
       } else {
         console.log(`${bold(packageName)}@${version} ${green("✔")}`)
       }
-    } catch (e) {
-      console.error(e)
+    } else {
       // completely failed to apply patch
+      // TODO: propagate useful error messages from patch application
       if (installedPackageVersion === version) {
         printBrokenPatchFileError(packageName, filename)
       } else {
@@ -99,6 +101,25 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
       process.exit(1)
     }
   })
+}
+
+export function applyPatch(patchFilePath: string, reverse: boolean): boolean {
+  const patchFileContents = fs.readFileSync(patchFilePath).toString()
+  const result = patch(patchFileContents, {
+    reverse,
+  })
+
+  if (result.error) {
+    if (patch(patchFileContents, { reverse: !reverse }).error) {
+      // print error
+      return false
+    }
+    // else the patch was previously applied
+  } else {
+    executeEffects(result.effects)
+  }
+
+  return true
 }
 
 function printVersionMismatchWarning(

@@ -10,7 +10,8 @@
     "arrow-parens": false,
     "no-console": [false],
     "semicolon": [true, "never"],
-    "interface-name": [false]
+    "interface-name": [false],
+    "object-literal-sort-keys": [false]
   },
   "rulesDirectory": []
 }

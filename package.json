@@ -6,6 +6,9 @@
   "repository": "https://github.com/ds300/patch-package",
   "author": "David Sheldrick",
   "license": "MIT",
+  "engines": {
+    "npm": ">5"
+  },
   "bin": {
     "patch-package": "./index.js"
   },
@@ -28,11 +31,7 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "src/.*(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ]
+    "moduleFileExtensions": ["ts", "tsx", "js"]
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",

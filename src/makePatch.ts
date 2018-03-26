@@ -133,8 +133,8 @@ export default function makePatch(
     tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
 
     // unstage any ignored files so they don't show up in the diff
-    tmpExec("git", ["diff", "--cached", "--name-only"]).stdout
-      .toString()
+    tmpExec("git", ["diff", "--cached", "--name-only"])
+      .stdout.toString()
       .split(/\r?\n/)
       .filter(Boolean)
       .forEach(fileName => {
@@ -147,6 +147,7 @@ export default function makePatch(
     const patch = tmpExec("git", [
       "diff",
       "--cached",
+      "--no-color",
       "--ignore-space-at-eol",
     ]).stdout.toString()
 

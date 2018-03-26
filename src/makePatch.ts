@@ -8,7 +8,7 @@ import {
   resolveRelativeFileDependenciesInPackageLock,
 } from "./resolveRelativeFileDependencies"
 import spawnSafeSync from "./spawnSafe"
-import { getPatchFiles, removeGitHeadersFromSource } from "./patchFs"
+import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
@@ -161,10 +161,7 @@ export default function makePatch(
         // scoped package
         fs.mkdirSync(path.dirname(patchPath))
       }
-      fs.writeFileSync(
-        patchPath,
-        "patch-package\n" + removeGitHeadersFromSource(patch),
-      )
+      fs.writeFileSync(patchPath, patch)
       console.log(`${green("✔")} Created file patches/${patchFileName}`)
     }
   } catch (e) {

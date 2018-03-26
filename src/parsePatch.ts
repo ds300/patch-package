@@ -68,10 +68,12 @@ interface FileDeletion {
   type: "file deletion"
   path: string
   lines: string[]
+  mode: number
 }
 
 interface FileCreation {
   type: "file creation"
+  mode: number
   path: string
   lines: string[]
 }
@@ -81,14 +83,54 @@ export type PatchFilePart = FilePatch | FileDeletion | FileCreation | FileRename
 export type ParsedPatchFile = PatchFilePart[]
 
 export function parsePatch(patchFileContents: string): ParsedPatchFile {
-  const patchFileLines = patchFileContents.split(/\r?\n/)
+  const patchFileLines = patchFileContents.split(/\n/)
   const result: ParsedPatchFile = []
 
   let i = 0
   while (i < patchFileLines.length) {
     const line = patchFileLines[i++]
-    if (!line.startsWith("---") && !line.startsWith("rename from")) {
+    if (
+      !line.startsWith("---") &&
+      !line.startsWith("rename from") &&
+      !line.startsWith("new file mode")
+    ) {
       continue
+    }
+
+    let fileMode = null as null | string
+
+    if (line.startsWith("deleted file mode")) {
+      fileMode = line.slice("deleted file mode ".length).trim()
+    }
+
+    if (line.startsWith("new file mode")) {
+      fileMode = line.slice("new file mode ".length).trim()
+      // at some point in patch-package's life it was removing git headers
+      // beginning `diff` and `index` for weird reasons related to
+      // cross-platform functionality
+      // That's no longer needed but this should still support those old files
+      // unless the file created is empty, in which case the normal patch
+      // parsing bits below don't work and we need this special case
+      if (
+        !patchFileLines[i].startsWith("--- /dev/null") &&
+        !patchFileLines[i + 1].startsWith("--- /dev/null")
+      ) {
+        const match = patchFileLines[i - 2].match(
+          /^diff --git a\/(.+) b\/(.+)$/,
+        )
+        if (!match) {
+          throw new Error("Creating new empty file but found no diff header.")
+        }
+        const path = match[1]
+        result.push({
+          type: "file creation",
+          path,
+          lines: [""],
+          // tslint:disable-next-line no-bitwise
+          mode: parseInt(fileMode, 8) & 0o777,
+        })
+        continue
+      }
     }
 
     if (line.startsWith("rename from")) {
@@ -108,6 +150,8 @@ export function parsePatch(patchFileContents: string): ParsedPatchFile {
       const deletion: FileDeletion = {
         type: "file deletion",
         path: startPath.slice(2),
+        // tslint:disable-next-line no-bitwise
+        mode: fileMode ? parseInt(fileMode, 8) & 0o777 : 0o666,
         lines: [],
       }
       result.push(deletion)
@@ -139,6 +183,8 @@ export function parsePatch(patchFileContents: string): ParsedPatchFile {
         type: "file creation",
         path: endPath.slice(2),
         lines: fileLines,
+        // tslint:disable-next-line no-bitwise
+        mode: fileMode ? parseInt(fileMode, 8) & 0o777 : 0o666,
       })
     } else {
       // iterate over hunks

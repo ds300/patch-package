@@ -1,6 +1,5 @@
 import * as fs from "fs-extra"
 import * as path from "./path"
-import * as tmp from "tmp"
 
 function _getPatchFiles(
   rootPatchesDir: string,
@@ -24,20 +23,4 @@ export function getPatchFiles(patchesDir: string) {
   return _getPatchFiles(patchesDir).filter(filename =>
     filename.match(/^.+(:|\+).+\.patch$/),
   )
-}
-
-export function removeGitHeadersFromSource(patchFileSource: string) {
-  return patchFileSource
-    .split(/\r?\n/)
-    .filter(line => !line.startsWith("diff") && !line.startsWith("index"))
-    .join("\n")
-}
-
-export function removeGitHeadersFromPath(patchFilePath: string): string {
-  const tmpFile = tmp.fileSync({ unsafeCleanup: true })
-  fs.writeFileSync(
-    tmpFile.name,
-    removeGitHeadersFromSource(fs.readFileSync(patchFilePath).toString()),
-  )
-  return tmpFile.name
 }

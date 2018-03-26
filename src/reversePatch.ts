@@ -52,6 +52,7 @@ export function reversePatch(patch: ParsedPatchFile): ParsedPatchFile {
             path: part.path,
             lines: part.lines,
             mode: part.mode,
+            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile
           }
         case "file deletion":
           return {
@@ -59,6 +60,7 @@ export function reversePatch(patch: ParsedPatchFile): ParsedPatchFile {
             path: part.path,
             lines: part.lines,
             mode: part.mode,
+            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile
           }
         case "rename":
           return {

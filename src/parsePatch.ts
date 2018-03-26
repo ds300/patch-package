@@ -69,6 +69,7 @@ interface FileDeletion {
   path: string
   lines: string[]
   mode: number
+  noNewlineAtEndOfFile: boolean
 }
 
 interface FileCreation {
@@ -76,173 +77,229 @@ interface FileCreation {
   mode: number
   path: string
   lines: string[]
+  noNewlineAtEndOfFile: boolean
 }
 
 export type PatchFilePart = FilePatch | FileDeletion | FileCreation | FileRename
 
 export type ParsedPatchFile = PatchFilePart[]
 
-export function parsePatch(patchFileContents: string): ParsedPatchFile {
-  const patchFileLines = patchFileContents.split(/\n/)
-  const result: ParsedPatchFile = []
+class PatchParser {
+  private i: number = 0
+  private result: ParsedPatchFile = []
+  // tslint:disable-next-line variable-name
+  private _fileMode: string | null = null
 
-  let i = 0
-  while (i < patchFileLines.length) {
-    const line = patchFileLines[i++]
-    if (
-      !line.startsWith("---") &&
-      !line.startsWith("rename from") &&
-      !line.startsWith("new file mode")
-    ) {
-      continue
-    }
+  private get fileMode() {
+    // tslint:disable-next-line no-bitwise
+    return this._fileMode ? parseInt(this._fileMode, 8) & 0o777 : 0o666
+  }
 
-    let fileMode = null as null | string
+  constructor(private lines: string[]) {}
 
-    if (line.startsWith("deleted file mode")) {
-      fileMode = line.slice("deleted file mode ".length).trim()
-    }
+  private get currentLine() {
+    return this.lines[this.i]
+  }
 
-    if (line.startsWith("new file mode")) {
-      fileMode = line.slice("new file mode ".length).trim()
-      // at some point in patch-package's life it was removing git headers
-      // beginning `diff` and `index` for weird reasons related to
-      // cross-platform functionality
-      // That's no longer needed but this should still support those old files
-      // unless the file created is empty, in which case the normal patch
-      // parsing bits below don't work and we need this special case
+  private nextLine() {
+    this.i++
+  }
+
+  private skipHeaderCruft() {
+    while (!this.isEOF) {
       if (
-        !patchFileLines[i].startsWith("--- /dev/null") &&
-        !patchFileLines[i + 1].startsWith("--- /dev/null")
+        !this.currentLine.startsWith("---") &&
+        !this.currentLine.startsWith("rename from") &&
+        !this.currentLine.startsWith("new file mode") &&
+        !this.currentLine.startsWith("deleted file mode")
       ) {
-        const match = patchFileLines[i - 2].match(
-          /^diff --git a\/(.+) b\/(.+)$/,
-        )
-        if (!match) {
-          throw new Error("Creating new empty file but found no diff header.")
-        }
-        const path = match[1]
-        result.push({
-          type: "file creation",
-          path,
-          lines: [""],
-          // tslint:disable-next-line no-bitwise
-          mode: parseInt(fileMode, 8) & 0o777,
-        })
-        continue
+        this.nextLine()
+      } else {
+        break
       }
     }
+  }
 
-    if (line.startsWith("rename from")) {
-      const fromPath = line.slice("rename from ".length)
-      const toPath = patchFileLines[i++].slice("rename to ".length).trim()
-      result.push({ type: "rename", fromPath, toPath })
-      continue
+  private get isEOF() {
+    return this.i >= this.lines.length
+  }
+
+  // tslint:disable member-ordering
+  public parse() {
+    while (!this.isEOF) {
+      this.skipHeaderCruft()
+
+      if (this.isEOF) {
+        break
+      }
+
+      if (this.currentLine.startsWith("deleted file mode")) {
+        this._fileMode = this.currentLine
+          .slice("deleted file mode ".length)
+          .trim()
+        this.nextLine()
+        continue
+      }
+
+      if (this.currentLine.startsWith("new file mode")) {
+        this._fileMode = this.currentLine.slice("new file mode ".length).trim()
+        this.nextLine()
+        // at some point in patch-package's life it was removing git headers
+        // beginning `diff` and `index` for weird reasons related to
+        // cross-platform functionality
+        // That's no longer needed but this should still support those old files
+        // unless the file created is empty, in which case the normal patch
+        // parsing bits below don't work and we need this special case
+        if (
+          !this.lines[this.i].startsWith("--- /dev/null") &&
+          !this.lines[this.i + 1].startsWith("--- /dev/null")
+        ) {
+          const match = this.lines[this.i - 2].match(
+            /^diff --git a\/(.+) b\/(.+)$/,
+          )
+          if (!match) {
+            console.error(this.lines, this.i)
+            throw new Error("Creating new empty file but found no diff header.")
+          }
+          const path = match[1]
+          this.result.push({
+            type: "file creation",
+            path,
+            lines: [""],
+            // tslint:disable-next-line no-bitwise
+            mode: parseInt(this._fileMode, 8) & 0o777,
+            noNewlineAtEndOfFile: true,
+          })
+        }
+        continue
+      }
+
+      if (this.currentLine.startsWith("rename from")) {
+        const fromPath = this.currentLine.slice("rename from ".length)
+        const toPath = this.lines[this.i++].slice("rename to ".length).trim()
+        this.result.push({ type: "rename", fromPath, toPath })
+        continue
+      }
+
+      this.parseFileModification()
     }
 
-    const startPath = line.slice("--- ".length)
-    const endPath = patchFileLines[i++].trim().slice("--- ".length)
+    // console.dir(this.result, {depth: 5})
+
+    return this.result
+  }
+
+  private parsePatchMutationPart(): PatchMutationPart {
+    let blockType: PatchMutationPart["type"]
+    const firstChar = this.currentLine[0]
+    switch (firstChar) {
+      case "\\":
+        if (this.currentLine.startsWith("\\ No newline at end of file")) {
+          return {
+            type: "insertion",
+            lines: [],
+            noNewlineAtEndOfFile: true,
+          } as PatchMutationPart
+        } else {
+          throw new Error(`unexpected patch file comment ${this.currentLine}`)
+        }
+      case "+":
+        blockType = "insertion"
+        break
+      case "-":
+        blockType = "deletion"
+        break
+      case " ":
+        blockType = "context"
+        break
+      default:
+        throw new Error(`unexpected patch file line ${this.currentLine}`)
+    }
+
+    const lines = []
+    do {
+      lines.push(this.currentLine.slice(1))
+      this.nextLine()
+    } while (!this.isEOF && this.currentLine.startsWith(firstChar))
+
+    let noNewlineAtEndOfFile = false
+    if (
+      !this.isEOF &&
+      this.currentLine.startsWith("\\ No newline at end of file")
+    ) {
+      noNewlineAtEndOfFile = true
+      this.nextLine()
+    }
+    return {
+      type: blockType,
+      lines,
+      noNewlineAtEndOfFile,
+    } as PatchMutationPart
+  }
+
+  private parseFileModification() {
+    const startPath = this.currentLine.slice("--- ".length)
+    this.nextLine()
+    const endPath = this.currentLine.trim().slice("--- ".length)
+    this.nextLine()
 
     if (endPath === "/dev/null") {
       // deleting a file
       // just get rid of that noise
       // slice of the 'a/'
-      const deletion: FileDeletion = {
+
+      // ignore hunk header
+      parseHunkHeaderLine(this.currentLine)
+      this.nextLine()
+
+      const deletion: PatchMutationPart = this.parsePatchMutationPart()
+
+      this.result.push({
         type: "file deletion",
         path: startPath.slice(2),
-        // tslint:disable-next-line no-bitwise
-        mode: fileMode ? parseInt(fileMode, 8) & 0o777 : 0o666,
-        lines: [],
-      }
-      result.push(deletion)
-      // ignore hunk header
-      parseHunkHeaderLine(patchFileLines[i++])
-      // ignore all -lines
-      // TODO: perform integrity check on hunk header
-      while (i < patchFileLines.length && patchFileLines[i].startsWith("-")) {
-        deletion.lines.push(patchFileLines[i].slice(1))
-        i++
-      }
+        mode: this.fileMode,
+        lines: deletion.lines,
+        noNewlineAtEndOfFile: deletion.noNewlineAtEndOfFile,
+      })
     } else if (startPath === "/dev/null") {
       // creating a new file
       // just grab all the contents and put it in the file
-      const { patched: { length } } = parseHunkHeaderLine(patchFileLines[i++])
-      const fileLines = []
-      while (i < patchFileLines.length && patchFileLines[i].startsWith("+")) {
-        fileLines.push(patchFileLines[i++].slice(1))
-      }
-      if (fileLines.length !== length) {
-        console.warn(
-          "hunk length mismatch :( expected",
-          length,
-          "got",
-          fileLines.length,
-        )
-      }
-      result.push({
+      // TODO: header integrity checks
+      parseHunkHeaderLine(this.currentLine)
+      this.nextLine()
+
+      const addition: PatchMutationPart = this.parsePatchMutationPart()
+
+      this.result.push({
         type: "file creation",
         path: endPath.slice(2),
-        lines: fileLines,
+        lines: addition.lines,
         // tslint:disable-next-line no-bitwise
-        mode: fileMode ? parseInt(fileMode, 8) & 0o777 : 0o666,
+        mode: this.fileMode,
+        noNewlineAtEndOfFile: addition.noNewlineAtEndOfFile,
       })
     } else {
-      // iterate over hunks
       const filePatch: FilePatch = {
         type: "patch",
         path: endPath.slice(2),
         parts: [],
       }
-      result.push(filePatch)
 
-      while (i < patchFileLines.length && patchFileLines[i].startsWith("@@")) {
-        filePatch.parts.push(parseHunkHeaderLine(patchFileLines[i++]))
+      this.result.push(filePatch)
 
-        while (
-          i < patchFileLines.length &&
-          patchFileLines[i].match(/^(\+|-| |\\).*/)
-        ) {
-          // skip intitial comments
-          while (
-            i < patchFileLines.length &&
-            patchFileLines[i].startsWith("\\")
-          ) {
-            i++
-          }
+      // iterate over hunks
+      while (!this.isEOF && this.currentLine.startsWith("@@")) {
+        filePatch.parts.push(parseHunkHeaderLine(this.currentLine))
+        this.nextLine()
 
-          // collect patch part blocks
-          for (const type of ["context", "deletion", "insertion"] as Array<
-            PatchMutationPart["type"]
-          >) {
-            const lines = []
-            while (
-              i < patchFileLines.length &&
-              patchFileLines[i].startsWith(
-                { context: " ", deletion: "-", insertion: "+" }[type],
-              )
-            ) {
-              lines.push(patchFileLines[i++].slice(1))
-            }
-            if (lines.length > 0) {
-              let noNewlineAtEndOfFile = false
-              if (
-                i < patchFileLines.length &&
-                patchFileLines[i].startsWith("\\ No newline at end of file")
-              ) {
-                noNewlineAtEndOfFile = true
-                i++
-              }
-              filePatch.parts.push({
-                type,
-                lines,
-                noNewlineAtEndOfFile,
-              } as PatchMutationPart)
-            }
-          }
+        while (!this.isEOF && this.currentLine.match(/^(\+|-| |\\).*/)) {
+          filePatch.parts.push(this.parsePatchMutationPart())
         }
       }
     }
   }
+}
 
-  return result
+export function parsePatch(patchFileContents: string): ParsedPatchFile {
+  return new PatchParser(patchFileContents.split(/\n/)).parse()
 }

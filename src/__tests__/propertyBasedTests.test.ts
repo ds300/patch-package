@@ -18,17 +18,18 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 `
 
   function makeFileContents() {
-    return generate({
-      length: Math.floor(Math.random() * 5),
-      charset: fileCharSet,
-    })
+    return (
+      generate({
+        length: Math.floor(Math.random() * 5),
+        charset: fileCharSet,
+      }) || ""
+    )
   }
 
   function makeFileName(ext?: boolean) {
     const name = generate({
       length: Math.ceil(Math.random() * 12),
-      charset:
-        "abcdefghijklmnopqrstuvwxyzABCDEFGGHIJKLMNOPQRSTUVWXYZ-_0987654321",
+      charset: "abcdefghijklmnopqrstuvwxyz-_0987654321",
     })
 
     return ext ? name + "." + generate(Math.ceil(Math.random() * 4)) : name
@@ -234,6 +235,8 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 
       const patchFileContents = patchResult.stdout.toString()
 
+      // console.log(patchFileContents)
+
       try {
         it("works forwards", () => {
           setWorkingFiles({ ...testCase.cleanFiles })
@@ -263,7 +266,15 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
           setWorkingFiles({ ...testCase.modifiedFiles })
           const result = patch(patchFileContents, { reverse: true })
           executeEffects(result)
-          expect(getWorkingFiles()).toEqual(testCase.cleanFiles)
+          try {
+            expect(getWorkingFiles()).toEqual(testCase.cleanFiles)
+          } catch (e) {
+            console.error("TEST CASE FAILED", {
+              testCase,
+              workingFiles: getWorkingFiles(),
+            })
+            throw e
+          }
         })
       } catch (e) {
         console.error("TEST CASE FAILED", JSON.stringify(testCase))
@@ -272,9 +283,73 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     })
   }
 
-  for (let i = 0; i < 1; i++) {
-    executeTest(makeTestCase(), i)
-  }
+  // for (let i = 0; i < 100; i++) {
+  //   executeTest(makeTestCase(), i)
+  // }
+
+  executeTest(
+    {
+      cleanFiles: {
+        nugs: "a",
+      },
+      modifiedFiles: {
+        nugs: "a\n\n",
+      },
+    },
+    4,
+  )
+
+  // executeTest(
+  //   {
+  //     cleanFiles: {
+  //       b: "\n",
+  //     },
+  //     modifiedFiles: {
+  //       b: "ba\n",
+  //     },
+  //   },
+  //   3,
+  // )
+
+  // executeTest({
+  //   cleanFiles: {
+  //     "banana": "WMo^",
+  //   },
+  //   modifiedFiles: {
+  //     "banana": "\n\n",
+  //   },
+  // }, 4)
+
+  // executeTest(
+  //   {
+  //     cleanFiles: {
+  //       b: "a",
+  //     },
+  //     modifiedFiles: { b: "a", c: "a\n" },
+  //   },
+  //   4,
+  // )
+
+  // executeTest(
+  //   {
+  //     cleanFiles: {
+  //       "c-qZ0Qznn1.RWOZ": "$xs\rwim\t}pJ(;£BZxc\\bg9k|zvBufcaa",
+  //       "tK/NEDQ-hff.iaQK": ";4l",
+  //       "KbYXh8-Dk3J/vcjQ.mz": "+4:",
+  //       "r6LXXaS/DO3VbFBswE6.WmHQ": "rX]bnT%j+,\t\r~xc&`lLh^\\n*-J$z<4xu",
+  //       "Fa/lQgW3c/G8LsUj-YFoS.4hoY": "NS",
+  //     },
+  //     modifiedFiles: {
+  //       "c-qZ0Qznn1.RWOZ": "$xs\rwim\t}pJ(;£BZxc\\bg9k|zvBufcaa",
+  //       "tK/NEDQ-hff.iaQK": ";4l",
+  //       "KbYXh8-Dk3J/vcjQ.mz": "+4:",
+  //       "r6LXXaS/DO3VbFBswE6.WmHQ": "",
+  //       "Fa/lQgW3c/G8LsUj-YFoS.4hoY": "NS",
+  //       wW1UMkaGn: "F",
+  //     },
+  //   },
+  //   3,
+  // )
 
   // executeTest(
   //   {
@@ -317,60 +392,3 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
   //   5,
   // )
 })
-/*
-oh fuck
-What's the problem ?
-The problem is like that line endings are not being applied in one situation
-- when the patch file is reversed by me
-- when the clean file has a line ending but the modified file does not
-
-When reversed, the patch file is wrong because the same scenario manually
-reversed is a-ok here's the bad patch file:
-
-```patch
-diff --git a/1dkfI.J b/1dkfI.J
-index cfc60af..2d950c4 100644
---- a/1dkfI.J
-+++ b/1dkfI.J
-@@ -1,0 +1,0 @@
--nout
-+lineend
-\ No newline at end of file
-```
-
-here's the good patch file:
-
-```patch
-diff --git a/1dkfI.J b/1dkfI.J
-index 2d950c4..cfc60af 100644
---- a/1dkfI.J
-+++ b/1dkfI.J
-@@ -1 +1 @@
--nout
-\ No newline at end of file
-+lineend
-```
-
-here's the differences:
-
-- the bad patch file has length 0s in the hunk header
-  That's probably not an issue, since the default value for lengths is 0
-- The bad patch file has the \ no newline at end of file comment in the wrong place
-  But that's probably not an issue since my code ignores it
-
-```patch
-@@ -1,0 +1,0 @@
--nout
-+lineend
-\ No newline at end of file
-```
-
-here's the good patch file:
-
-```patch
-@@ -1 +1 @@
--nout
-\ No newline at end of file
-+lineend
-```
- */

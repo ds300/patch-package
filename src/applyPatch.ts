@@ -2,10 +2,30 @@ import * as fs from "fs-extra"
 import { ParsedPatchFile, FilePatch } from "./parsePatch"
 
 export type Effect =
-  | { type: "file deletion"; path: string; lines: string[] }
-  | { type: "rename"; fromPath: string; toPath: string }
-  | { type: "file creation"; path: string; lines: string[] }
-  | { type: "replace"; path: string; lines: string[] }
+  | {
+      type: "file deletion"
+      path: string
+      lines: string[]
+      mode: number
+      noNewlineAtEndOfFile: boolean
+    }
+  | {
+      type: "rename"
+      fromPath: string
+      toPath: string
+    }
+  | {
+      type: "file creation"
+      path: string
+      lines: string[]
+      mode: number
+      noNewlineAtEndOfFile: boolean
+    }
+  | {
+      type: "replace"
+      path: string
+      lines: string[]
+    }
 
 export function executeEffects(effects: Effect[]) {
   effects.forEach(eff => {
@@ -17,7 +37,11 @@ export function executeEffects(effects: Effect[]) {
         fs.moveSync(eff.fromPath, eff.toPath)
         break
       case "file creation":
-        fs.writeFileSync(eff.path, eff.lines.join("\n"))
+        fs.writeFileSync(
+          eff.path,
+          eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
+          { mode: eff.mode },
+        )
         break
       case "replace":
         fs.writeFileSync(eff.path, eff.lines.join("\n"))
@@ -87,13 +111,11 @@ function applyPatch({ parts, path }: FilePatch): Effect {
           contextIndex += part.lines.length
           if (i === parts.length) {
             if (part.noNewlineAtEndOfFile) {
-              while (!fileLines[fileLines.length - 1]) {
+              if (!fileLines[fileLines.length - 1]) {
                 fileLines.pop()
               }
-            } else {
-              if (fileLines[fileLines.length - 1]) {
-                fileLines.push("")
-              }
+            } else if (fileLines[fileLines.length - 1] !== "") {
+              fileLines.push("")
             }
           }
           break

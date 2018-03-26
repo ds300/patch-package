@@ -2,7 +2,8 @@ import { bold, cyan, green, red } from "chalk"
 import * as fs from "fs"
 import * as path from "path"
 import { getPatchFiles } from "./patchFs"
-import { patch, executeEffects } from "./patch"
+import { patch } from "./patch"
+import { executeEffects } from "./applyPatch"
 
 type OpaqueString<S extends string> = string & { type: S }
 export type AppPath = OpaqueString<"AppPath">
@@ -105,18 +106,17 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
 
 export function applyPatch(patchFilePath: string, reverse: boolean): boolean {
   const patchFileContents = fs.readFileSync(patchFilePath).toString()
-  const result = patch(patchFileContents, {
-    reverse,
-  })
-
-  if (result.error) {
-    if (patch(patchFileContents, { reverse: !reverse }).error) {
-      // print error
+  try {
+    const result = patch(patchFileContents, {
+      reverse,
+    })
+    executeEffects(result)
+  } catch (e) {
+    try {
+      patch(patchFileContents, { reverse: !reverse })
+    } catch (e) {
       return false
     }
-    // else the patch was previously applied
-  } else {
-    executeEffects(result.effects)
   }
 
   return true

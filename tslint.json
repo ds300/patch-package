@@ -9,8 +9,10 @@
     "no-string-literal": false,
     "arrow-parens": false,
     "no-console": [false],
-    "semicolon": [true, "never"],
+    "semicolon": [false],
+    "whitespace": [false],
     "interface-name": [false],
+    "one-line": [false],
     "object-literal-sort-keys": [false]
   },
   "rulesDirectory": []

@@ -46,7 +46,7 @@ function applyPatch({ parts, path }: FilePatch): Effect {
   const fileContents = fs.readFileSync(path).toString()
 
   const fileLines: string[] =
-    fileContents === "" ? [] : fileContents.split(/\r?\n/)
+    fileContents === "" ? [] : fileContents.split(/\n/)
 
   let i = 0
   while (i < parts.length) {

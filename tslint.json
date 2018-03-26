@@ -13,7 +13,8 @@
     "whitespace": [false],
     "interface-name": [false],
     "one-line": [false],
-    "object-literal-sort-keys": [false]
+    "object-literal-sort-keys": [false],
+    "object-literal-key-quotes": [false]
   },
   "rulesDirectory": []
 }

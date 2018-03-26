@@ -51,12 +51,14 @@ export function reversePatch(patch: ParsedPatchFile): ParsedPatchFile {
             type: "file deletion",
             path: part.path,
             lines: part.lines,
+            mode: part.mode,
           }
         case "file deletion":
           return {
             type: "file creation",
             path: part.path,
             lines: part.lines,
+            mode: part.mode,
           }
         case "rename":
           return {

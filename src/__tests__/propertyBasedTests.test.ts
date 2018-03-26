@@ -272,9 +272,24 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     })
   }
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 1; i++) {
     executeTest(makeTestCase(), i)
   }
+
+  // executeTest(
+  //   {
+  //     cleanFiles: {
+  //       "banana":
+  //         "M_7P /c$Y%ldTF=o\nKv_caoM|A\rZ^i!+",
+  //     },
+  //     modifiedFiles: {
+  //       "banana":
+  //         "B-§s\r\nM_7P /c$Y%ldTF=o\nKv_caoM|A\rZ^i!+",
+  //       jimmy: "",
+  //     },
+  //   },
+  //   4,
+  // )
 
   // executeTest(
   //   {

@@ -59,11 +59,8 @@ DATA.patches.forEach(({ fileName, patchContents }) => {
   describe(fileName, () => {
     it("can be applied", () => {
       const result = patch(patchContents)
-      expect(result.error).toBeFalsy()
 
-      if (result.error) return
-
-      expect(result.effects).toMatchSnapshot()
+      expect(result).toMatchSnapshot()
     })
   })
 })

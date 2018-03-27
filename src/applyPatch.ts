@@ -69,10 +69,8 @@ function applyPatch({ parts, path }: FilePatch): Effect {
   // check to see if the file has moved first
   const fileContents = fs.readFileSync(path).toString()
 
-  const fileLines: string[] =
-    fileContents === "" ? [] : fileContents.split(/\n/)
-
-  if (fileLines.length && fileLines[fileLines.length - 1].match(/^\r?$/)) {
+  const fileLines: string[] = fileContents.split(/\n/)
+  if (fileLines[fileLines.length - 1] === "") {
     fileLines.pop()
   }
 
@@ -111,9 +109,14 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             )
             contextIndex -= part.lines.length
 
-            if (i === parts.length) {
-              if (part.noNewlineAtEndOfFile) {
-                // console.log("pushin")
+            if (contextIndex === fileLines.length) {
+              if (
+                part.noNewlineAtEndOfFile ||
+                (parts[i - 2] &&
+                  (parts[i - 2].type === "insertion" ||
+                    parts[i - 2].type === "context") &&
+                  !(parts[i - 2] as any).noNewlineAtEndOfFile)
+              ) {
                 // delete the fact that there was no newline at the end of the file
                 // by adding a newline to the end of the file
                 fileLines.push("")
@@ -121,10 +124,7 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             }
             // console.log("bill deleted", fileLines, part.lines)
           } else {
-            if (
-              i === parts.length ||
-              (i === parts.length - 1 && parts[i].type === "deletion")
-            ) {
+            if (contextIndex === fileLines.length) {
               if (!part.noNewlineAtEndOfFile) {
                 fileLines.push("")
               }
@@ -139,7 +139,7 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             ...part.lines,
           )
           contextIndex += part.lines.length
-          if (i === parts.length) {
+          if (contextIndex === fileLines.length) {
             if (!part.noNewlineAtEndOfFile) {
               fileLines.push("")
             }

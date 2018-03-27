@@ -18,7 +18,7 @@
     "build": "tsc",
     "clean": "rm -rf dist && rm -f patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
-    "test": "./test/run-tests.sh"
+    "test": "CI=true ./test/run-tests.sh"
   },
   "lint-staged": {
     "*.ts": [
@@ -64,6 +64,6 @@
     "rimraf": "^2.6.1",
     "slash": "^1.0.0",
     "tmp": "^0.0.31",
-    "update-notifier": "^2.2.0"
+    "update-notifier": "^2.4.0"
   }
 }

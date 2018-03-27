@@ -72,6 +72,10 @@ function applyPatch({ parts, path }: FilePatch): Effect {
   const fileLines: string[] =
     fileContents === "" ? [] : fileContents.split(/\n/)
 
+  if (fileLines.length && fileLines[fileLines.length - 1].match(/^\r?$/)) {
+    fileLines.pop()
+  }
+
   let i = 0
   while (i < parts.length) {
     const hunkHeader = parts[i++]
@@ -95,14 +99,40 @@ function applyPatch({ parts, path }: FilePatch): Effect {
           }
 
           if (part.type === "deletion") {
+            // console.log("bill deleter", fileLines, part.lines)
+            // console.log(
+            //   "splicin'",
+            //   hunkHeader.original.start - 1 + contextIndex - part.lines.length,
+            //   part.lines.length,
+            // )
             fileLines.splice(
               hunkHeader.original.start - 1 + contextIndex - part.lines.length,
               part.lines.length,
             )
             contextIndex -= part.lines.length
+
+            if (i === parts.length) {
+              if (part.noNewlineAtEndOfFile) {
+                // console.log("pushin")
+                // delete the fact that there was no newline at the end of the file
+                // by adding a newline to the end of the file
+                fileLines.push("")
+              }
+            }
+            // console.log("bill deleted", fileLines, part.lines)
+          } else {
+            if (
+              i === parts.length ||
+              (i === parts.length - 1 && parts[i].type === "deletion")
+            ) {
+              if (!part.noNewlineAtEndOfFile) {
+                fileLines.push("")
+              }
+            }
           }
           break
         case "insertion":
+          // console.log("inserting", fileLines, part.lines)
           fileLines.splice(
             hunkHeader.original.start - 1 + contextIndex,
             0,
@@ -110,14 +140,11 @@ function applyPatch({ parts, path }: FilePatch): Effect {
           )
           contextIndex += part.lines.length
           if (i === parts.length) {
-            if (part.noNewlineAtEndOfFile) {
-              if (!fileLines[fileLines.length - 1]) {
-                fileLines.pop()
-              }
-            } else if (fileLines[fileLines.length - 1] !== "") {
+            if (!part.noNewlineAtEndOfFile) {
               fileLines.push("")
             }
           }
+          // console.log("done", fileLines, part.lines)
           break
       }
     }

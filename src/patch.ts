@@ -10,7 +10,13 @@ export function patch(
     reverse?: boolean
   } = {},
 ): Effect[] {
-  const patch = parsePatch(patchFileContents)
+  let patch = parsePatch(patchFileContents)
 
-  return applyPatchFile(reverse ? reversePatch(patch) : patch)
+  if (reverse) {
+    patch = reversePatch(patch)
+  }
+
+  // console.dir(patch, {depth: 5})
+
+  return applyPatchFile(patch)
 }

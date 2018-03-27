@@ -116,6 +116,9 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     for (let i = 0; i < numMutations; i++) {
       switch (getNextMutationKind()) {
         case "deleteFile": {
+          if (Object.keys(mutatedFiles).length === 1) {
+            break
+          }
           // select a file at random and delete it
           const pathToDelete = selectRandomElement(Object.keys(mutatedFiles))
           delete mutatedFiles[pathToDelete]
@@ -240,8 +243,9 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
       try {
         it("works forwards", () => {
           setWorkingFiles({ ...testCase.cleanFiles })
+          let effects = []
           try {
-            patch(patchFileContents)
+            effects = patch(patchFileContents)
           } catch (e) {
             console.error("TEST CASE FAILED", {
               testCase,
@@ -249,7 +253,6 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
             })
             throw e
           }
-          const effects = patch(patchFileContents)
           executeEffects(effects)
           try {
             expect(getWorkingFiles()).toEqual(testCase.modifiedFiles)
@@ -286,6 +289,30 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
   for (let i = 0; i < 100; i++) {
     executeTest(makeTestCase(), i)
   }
+
+  executeTest(
+    {
+      cleanFiles: {
+        "qc-s.4me": "a\nl\nb\nG",
+      },
+      modifiedFiles: {
+        "qc-s.4me": "\na\nl\nb\nG",
+      },
+    },
+    4,
+  )
+
+  executeTest(
+    {
+      cleanFiles: {
+        banana: "\r",
+      },
+      modifiedFiles: {
+        banana: "",
+      },
+    },
+    4,
+  )
 
   executeTest(
     {

@@ -283,9 +283,21 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     })
   }
 
-  // for (let i = 0; i < 100; i++) {
-  //   executeTest(makeTestCase(), i)
-  // }
+  for (let i = 0; i < 100; i++) {
+    executeTest(makeTestCase(), i)
+  }
+
+  executeTest(
+    {
+      cleanFiles: {
+        f: "5\n",
+      },
+      modifiedFiles: {
+        f: "5\n7\n",
+      },
+    },
+    4,
+  )
 
   executeTest(
     {
@@ -299,96 +311,97 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     4,
   )
 
-  // executeTest(
-  //   {
-  //     cleanFiles: {
-  //       b: "\n",
-  //     },
-  //     modifiedFiles: {
-  //       b: "ba\n",
-  //     },
-  //   },
-  //   3,
-  // )
+  executeTest(
+    {
+      cleanFiles: {
+        b: "\n",
+      },
+      modifiedFiles: {
+        b: "ba\n",
+      },
+    },
+    3,
+  )
 
-  // executeTest({
-  //   cleanFiles: {
-  //     "banana": "WMo^",
-  //   },
-  //   modifiedFiles: {
-  //     "banana": "\n\n",
-  //   },
-  // }, 4)
+  executeTest(
+    {
+      cleanFiles: {
+        banana: "WMo^",
+      },
+      modifiedFiles: {
+        banana: "\n\n",
+      },
+    },
+    4,
+  )
 
-  // executeTest(
-  //   {
-  //     cleanFiles: {
-  //       b: "a",
-  //     },
-  //     modifiedFiles: { b: "a", c: "a\n" },
-  //   },
-  //   4,
-  // )
+  executeTest(
+    {
+      cleanFiles: {
+        b: "a",
+      },
+      modifiedFiles: { b: "a", c: "a\n" },
+    },
+    4,
+  )
 
-  // executeTest(
-  //   {
-  //     cleanFiles: {
-  //       "c-qZ0Qznn1.RWOZ": "$xs\rwim\t}pJ(;£BZxc\\bg9k|zvBufcaa",
-  //       "tK/NEDQ-hff.iaQK": ";4l",
-  //       "KbYXh8-Dk3J/vcjQ.mz": "+4:",
-  //       "r6LXXaS/DO3VbFBswE6.WmHQ": "rX]bnT%j+,\t\r~xc&`lLh^\\n*-J$z<4xu",
-  //       "Fa/lQgW3c/G8LsUj-YFoS.4hoY": "NS",
-  //     },
-  //     modifiedFiles: {
-  //       "c-qZ0Qznn1.RWOZ": "$xs\rwim\t}pJ(;£BZxc\\bg9k|zvBufcaa",
-  //       "tK/NEDQ-hff.iaQK": ";4l",
-  //       "KbYXh8-Dk3J/vcjQ.mz": "+4:",
-  //       "r6LXXaS/DO3VbFBswE6.WmHQ": "",
-  //       "Fa/lQgW3c/G8LsUj-YFoS.4hoY": "NS",
-  //       wW1UMkaGn: "F",
-  //     },
-  //   },
-  //   3,
-  // )
+  executeTest(
+    {
+      cleanFiles: {
+        "c-qZ0Qznn1.RWOZ": "$xs\rwim\t}pJ(;£BZxc\\bg9k|zvBufcaa",
+        "tK/NEDQ-hff.iaQK": ";4l",
+        "KbYXh8-Dk3J/vcjQ.mz": "+4:",
+        "r6LXXaS/DO3VbFBswE6.WmHQ": "rX]bnT%j+,\t\r~xc&`lLh^\\n*-J$z<4xu",
+        "Fa/lQgW3c/G8LsUj-YFoS.4hoY": "NS",
+      },
+      modifiedFiles: {
+        "c-qZ0Qznn1.RWOZ": "$xs\rwim\t}pJ(;£BZxc\\bg9k|zvBufcaa",
+        "tK/NEDQ-hff.iaQK": ";4l",
+        "KbYXh8-Dk3J/vcjQ.mz": "+4:",
+        "r6LXXaS/DO3VbFBswE6.WmHQ": "",
+        "Fa/lQgW3c/G8LsUj-YFoS.4hoY": "NS",
+        wW1UMkaGn: "F",
+      },
+    },
+    3,
+  )
 
-  // executeTest(
-  //   {
-  //     cleanFiles: {
-  //       "banana":
-  //         "M_7P /c$Y%ldTF=o\nKv_caoM|A\rZ^i!+",
-  //     },
-  //     modifiedFiles: {
-  //       "banana":
-  //         "B-§s\r\nM_7P /c$Y%ldTF=o\nKv_caoM|A\rZ^i!+",
-  //       jimmy: "",
-  //     },
-  //   },
-  //   4,
-  // )
+  executeTest(
+    {
+      cleanFiles: {
+        banana: "M_7P /c$Y%ldTF=o\nKv_caoM|A\rZ^i!+",
+      },
+      modifiedFiles: {
+        banana: "B-§s\r\nM_7P /c$Y%ldTF=o\nKv_caoM|A\rZ^i!+",
+        jimmy: "",
+      },
+    },
+    4,
+  )
 
-  // executeTest(
-  //   {
-  //     cleanFiles: {
-  //       "QBgzpme/jN/Rvr8SP1gZ.9": "Zk$@",
-  //     },
-  //     modifiedFiles: {
-  //       "QBgzpme/jN/Rvr8SP1gZ.9": ".6f\n7tD*\nZk$@",
-  //     },
-  //   },
-  //   5,
-  // )
-  // executeTest(
-  //   {
-  //     cleanFiles: { "1dkfI.J": "lineend\n" },
-  //     modifiedFiles: { "1dkfI.J": "nout" },
-  //   },
-  //   5,
-  // )
-  // executeTest(
-  //   {
-  //     cleanFiles: { "1dkfI.J": "a\nb\nc" },
-  //     modifiedFiles: { "1dkfI.J": "b\nb\nc" },
-  //   },
-  //   5,
-  // )
+  executeTest(
+    {
+      cleanFiles: {
+        "QBgzpme/jN/Rvr8SP1gZ.9": "Zk$@",
+      },
+      modifiedFiles: {
+        "QBgzpme/jN/Rvr8SP1gZ.9": ".6f\n7tD*\nZk$@",
+      },
+    },
+    5,
+  )
+  executeTest(
+    {
+      cleanFiles: { "1dkfI.J": "lineend\n" },
+      modifiedFiles: { "1dkfI.J": "nout" },
+    },
+    5,
+  )
+  executeTest(
+    {
+      cleanFiles: { "1dkfI.J": "a\nb\nc" },
+      modifiedFiles: { "1dkfI.J": "b\nb\nc" },
+    },
+    5,
+  )
 })

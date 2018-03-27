@@ -184,8 +184,6 @@ class PatchParser {
       this.parseFileModification()
     }
 
-    // console.dir(this.result, {depth: 5})
-
     return this.result
   }
 

@@ -7,9 +7,6 @@ import getAppRootPath from "./getAppRootPath"
 import makePatch from "./makePatch"
 import makeRegExp from "./makeRegExp"
 import detectPackageManager from "./detectPackageManager"
-import checkGitExists from "./checkGitExists"
-
-checkGitExists()
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {

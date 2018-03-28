@@ -293,6 +293,19 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
   executeTest(
     {
       cleanFiles: {
+        b: "\n",
+      },
+      modifiedFiles: {
+        b: "",
+      },
+    },
+    3,
+  )
+  executeTest({ cleanFiles: { b: "" }, modifiedFiles: { b: "\n" } }, 3)
+
+  executeTest(
+    {
+      cleanFiles: {
         "qc-s.4me": "a\nl\nb\nG",
       },
       modifiedFiles: {

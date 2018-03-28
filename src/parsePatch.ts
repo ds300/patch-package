@@ -21,11 +21,11 @@ export function parseHunkHeaderLine(headerLine: string): HunkHeader {
   return {
     type: "hunk header",
     original: {
-      start: Number(match[1]),
+      start: Math.max(Number(match[1]), 1),
       length: Number(match[3] || 1),
     },
     patched: {
-      start: Number(match[4]),
+      start: Math.max(Number(match[4]), 1),
       length: Number(match[6] || 1),
     },
   }

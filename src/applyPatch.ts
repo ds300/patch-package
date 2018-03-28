@@ -25,6 +25,7 @@ export type Effect =
       type: "replace"
       path: string
       lines: string[]
+      noNewlineAtEndOfFile: boolean
     }
 
 export function executeEffects(effects: Effect[]) {
@@ -44,7 +45,10 @@ export function executeEffects(effects: Effect[]) {
         )
         break
       case "replace":
-        fs.writeFileSync(eff.path, eff.lines.join("\n"))
+        fs.writeFileSync(
+          eff.path,
+          eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
+        )
         break
     }
   })
@@ -73,6 +77,8 @@ function applyPatch({ parts, path }: FilePatch): Effect {
   if (fileLines[fileLines.length - 1] === "") {
     fileLines.pop()
   }
+
+  let noNewlineAtEndOfFile = true
 
   let i = 0
   while (i < parts.length) {
@@ -110,11 +116,11 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             contextIndex -= part.lines.length
 
             if (
-              hunkHeader.original.start - 1 + contextIndex ===
+              hunkHeader.original.start - 1 + contextIndex >=
               fileLines.length
             ) {
               if (
-                part.noNewlineAtEndOfFile ||
+                (hunkHeader.patched.length > 0 && part.noNewlineAtEndOfFile) ||
                 (parts[i - 2] &&
                   (parts[i - 2].type === "insertion" ||
                     parts[i - 2].type === "context") &&
@@ -122,18 +128,16 @@ function applyPatch({ parts, path }: FilePatch): Effect {
               ) {
                 // delete the fact that there was no newline at the end of the file
                 // by adding a newline to the end of the file
-                fileLines.push("")
+                noNewlineAtEndOfFile = false
               }
             }
             // console.log("bill deleted", fileLines, part.lines)
           } else {
             if (
-              hunkHeader.original.start - 1 + contextIndex ===
+              hunkHeader.original.start - 1 + contextIndex >=
               fileLines.length
             ) {
-              if (!part.noNewlineAtEndOfFile) {
-                fileLines.push("")
-              }
+              noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
             }
           }
           break
@@ -146,12 +150,10 @@ function applyPatch({ parts, path }: FilePatch): Effect {
           )
           contextIndex += part.lines.length
           if (
-            hunkHeader.original.start - 1 + contextIndex ===
+            hunkHeader.original.start - 1 + contextIndex >=
             fileLines.length
           ) {
-            if (!part.noNewlineAtEndOfFile) {
-              fileLines.push("")
-            }
+            noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
           }
           // console.log("done", fileLines, part.lines)
           break
@@ -161,6 +163,7 @@ function applyPatch({ parts, path }: FilePatch): Effect {
 
   return {
     type: "replace",
+    noNewlineAtEndOfFile,
     path,
     lines: fileLines,
   }

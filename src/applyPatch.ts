@@ -109,7 +109,10 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             )
             contextIndex -= part.lines.length
 
-            if (contextIndex === fileLines.length) {
+            if (
+              hunkHeader.original.start - 1 + contextIndex ===
+              fileLines.length
+            ) {
               if (
                 part.noNewlineAtEndOfFile ||
                 (parts[i - 2] &&
@@ -124,7 +127,10 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             }
             // console.log("bill deleted", fileLines, part.lines)
           } else {
-            if (contextIndex === fileLines.length) {
+            if (
+              hunkHeader.original.start - 1 + contextIndex ===
+              fileLines.length
+            ) {
               if (!part.noNewlineAtEndOfFile) {
                 fileLines.push("")
               }
@@ -139,7 +145,10 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             ...part.lines,
           )
           contextIndex += part.lines.length
-          if (contextIndex === fileLines.length) {
+          if (
+            hunkHeader.original.start - 1 + contextIndex ===
+            fileLines.length
+          ) {
             if (!part.noNewlineAtEndOfFile) {
               fileLines.push("")
             }

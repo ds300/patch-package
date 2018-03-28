@@ -160,11 +160,16 @@ ${red.bold("**ERROR**")} ${red(
     `Failed to apply patch for package ${bold(packageName)}`,
   )}
 
-  This error was caused because Git cannot apply the following patch file:
+  This error was caused because patch-package cannot apply the following patch file:
 
     patches/${patchFileName}
 
-  This is usually caused by inconsistent whitespace in the patch file.
+  If removing node_modules and trying again doesn't fix this, maybe there was
+  an accidental change made to the patch file? If not, then it's probably a bug
+  in patch-package, so please submit a bug report. Thanks!
+
+    https://github.com/ds300/patch-package/issues
+
 `)
 }
 

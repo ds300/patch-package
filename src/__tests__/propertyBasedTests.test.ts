@@ -20,7 +20,7 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
   function makeFileContents() {
     return (
       generate({
-        length: Math.floor(Math.random() * 5),
+        length: Math.floor(Math.random() * 1000),
         charset: fileCharSet,
       }) || ""
     )
@@ -28,7 +28,7 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 
   function makeFileName(ext?: boolean) {
     const name = generate({
-      length: Math.ceil(Math.random() * 12),
+      length: Math.ceil(Math.random() * 10),
       charset: "abcdefghijklmnopqrstuvwxyz-_0987654321",
     })
 
@@ -56,7 +56,7 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 
   function makeFiles(): Files {
     const fileSystem: { [path: string]: string } = {}
-    const numFiles = Math.random() * 10 + 1
+    const numFiles = Math.random() * 3 + 1
     for (let i = 0; i < numFiles; i++) {
       fileSystem[makeFilePath()] = makeFileContents()
     }
@@ -111,7 +111,7 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
   function mutateFiles(files: Files): Files {
     const mutatedFiles = { ...files }
 
-    const numMutations = Math.ceil(Math.random() * 10)
+    const numMutations = Math.ceil(Math.random() * 1000)
 
     for (let i = 0; i < numMutations; i++) {
       switch (getNextMutationKind()) {
@@ -286,7 +286,7 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     })
   }
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 200; i++) {
     executeTest(makeTestCase(), i)
   }
 

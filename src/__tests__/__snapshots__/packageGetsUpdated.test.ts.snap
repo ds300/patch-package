@@ -23,6 +23,13 @@ Warning: patch-package detected a patch file version mismatch
 
   to update the version in the patch file name and make this warning go away.
 
+
+┌─────────────────────────────────────────────────────────┐
+│           [33m patch-package update check failed [39m           │
+│           Try running with [36msudo[39m or get access           │
+│          to the local update config store via           │
+│[36m sudo chown -R $USER:$(id -gn $USER) /Users/dshe/.config [39m│
+└─────────────────────────────────────────────────────────┘
 "
 `;
 
@@ -67,6 +74,13 @@ exports[`patch-package raises an error when the patch is applied 1`] = `
     Patch was made for version 1.1.1
     Meanwhile node_modules/left-pad is version 1.1.3
 
+
+┌─────────────────────────────────────────────────────────┐
+│           [33m patch-package update check failed [39m           │
+│           Try running with [36msudo[39m or get access           │
+│          to the local update config store via           │
+│[36m sudo chown -R $USER:$(id -gn $USER) /Users/dshe/.config [39m│
+└─────────────────────────────────────────────────────────┘
 error Command failed with exit code 1.
 "
 `;

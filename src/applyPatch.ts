@@ -80,6 +80,12 @@ function applyPatch({ parts, path }: FilePatch): Effect {
 
   let noNewlineAtEndOfFile = true
 
+  // when adding or removing lines from a file, gotta
+  // make sure that the original lines in hunk headers match up
+  // this effectively measures the total +/- in line count during the course
+  // of the patching process
+  let contextIndexOffset = 0
+
   let i = 0
   while (i < parts.length) {
     const hunkHeader = parts[i++]
@@ -88,7 +94,9 @@ function applyPatch({ parts, path }: FilePatch): Effect {
     }
 
     // contextIndex is the offest from the hunk header start but in the original file
-    let contextIndex = 0
+    let contextIndex = hunkHeader.original.start - 1 + contextIndexOffset
+
+    contextIndexOffset += hunkHeader.patched.length - hunkHeader.original.length
 
     while (i < parts.length && parts[i].type !== "hunk header") {
       const part = parts[i++]
@@ -96,8 +104,7 @@ function applyPatch({ parts, path }: FilePatch): Effect {
         case "deletion":
         case "context":
           for (const line of part.lines) {
-            const originalLine =
-              fileLines[hunkHeader.original.start - 1 + contextIndex]
+            const originalLine = fileLines[contextIndex]
             assertLineEquality(originalLine, line)
             contextIndex++
           }
@@ -106,19 +113,16 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             // console.log("bill deleter", fileLines, part.lines)
             // console.log(
             //   "splicin'",
-            //   hunkHeader.original.start - 1 + contextIndex - part.lines.length,
+            //   contextIndex - part.lines.length,
             //   part.lines.length,
             // )
             fileLines.splice(
-              hunkHeader.original.start - 1 + contextIndex - part.lines.length,
+              contextIndex - part.lines.length,
               part.lines.length,
             )
             contextIndex -= part.lines.length
 
-            if (
-              hunkHeader.original.start - 1 + contextIndex >=
-              fileLines.length
-            ) {
+            if (contextIndex >= fileLines.length) {
               if (
                 (hunkHeader.patched.length > 0 && part.noNewlineAtEndOfFile) ||
                 (parts[i - 2] &&
@@ -133,26 +137,16 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             }
             // console.log("bill deleted", fileLines, part.lines)
           } else {
-            if (
-              hunkHeader.original.start - 1 + contextIndex >=
-              fileLines.length
-            ) {
+            if (contextIndex >= fileLines.length) {
               noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
             }
           }
           break
         case "insertion":
           // console.log("inserting", fileLines, part.lines)
-          fileLines.splice(
-            hunkHeader.original.start - 1 + contextIndex,
-            0,
-            ...part.lines,
-          )
+          fileLines.splice(contextIndex, 0, ...part.lines)
           contextIndex += part.lines.length
-          if (
-            hunkHeader.original.start - 1 + contextIndex >=
-            fileLines.length
-          ) {
+          if (contextIndex >= fileLines.length) {
             noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
           }
           // console.log("done", fileLines, part.lines)

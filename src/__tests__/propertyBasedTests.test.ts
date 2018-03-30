@@ -293,6 +293,48 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
   executeTest(
     {
       cleanFiles: {
+        blah: "\n\n\na\nb\rc\rd\ne\nf\ng\rh\ni\n",
+      },
+      modifiedFiles: { blah: "z\n\na\nb\rc\rd\ne\nf\ng\rh\ni\n_" },
+    },
+    9,
+  )
+
+  executeTest(
+    {
+      cleanFiles: {
+        blah: `a
+b
+c
+d
+e
+f
+g
+h
+i
+j
+k
+l`,
+      },
+      modifiedFiles: {
+        blah: `d
+e
+f
+g
+h
+i
+j
+k
+m
+l`,
+      },
+    },
+    9,
+  )
+
+  executeTest(
+    {
+      cleanFiles: {
         b: "\n",
       },
       modifiedFiles: {

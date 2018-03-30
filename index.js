@@ -3,6 +3,10 @@
 const updateNotifier = require("update-notifier")
 const pkg = require("./package.json")
 
-updateNotifier({ pkg }).notify({ isGlobal: false })
+const isCi = require("is-ci")
+
+if (!isCi) {
+  updateNotifier({ pkg }).notify({ isGlobal: false })
+}
 
 require("./dist/index.js")

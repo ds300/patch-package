@@ -15,13 +15,6 @@ exports[`patch-package complains without windows error when the patch can't be a
     https://github.com/ds300/patch-package/issues
 
 
-
-┌─────────────────────────────────────────────────────────┐
-│           [33m patch-package update check failed [39m           │
-│           Try running with [36msudo[39m or get access           │
-│          to the local update config store via           │
-│[36m sudo chown -R $USER:$(id -gn $USER) /Users/dshe/.config [39m│
-└─────────────────────────────────────────────────────────┘
 error Command failed with exit code 1.
 "
 `;

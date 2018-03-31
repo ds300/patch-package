@@ -4,7 +4,7 @@ import spawnSafeSync from "../spawnSafe"
 import * as fs from "fs-extra"
 import * as path from "path"
 import { patch } from "../patch"
-import { executeEffects } from "../applyPatch"
+import { executeEffects } from "../patch/apply"
 
 describe("property based tests", () => {
   const fileCharSet = `

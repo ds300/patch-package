@@ -1,6 +1,6 @@
-import { parsePatch } from "./parsePatch"
-import { applyPatchFile, Effect } from "./applyPatch"
-import { reversePatch } from "./reversePatch"
+import { parsePatch } from "./parse"
+import { applyPatchFile, Effect } from "./apply"
+import { reversePatch } from "./reverse"
 
 export function patch(
   patchFileContents: string,

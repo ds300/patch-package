@@ -1,5 +1,5 @@
 import * as fs from "fs-extra"
-import { ParsedPatchFile, FilePatch } from "./parsePatch"
+import { ParsedPatchFile, FilePatch } from "./parse"
 
 export type Effect =
   | {

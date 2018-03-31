@@ -1,4 +1,4 @@
-import { ParsedPatchFile, PatchFilePart, PatchHunk } from "./parsePatch"
+import { ParsedPatchFile, PatchFilePart, PatchHunk } from "./parse"
 
 function reverseHunks(hunks: PatchHunk[]): PatchHunk[] {
   const result: PatchHunk[] = []
@@ -52,7 +52,7 @@ export function reversePatch(patch: ParsedPatchFile): ParsedPatchFile {
             path: part.path,
             lines: part.lines,
             mode: part.mode,
-            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile
+            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
           }
         case "file deletion":
           return {
@@ -60,7 +60,7 @@ export function reversePatch(patch: ParsedPatchFile): ParsedPatchFile {
             path: part.path,
             lines: part.lines,
             mode: part.mode,
-            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile
+            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
           }
         case "rename":
           return {

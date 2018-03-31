@@ -3,7 +3,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { getPatchFiles } from "./patchFs"
 import { patch } from "./patch"
-import { executeEffects } from "./applyPatch"
+import { executeEffects } from "./patch/apply"
 
 type OpaqueString<S extends string> = string & { type: S }
 export type AppPath = OpaqueString<"AppPath">

@@ -247,10 +247,15 @@ class PatchParser {
       // slice of the 'a/'
 
       // ignore hunk header
-      parseHunkHeaderLine(this.currentLine)
+      const header = parseHunkHeaderLine(this.currentLine)
       this.nextLine()
 
       const deletion: PatchMutationPart = this.parsePatchMutationPart()
+      if (header.original.length !== deletion.lines.length) {
+        throw new Error(
+          "hunk header integrity check failed when parsing file deletion",
+        )
+      }
 
       this.result.push({
         type: "file deletion",
@@ -263,10 +268,16 @@ class PatchParser {
       // creating a new file
       // just grab all the contents and put it in the file
       // TODO: header integrity checks
-      parseHunkHeaderLine(this.currentLine)
+      const header = parseHunkHeaderLine(this.currentLine)
       this.nextLine()
 
       const addition: PatchMutationPart = this.parsePatchMutationPart()
+
+      if (header.patched.length !== addition.lines.length) {
+        throw new Error(
+          "hunk header integrity check failed when parsing file addition",
+        )
+      }
 
       this.result.push({
         type: "file creation",
@@ -287,12 +298,54 @@ class PatchParser {
 
       // iterate over hunks
       while (!this.isEOF && this.currentLine.startsWith("@@")) {
-        filePatch.parts.push(parseHunkHeaderLine(this.currentLine))
+        const header = parseHunkHeaderLine(this.currentLine)
+        const hunkParts = []
+
         this.nextLine()
 
         while (!this.isEOF && this.currentLine.match(/^(\+|-| |\\).*/)) {
-          filePatch.parts.push(this.parsePatchMutationPart())
+          const mutations = this.parsePatchMutationPart()
+          hunkParts.push(mutations)
         }
+
+        // verify hunk integrity
+        const endSize = hunkParts.reduce(
+          (
+            { originalLength, patchedLength },
+            { type, lines }: PatchMutationPart,
+          ) => {
+            switch (type) {
+              case "insertion":
+                return {
+                  originalLength,
+                  patchedLength: patchedLength + lines.length,
+                }
+              case "context":
+                return {
+                  originalLength: originalLength + lines.length,
+                  patchedLength: patchedLength + lines.length,
+                }
+              case "deletion":
+                return {
+                  originalLength: originalLength + lines.length,
+                  patchedLength,
+                }
+            }
+          },
+          { originalLength: 0, patchedLength: 0 },
+        )
+
+        if (
+          endSize.originalLength !== header.original.length ||
+          endSize.patchedLength !== header.patched.length
+        ) {
+          throw new Error(
+            "hunk header integrity check failed when parsing file addition",
+          )
+        }
+
+        filePatch.parts.push(header)
+        filePatch.parts.push(...hunkParts)
       }
     }
   }

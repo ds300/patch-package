@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`the patch parser works for a simple case 1`] = `
+Array [
+  Object {
+    "parts": Array [
+      Object {
+        "original": Object {
+          "length": 5,
+          "start": 1,
+        },
+        "patched": Object {
+          "length": 5,
+          "start": 1,
+        },
+        "type": "hunk header",
+      },
+      Object {
+        "lines": Array [
+          "this",
+          "is",
+          "",
+        ],
+        "noNewlineAtEndOfFile": false,
+        "type": "context",
+      },
+      Object {
+        "lines": Array [
+          "a",
+        ],
+        "noNewlineAtEndOfFile": false,
+        "type": "deletion",
+      },
+      Object {
+        "lines": Array [
+          "",
+        ],
+        "noNewlineAtEndOfFile": false,
+        "type": "insertion",
+      },
+      Object {
+        "lines": Array [
+          "file",
+        ],
+        "noNewlineAtEndOfFile": false,
+        "type": "context",
+      },
+    ],
+    "path": "banana.ts",
+    "type": "patch",
+  },
+]
+`;

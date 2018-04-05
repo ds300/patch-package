@@ -124,6 +124,10 @@ class PatchParser {
     return this.i >= this.lines.length
   }
 
+  private get isOneLineLeft() {
+    return this.i === this.lines.length - 1
+  }
+
   // tslint:disable member-ordering
   public parse() {
     while (!this.isEOF) {
@@ -207,6 +211,7 @@ class PatchParser {
       case "-":
         blockType = "deletion"
         break
+      case undefined:
       case " ":
         blockType = "context"
         break
@@ -218,7 +223,16 @@ class PatchParser {
     do {
       lines.push(this.currentLine.slice(1))
       this.nextLine()
-    } while (!this.isEOF && this.currentLine.startsWith(firstChar))
+    } while (
+      !this.isEOF &&
+      // handle empty last line as not part of the context
+      !(this.isOneLineLeft && this.currentLine === "") &&
+      // while we have contiguous hunk line types
+      (this.currentLine[0] === firstChar ||
+        // handle mismatching context types
+        (firstChar === " " && this.currentLine[0] === undefined) ||
+        (firstChar === undefined && this.currentLine[0] === " "))
+    )
 
     let noNewlineAtEndOfFile = false
     if (
@@ -233,6 +247,22 @@ class PatchParser {
       lines,
       noNewlineAtEndOfFile,
     } as PatchMutationPart
+  }
+
+  private currentLineIsPartOfHunk(): boolean {
+    if (this.isEOF) {
+      return false
+    }
+    switch (this.currentLine[0]) {
+      case undefined:
+      case " ":
+      case "+":
+      case "-":
+      case "\\":
+        return true
+      default:
+        return false
+    }
   }
 
   private parseFileModification() {
@@ -302,7 +332,10 @@ class PatchParser {
 
         this.nextLine()
 
-        while (!this.isEOF && this.currentLine.match(/^(\+|-| |\\).*/)) {
+        while (
+          this.currentLineIsPartOfHunk() &&
+          !(this.isOneLineLeft && this.currentLine === "")
+        ) {
           const mutations = this.parsePatchMutationPart()
           hunkParts.push(mutations)
         }

@@ -5,6 +5,7 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import { patch } from "../patch"
 import { executeEffects } from "../patch/apply"
+import { parsePatch } from "../patch/parse"
 
 describe("property based tests", () => {
   const fileCharSet = `
@@ -202,14 +203,47 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     ;(fs as any).moveSync = properMoveSync
   })
 
+  function addBlankLines(patchFileContents: string): string {
+    return patchFileContents
+      .split("\n")
+      .map(line => (line === " " ? "" : line))
+      .join("\n")
+  }
+
+  describe("adding blank lines", () => {
+    it("adds blank lines where once there were spaces", () => {
+      expect(
+        addBlankLines(`diff --git a/banana.ts b/banana.ts
+index 2de83dd..842652c 100644
+--- a/banana.ts
++++ b/banana.ts
+@@ -1,5 +1,5 @@
+ this
+ is
+ 
+-a
++
+ file
+`),
+      ).toMatchSnapshot()
+    })
+  })
+
   function executeTest(testCase: TestCase, i: number) {
+    function reportingFailures(f: () => void): void {
+      try {
+        f()
+      } catch (e) {
+        console.error("TEST CASE FAILED", {
+          testCase,
+          workingFiles: getWorkingFiles(),
+        })
+        throw e
+      }
+    }
+
     describe("the test case " + i, () => {
       const tmpDir = tmp.dirSync({ unsafeCleanup: true })
-      // if (fs.existsSync("testblah")) {
-      //   fs.removeSync("testblah")
-      // }
-      // fs.mkdirSync("testblah")
-      // const tmpDir = { name: "testblah" }
 
       spawnSafeSync("git", ["init"], { cwd: tmpDir.name })
 
@@ -238,51 +272,35 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 
       const patchFileContents = patchResult.stdout.toString()
 
+      const patchFileContentsWithBlankLines = addBlankLines(patchFileContents)
+
+      it("looks the same whether parsed with blank lines or not", () => {
+        reportingFailures(() => {
+          expect(parsePatch(patchFileContents)).toEqual(
+            parsePatch(patchFileContentsWithBlankLines),
+          )
+        })
+      })
+
       // console.log(patchFileContents)
 
-      try {
-        it("works forwards", () => {
-          setWorkingFiles({ ...testCase.cleanFiles })
-          let effects = []
-          try {
-            effects = patch(patchFileContents)
-          } catch (e) {
-            console.error("TEST CASE FAILED", {
-              testCase,
-              workingFiles: getWorkingFiles(),
-            })
-            throw e
-          }
+      it("works forwards", () => {
+        setWorkingFiles({ ...testCase.cleanFiles })
+        reportingFailures(() => {
+          const effects = patch(patchFileContents)
           executeEffects(effects)
-          try {
-            expect(getWorkingFiles()).toEqual(testCase.modifiedFiles)
-          } catch (e) {
-            console.error("TEST CASE FAILED", {
-              testCase,
-              workingFiles: getWorkingFiles(),
-            })
-            throw e
-          }
+          expect(getWorkingFiles()).toEqual(testCase.modifiedFiles)
         })
+      })
 
-        it("works backwards", () => {
-          setWorkingFiles({ ...testCase.modifiedFiles })
+      it("works backwards", () => {
+        setWorkingFiles({ ...testCase.modifiedFiles })
+        reportingFailures(() => {
           const result = patch(patchFileContents, { reverse: true })
           executeEffects(result)
-          try {
-            expect(getWorkingFiles()).toEqual(testCase.cleanFiles)
-          } catch (e) {
-            console.error("TEST CASE FAILED", {
-              testCase,
-              workingFiles: getWorkingFiles(),
-            })
-            throw e
-          }
+          expect(getWorkingFiles()).toEqual(testCase.cleanFiles)
         })
-      } catch (e) {
-        console.error("TEST CASE FAILED", JSON.stringify(testCase))
-        throw e
-      }
+      })
     })
   }
 

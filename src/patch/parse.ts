@@ -283,7 +283,6 @@ class PatchParser {
         type: "file creation",
         path: endPath.slice(2),
         lines: addition.lines,
-        // tslint:disable-next-line no-bitwise
         mode: this.fileMode,
         noNewlineAtEndOfFile: addition.noNewlineAtEndOfFile,
       })

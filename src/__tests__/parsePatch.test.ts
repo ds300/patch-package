@@ -102,7 +102,7 @@ describe("the patch parser", () => {
     expect(() => parsePatch(invalidHeaders4)).toThrow()
     expect(() => parsePatch(invalidHeaders5)).toThrow()
   })
-  it("fails when blank lines are accidentally created", () => {
-    expect(() => parsePatch(accidentalBlankLine)).toThrow()
+  it("is OK when blank lines are accidentally created", () => {
+    expect(parsePatch(accidentalBlankLine)).toEqual(parsePatch(patch))
   })
 })

@@ -13,6 +13,11 @@ import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 
+function deleteScripts(json: any) {
+  delete json.scripts
+  return json
+}
+
 export default function makePatch(
   packageName: string,
   appPath: string,
@@ -67,12 +72,15 @@ export default function makePatch(
       path.join(tmpRepo.name, "package.json"),
     )
     // resolve relative file paths in package.json
+    // also delete scripts
     fs.writeFileSync(
       tmpRepoPackageJsonPath,
       JSON.stringify(
-        resolveRelativeFileDependenciesInPackageJson(
-          appPath,
-          require(tmpRepoPackageJsonPath),
+        deleteScripts(
+          resolveRelativeFileDependenciesInPackageJson(
+            appPath,
+            require(tmpRepoPackageJsonPath),
+          ),
         ),
       ),
     )

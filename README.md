@@ -25,9 +25,11 @@ No more forking repos just to fix that one tiny thing preventing your app from w
 
 In package.json
 
-    "scripts": {
-      "postinstall": "patch-package"
-    }
+```diff
+ "scripts": {
++  "postinstall": "patch-package"
+ }
+```
 
 Then
 

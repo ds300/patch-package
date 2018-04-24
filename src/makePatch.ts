@@ -121,9 +121,6 @@ export default function makePatch(
     )
     tmpExec("git", ["init"])
     // don't commit package.json though
-    fs.unlinkSync(
-      path.join(tmpRepo.name, "node_modules", packageName, "package.json"),
-    )
     tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
 
     tmpExec("git", ["commit", "-m", "init"])
@@ -131,11 +128,6 @@ export default function makePatch(
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)
     fsExtra.copySync(packagePath, tmpRepoPackagePath, { recursive: true })
-
-    // remove package.json again
-    fs.unlinkSync(
-      path.join(tmpRepo.name, "node_modules", packageName, "package.json"),
-    )
 
     // stage all files
     tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])

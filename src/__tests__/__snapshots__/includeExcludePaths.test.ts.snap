@@ -15,6 +15,24 @@ index c28dd78..584b377 100644
 END SNAPSHOT"
 `;
 
+exports[`Test include-exclude-paths: modified package.json 1`] = `
+"SNAPSHOT: modified package.json
+diff --git a/node_modules/lodash/package.json b/node_modules/lodash/package.json
+index 028960d..7d346f3 100644
+--- a/node_modules/lodash/package.json
++++ b/node_modules/lodash/package.json
+@@ -1,7 +1,7 @@
+ {
+   \\"name\\": \\"lodash\\",
+   \\"version\\": \\"4.17.4\\",
+-  \\"description\\": \\"Lodash modular utilities.\\",
++  \\"patchPackageRulezLol\\": \\"Lodash modular utilities.\\",
+   \\"keywords\\": \\"modules, stdlib, util\\",
+   \\"homepage\\": \\"https://lodash.com/\\",
+   \\"repository\\": \\"lodash/lodash\\",
+END SNAPSHOT"
+`;
+
 exports[`Test include-exclude-paths: no base files 1`] = `
 "SNAPSHOT: no base files
 diff --git a/node_modules/lodash/flip.js b/node_modules/lodash/flip.js

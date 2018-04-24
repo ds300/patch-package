@@ -54,3 +54,23 @@ fi
 
 echo "run patch package including newFile (case insensitive)"
 patch-package lodash --include newFile --case-sensitive-path-filtering
+
+echo "revet to the beginning"
+rimraf node_modules
+yarn
+
+echo "edit lodash's package.json"
+replace description patchPackageRulezLol node_modules/lodash/package.json
+
+echo "check that the edit was ignored by default"
+if patch-package lodash
+then
+  exit 1
+fi
+
+echo "un-ingore the edit by specifying the empty string as regexp"
+patch-package lodash --exclude '^$'
+
+echo "SNAPSHOT: modified package.json"
+cat patches/lodash*
+echo "END SNAPSHOT"

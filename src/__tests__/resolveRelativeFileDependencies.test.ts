@@ -37,12 +37,9 @@ describe("resolveRelativeFileDependencies", () => {
       },
     }
 
-    expect(
-      resolveRelativeFileDependenciesInPackageJson(
-        appRootPath,
-        JSON.parse(JSON.stringify(packageJson)),
-      ),
-    ).toEqual(expected)
+    expect(resolveRelativeFileDependenciesInPackageJson(appRootPath, JSON.parse(JSON.stringify(packageJson)))).toEqual(
+      expected,
+    )
   })
   it("works for package-lock.json", () => {
     const appRootPath = "/bloo/far"
@@ -70,8 +67,6 @@ describe("resolveRelativeFileDependencies", () => {
       },
     }
 
-    expect(
-      resolveRelativeFileDependenciesInPackageLock(appRootPath, packageLock),
-    ).toEqual(expected)
+    expect(resolveRelativeFileDependenciesInPackageLock(appRootPath, packageLock)).toEqual(expected)
   })
 })

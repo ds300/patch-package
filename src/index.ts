@@ -18,26 +18,10 @@ if (argv.help || argv.h) {
   printHelp()
 } else {
   if (packageNames.length) {
-    const include = makeRegExp(
-      argv.include,
-      "include",
-      /.*/,
-      argv["case-sensitive-path-filtering"],
-    )
-    const exclude = makeRegExp(
-      argv.exclude,
-      "exclude",
-      /package\.json$/,
-      argv["case-sensitive-path-filtering"],
-    )
+    const include = makeRegExp(argv.include, "include", /.*/, argv["case-sensitive-path-filtering"])
+    const exclude = makeRegExp(argv.exclude, "exclude", /package\.json$/, argv["case-sensitive-path-filtering"])
     packageNames.forEach((packageName: string) => {
-      makePatch(
-        packageName,
-        appPath,
-        detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
-        include,
-        exclude,
-      )
+      makePatch(packageName, appPath, detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null), include, exclude)
     })
   } else {
     console.log("patch-package: Applying patches...")
@@ -54,9 +38,7 @@ Usage:
 
     ${bold("patch-package")}
 
-  Without arguments, the ${bold(
-    "patch-package",
-  )} command will attempt to find and apply
+  Without arguments, the ${bold("patch-package")} command will attempt to find and apply
   patch files to your project. It looks for files named like
 
      ./patches/<package-name>+<version>.patch

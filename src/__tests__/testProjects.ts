@@ -6,15 +6,10 @@ import * as path from "../path"
 import spawnSafe, { SpawnSafeOptions } from "../spawnSafe"
 
 export const patchPackageTarballPath = path.resolve(
-  fs
-    .readdirSync(".")
-    .filter(nm => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
+  fs.readdirSync(".").filter(nm => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
 )
 
-export function initTestProject(
-  testProjectName: string,
-  packageManager: "yarn" | "npm" = "yarn",
-) {
+export function initTestProject(testProjectName: string, packageManager: "yarn" | "npm" = "yarn") {
   // copy left-pad-breakage repo to temp folder
   const tmpDir = tmp.dirSync({
     unsafeCleanup: true,
@@ -37,13 +32,7 @@ export function initTestProject(
       return fs.readFileSync(path.join(tmpDir.name, ...parts)).toString()
     },
     writeFileSync(filePath: string[] | string, data: string) {
-      fs.writeFileSync(
-        path.join(
-          tmpDir.name,
-          Array.isArray(filePath) ? path.join(...filePath) : filePath,
-        ),
-        data,
-      )
+      fs.writeFileSync(path.join(tmpDir.name, Array.isArray(filePath) ? path.join(...filePath) : filePath), data)
     },
     runPatchPackage(options?: SpawnSafeOptions) {
       if (packageManager === "yarn") {
@@ -58,11 +47,7 @@ export function initTestProject(
         return spawnSync("yarn", ["install"], options)
       } else {
         spawnSync("npm", ["i"], options)
-        return spawnSync(
-          "npm",
-          ["i", "file:" + patchPackageTarballPath],
-          options,
-        )
+        return spawnSync("npm", ["i", "file:" + patchPackageTarballPath], options)
       }
     },
   }

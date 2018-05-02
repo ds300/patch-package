@@ -9,12 +9,8 @@ export default function detectPackageManager(
   appRootPath: string,
   overridePackageManager: PackageManager | null,
 ): PackageManager {
-  const packageLockExists = fs.existsSync(
-    path.join(appRootPath, "package-lock.json"),
-  )
-  const shrinkWrapExists = fs.existsSync(
-    path.join(appRootPath, "npm-shrinkwrap.json"),
-  )
+  const packageLockExists = fs.existsSync(path.join(appRootPath, "package-lock.json"))
+  const shrinkWrapExists = fs.existsSync(path.join(appRootPath, "npm-shrinkwrap.json"))
   const yarnLockExists = fs.existsSync(path.join(appRootPath, "yarn.lock"))
   if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
     if (overridePackageManager) {
@@ -41,9 +37,7 @@ export default function detectPackageManager(
 
 function printNoYarnLockfileError() {
   console.error(`
-${chalk.red.bold("**ERROR**")} ${chalk.red(
-    `The --use-yarn option was specified but there is no yarn.lock file`,
-  )}
+${chalk.red.bold("**ERROR**")} ${chalk.red(`The --use-yarn option was specified but there is no yarn.lock file`)}
 `)
 }
 
@@ -60,9 +54,7 @@ dependencies.`,
 
 function printSelectingDefaultMessage() {
   console.info(
-    `${chalk.bold(
-      "patch-package",
-    )}: you have both yarn.lock and package-lock.json
+    `${chalk.bold("patch-package")}: you have both yarn.lock and package-lock.json
 Defaulting to using ${chalk.bold("npm")}
 You can override this setting by passing --use-yarn or deleting
 package-lock.json if you don't need it

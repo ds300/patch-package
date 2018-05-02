@@ -17,22 +17,21 @@ interface PackageLock {
   }
 }
 
-export function resolveRelativeFileDependenciesInPackageJson<
-  T extends PackageJson
->(appRootPath: string, pkg: T): PackageJson {
+export function resolveRelativeFileDependenciesInPackageJson<T extends PackageJson>(
+  appRootPath: string,
+  pkg: T,
+): PackageJson {
   _resolveRelativeFileDependencies(appRootPath, pkg.dependencies)
   _resolveRelativeFileDependencies(appRootPath, pkg.devDependencies)
   return pkg
 }
 
-export function resolveRelativeFileDependenciesInPackageLock<
-  T extends PackageLock
->(appRootPath: string, pkg: T): PackageLock {
+export function resolveRelativeFileDependenciesInPackageLock<T extends PackageLock>(
+  appRootPath: string,
+  pkg: T,
+): PackageLock {
   for (const packageName of Object.keys(pkg.dependencies)) {
-    pkg.dependencies[packageName].version = transformVersionString(
-      pkg.dependencies[packageName].version,
-      appRootPath,
-    )
+    pkg.dependencies[packageName].version = transformVersionString(pkg.dependencies[packageName].version, appRootPath)
   }
   return pkg
 }
@@ -45,16 +44,10 @@ function transformVersionString(version: string, appRootPath: string) {
   }
 }
 
-function _resolveRelativeFileDependencies(
-  appRootPath: string,
-  dependencies?: { [packageName: string]: string },
-) {
+function _resolveRelativeFileDependencies(appRootPath: string, dependencies?: { [packageName: string]: string }) {
   if (dependencies) {
     for (const packageName of Object.keys(dependencies)) {
-      dependencies[packageName] = transformVersionString(
-        dependencies[packageName],
-        appRootPath,
-      )
+      dependencies[packageName] = transformVersionString(dependencies[packageName], appRootPath)
     }
   }
 }

@@ -5,11 +5,7 @@ describe("patch-package", () => {
   project.install()
 
   it("works with npm shrinkwrap", () => {
-    const leftPadSource = project.readFileSync(
-      "node_modules",
-      "left-pad",
-      "index.js",
-    )
+    const leftPadSource = project.readFileSync("node_modules", "left-pad", "index.js")
 
     expect(leftPadSource.includes("patch-package")).toBe(true)
   })

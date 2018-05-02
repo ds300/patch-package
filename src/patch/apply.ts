@@ -38,17 +38,10 @@ export function executeEffects(effects: Effect[]) {
         fs.moveSync(eff.fromPath, eff.toPath)
         break
       case "file creation":
-        fs.writeFileSync(
-          eff.path,
-          eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
-          { mode: eff.mode },
-        )
+        fs.writeFileSync(eff.path, eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"), { mode: eff.mode })
         break
       case "replace":
-        fs.writeFileSync(
-          eff.path,
-          eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
-        )
+        fs.writeFileSync(eff.path, eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"))
         break
     }
   })
@@ -116,18 +109,14 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             //   contextIndex - part.lines.length,
             //   part.lines.length,
             // )
-            fileLines.splice(
-              contextIndex - part.lines.length,
-              part.lines.length,
-            )
+            fileLines.splice(contextIndex - part.lines.length, part.lines.length)
             contextIndex -= part.lines.length
 
             if (contextIndex >= fileLines.length) {
               if (
                 (hunkHeader.patched.length > 0 && part.noNewlineAtEndOfFile) ||
                 (parts[i - 2] &&
-                  (parts[i - 2].type === "insertion" ||
-                    parts[i - 2].type === "context") &&
+                  (parts[i - 2].type === "insertion" || parts[i - 2].type === "context") &&
                   !(parts[i - 2] as any).noNewlineAtEndOfFile)
               ) {
                 // delete the fact that there was no newline at the end of the file

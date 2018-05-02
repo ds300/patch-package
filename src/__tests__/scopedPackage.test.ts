@@ -5,12 +5,7 @@ describe("patch-package", () => {
   project.install()
 
   it("applies patches to scoped packages", () => {
-    const typingsContent = project.readFileSync(
-      "node_modules",
-      "@types",
-      "left-pad",
-      "index.d.ts",
-    )
+    const typingsContent = project.readFileSync("node_modules", "@types", "left-pad", "index.d.ts")
 
     expect(typingsContent.includes("patch-package")).toBe(true)
   })

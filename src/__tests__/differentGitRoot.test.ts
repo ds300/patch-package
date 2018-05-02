@@ -13,11 +13,10 @@ describe("patch-package", () => {
     // make subfolder for app
     const appPath = path.join(repo.name, "subproject")
     // create app
-    fs.copySync(
-      path.join(__dirname, "test-projects", "left-pad-breakage"),
-      appPath,
-      { recursive: true, overwrite: true },
-    )
+    fs.copySync(path.join(__dirname, "test-projects", "left-pad-breakage"), appPath, {
+      recursive: true,
+      overwrite: true,
+    })
     // install pp and everything
     spawnSync("yarn", ["add", "file:" + patchPackageTarballPath], {
       cwd: appPath,
@@ -25,9 +24,7 @@ describe("patch-package", () => {
     spawnSync("yarn", ["install"], { cwd: appPath })
 
     // make sure file got patched
-    const leftPadContents = fs
-      .readFileSync(path.join(appPath, "node_modules/left-pad/index.js"))
-      .toString()
+    const leftPadContents = fs.readFileSync(path.join(appPath, "node_modules/left-pad/index.js")).toString()
 
     expect(leftPadContents.includes("patch-package")).toBe(true)
   })

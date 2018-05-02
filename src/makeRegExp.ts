@@ -15,9 +15,7 @@ export default function makeRegExp(
       console.error(`${red.bold("***ERROR***")}
 Invalid format for option --${name}
 
-  Unable to convert the string ${JSON.stringify(
-    reString,
-  )} to a regular expression.
+  Unable to convert the string ${JSON.stringify(reString)} to a regular expression.
 `)
 
       process.exit(1)

@@ -33,23 +33,18 @@ function getPatchDetailsFromFilename(filename: FileName) {
   }
 }
 
-function getInstalledPackageVersion(
-  appPath: AppPath,
-  packageName: PackageName,
-) {
+function getInstalledPackageVersion(appPath: AppPath, packageName: PackageName) {
   const packageDir = path.join(appPath, "node_modules", packageName)
   if (!fs.existsSync(packageDir)) {
     console.warn(
-      `${red("Warning:")} Patch file found for package ${path.posix.basename(
-        packageDir,
-      )}` + ` which is not present at ${packageDir}`,
+      `${red("Warning:")} Patch file found for package ${path.posix.basename(packageDir)}` +
+        ` which is not present at ${packageDir}`,
     )
 
     return null
   }
 
-  return require(path.join(packageDir, "package.json"))
-    .version as PackageVersion
+  return require(path.join(packageDir, "package.json")).version as PackageVersion
 }
 
 export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
@@ -63,26 +58,17 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
   files.forEach(filename => {
     const { packageName, version } = getPatchDetailsFromFilename(filename)
 
-    const installedPackageVersion = getInstalledPackageVersion(
-      appPath,
-      packageName,
-    )
+    const installedPackageVersion = getInstalledPackageVersion(appPath, packageName)
 
     if (!installedPackageVersion) {
       return
     }
 
-    if (
-      applyPatch(path.resolve(patchesDirectory, filename) as FileName, reverse)
-    ) {
+    if (applyPatch(path.resolve(patchesDirectory, filename) as FileName, reverse)) {
       // yay patch was applied successfully
       // print warning if version mismatch
       if (installedPackageVersion !== version) {
-        printVersionMismatchWarning(
-          packageName,
-          installedPackageVersion,
-          version,
-        )
+        printVersionMismatchWarning(packageName, installedPackageVersion, version)
       } else {
         console.log(`${bold(packageName)}@${version} ${green("✔")}`)
       }
@@ -92,12 +78,7 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
       if (installedPackageVersion === version) {
         printBrokenPatchFileError(packageName, filename)
       } else {
-        printPatchApplictionFailureError(
-          packageName,
-          installedPackageVersion,
-          version,
-          filename,
-        )
+        printPatchApplictionFailureError(packageName, installedPackageVersion, version, filename)
       }
       process.exit(1)
     }
@@ -151,14 +132,9 @@ ${red("Warning:")} patch-package detected a patch file version mismatch
 `)
 }
 
-function printBrokenPatchFileError(
-  packageName: PackageName,
-  patchFileName: FileName,
-) {
+function printBrokenPatchFileError(packageName: PackageName, patchFileName: FileName) {
   console.error(`
-${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)}`,
-  )}
+${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(packageName)}`)}
 
   This error was caused because patch-package cannot apply the following patch file:
 
@@ -180,9 +156,7 @@ function printPatchApplictionFailureError(
   patchFileName: FileName,
 ) {
   console.error(`
-${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)}`,
-  )}
+${red.bold("**ERROR**")} ${red(`Failed to apply patch for package ${bold(packageName)}`)}
 
   This error was caused because ${bold(packageName)} has changed since you
   made the patch file for it. This introduced conflicts with your patch,
@@ -219,8 +193,6 @@ ${red.bold("**ERROR**")} ${red(
 
   Info:
     Patch was made for version ${green.bold(originalVersion)}
-    Meanwhile node_modules/${bold(packageName)} is version ${red.bold(
-    actualVersion,
-  )}
+    Meanwhile node_modules/${bold(packageName)} is version ${red.bold(actualVersion)}
 `)
 }

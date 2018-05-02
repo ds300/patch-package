@@ -9,8 +9,6 @@
     "dist": true
   },
   "editor.formatOnPaste": true,
-  "prettier.semi": false,
-  "prettier.trailingComma": "all",
   "editor.formatOnSave": true,
   "tslint.enable": true,
   "typescript.tsdk": "node_modules/typescript/lib"

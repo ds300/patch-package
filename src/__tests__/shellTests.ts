@@ -4,10 +4,7 @@ import * as path from "../path"
 import * as tmp from "tmp"
 import spawnSync from "../spawnSafe"
 
-export function runShellTest(
-  projectName: string,
-  shouldProduceSnapshots: boolean = true,
-) {
+export function runShellTest(projectName: string, shouldProduceSnapshots: boolean = true) {
   describe(`Test ${projectName}:`, () => {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
     fs.copySync(path.join("test", projectName), tmpDir.name, {

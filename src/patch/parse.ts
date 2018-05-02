@@ -11,9 +11,7 @@ interface HunkHeader {
 }
 
 export function parseHunkHeaderLine(headerLine: string): HunkHeader {
-  const match = headerLine
-    .trim()
-    .match(/^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@.*/)
+  const match = headerLine.trim().match(/^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@.*/)
   if (!match) {
     throw new Error(`Bad header line: '${headerLine}'`)
   }
@@ -138,9 +136,7 @@ class PatchParser {
       }
 
       if (this.currentLine.startsWith("deleted file mode")) {
-        this._fileMode = this.currentLine
-          .slice("deleted file mode ".length)
-          .trim()
+        this._fileMode = this.currentLine.slice("deleted file mode ".length).trim()
         this.nextLine()
         continue
       }
@@ -154,13 +150,8 @@ class PatchParser {
         // That's no longer needed but this should still support those old files
         // unless the file created is empty, in which case the normal patch
         // parsing bits below don't work and we need this special case
-        if (
-          !this.lines[this.i].startsWith("--- /dev/null") &&
-          !this.lines[this.i + 1].startsWith("--- /dev/null")
-        ) {
-          const match = this.lines[this.i - 2].match(
-            /^diff --git a\/(.+) b\/(.+)$/,
-          )
+        if (!this.lines[this.i].startsWith("--- /dev/null") && !this.lines[this.i + 1].startsWith("--- /dev/null")) {
+          const match = this.lines[this.i - 2].match(/^diff --git a\/(.+) b\/(.+)$/)
           if (!match) {
             console.error(this.lines, this.i)
             throw new Error("Creating new empty file but found no diff header.")
@@ -235,10 +226,7 @@ class PatchParser {
     )
 
     let noNewlineAtEndOfFile = false
-    if (
-      !this.isEOF &&
-      this.currentLine.startsWith("\\ No newline at end of file")
-    ) {
+    if (!this.isEOF && this.currentLine.startsWith("\\ No newline at end of file")) {
       noNewlineAtEndOfFile = true
       this.nextLine()
     }
@@ -282,9 +270,7 @@ class PatchParser {
 
       const deletion: PatchMutationPart = this.parsePatchMutationPart()
       if (header.original.length !== deletion.lines.length) {
-        throw new Error(
-          "hunk header integrity check failed when parsing file deletion",
-        )
+        throw new Error("hunk header integrity check failed when parsing file deletion")
       }
 
       this.result.push({
@@ -304,9 +290,7 @@ class PatchParser {
       const addition: PatchMutationPart = this.parsePatchMutationPart()
 
       if (header.patched.length !== addition.lines.length) {
-        throw new Error(
-          "hunk header integrity check failed when parsing file addition",
-        )
+        throw new Error("hunk header integrity check failed when parsing file addition")
       }
 
       this.result.push({
@@ -332,20 +316,14 @@ class PatchParser {
 
         this.nextLine()
 
-        while (
-          this.currentLineIsPartOfHunk() &&
-          !(this.isOneLineLeft && this.currentLine === "")
-        ) {
+        while (this.currentLineIsPartOfHunk() && !(this.isOneLineLeft && this.currentLine === "")) {
           const mutations = this.parsePatchMutationPart()
           hunkParts.push(mutations)
         }
 
         // verify hunk integrity
         const endSize = hunkParts.reduce(
-          (
-            { originalLength, patchedLength },
-            { type, lines }: PatchMutationPart,
-          ) => {
+          ({ originalLength, patchedLength }, { type, lines }: PatchMutationPart) => {
             switch (type) {
               case "insertion":
                 return {
@@ -367,13 +345,8 @@ class PatchParser {
           { originalLength: 0, patchedLength: 0 },
         )
 
-        if (
-          endSize.originalLength !== header.original.length ||
-          endSize.patchedLength !== header.patched.length
-        ) {
-          throw new Error(
-            "hunk header integrity check failed when parsing file addition",
-          )
+        if (endSize.originalLength !== header.original.length || endSize.patchedLength !== header.patched.length) {
+          throw new Error("hunk header integrity check failed when parsing file addition")
         }
 
         filePatch.parts.push(header)

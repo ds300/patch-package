@@ -50,7 +50,7 @@
     "jest": "^20.0.4",
     "lint-staged": "^3.4.1",
     "np": "^2.15.0",
-    "prettier": "^1.11.1",
+    "prettier": "^1.12.1",
     "randomstring": "^1.1.5",
     "ts-jest": "^20.0.10",
     "tslint": "^5.2.0",

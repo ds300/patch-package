@@ -72,10 +72,7 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
     ["deleteLine", 10],
     ["insertLine", 10],
   ]
-  const liklihoodSum = mutationKindLikelihoods.reduce(
-    (acc, [_, n]) => acc + n,
-    0,
-  )
+  const liklihoodSum = mutationKindLikelihoods.reduce((acc, [_, n]) => acc + n, 0)
 
   function getNextMutationKind(): MutationKind {
     const n = Math.random() * liklihoodSum
@@ -130,19 +127,13 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
           break
         }
         case "deleteLine": {
-          const pathToDeleteFrom = selectRandomElement(
-            Object.keys(mutatedFiles),
-          )
-          mutatedFiles[pathToDeleteFrom] = deleteLinesFromFile(
-            mutatedFiles[pathToDeleteFrom],
-          )
+          const pathToDeleteFrom = selectRandomElement(Object.keys(mutatedFiles))
+          mutatedFiles[pathToDeleteFrom] = deleteLinesFromFile(mutatedFiles[pathToDeleteFrom])
           break
         }
         case "insertLine":
           const pathToInsertTo = selectRandomElement(Object.keys(mutatedFiles))
-          mutatedFiles[pathToInsertTo] = insertLinesIntoFile(
-            mutatedFiles[pathToInsertTo],
-          )
+          mutatedFiles[pathToInsertTo] = insertLinesIntoFile(mutatedFiles[pathToInsertTo])
           // select a file at random and insert some text in there
           break
       }
@@ -186,9 +177,7 @@ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 
   beforeEach(() => {
     ;(fs as any).readFileSync = jest.fn(path => getWorkingFiles()[path])
-    ;(fs as any).writeFileSync = jest.fn(
-      (path, data) => (getWorkingFiles()[path] = data),
-    )
+    ;(fs as any).writeFileSync = jest.fn((path, data) => (getWorkingFiles()[path] = data))
     ;(fs as any).unlinkSync = jest.fn(path => delete getWorkingFiles()[path])
     ;(fs as any).moveSync = jest.fn((from, to) => {
       getWorkingFiles()[to] = getWorkingFiles()[from]
@@ -260,15 +249,11 @@ index 2de83dd..842652c 100644
       writeFiles(tmpDir.name, testCase.modifiedFiles)
       spawnSafeSync("git", ["add", "-A"], { cwd: tmpDir.name })
 
-      const patchResult = spawnSafeSync(
-        "git",
-        ["diff", "--color=never", "--cached"],
-        {
-          cwd: tmpDir.name,
-          logStdErrOnError: true,
-          throwOnError: true,
-        },
-      )
+      const patchResult = spawnSafeSync("git", ["diff", "--color=never", "--cached"], {
+        cwd: tmpDir.name,
+        logStdErrOnError: true,
+        throwOnError: true,
+      })
 
       const patchFileContents = patchResult.stdout.toString()
 
@@ -276,9 +261,7 @@ index 2de83dd..842652c 100644
 
       it("looks the same whether parsed with blank lines or not", () => {
         reportingFailures(() => {
-          expect(parsePatch(patchFileContents)).toEqual(
-            parsePatch(patchFileContentsWithBlankLines),
-          )
+          expect(parsePatch(patchFileContents)).toEqual(parsePatch(patchFileContentsWithBlankLines))
         })
       })
 

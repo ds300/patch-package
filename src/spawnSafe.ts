@@ -12,11 +12,7 @@ const defaultOptions: SpawnSafeOptions = {
   throwOnError: true,
 }
 
-export default function spawnSafeSync(
-  command: string,
-  args?: string[],
-  options?: SpawnSafeOptions,
-) {
+export default function spawnSafeSync(command: string, args?: string[], options?: SpawnSafeOptions) {
   const mergedOptions = Object.assign({}, defaultOptions, options)
   const result = spawnSync(command, args, options)
   if (result.error || result.status !== 0) {

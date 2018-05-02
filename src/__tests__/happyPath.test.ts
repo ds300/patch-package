@@ -29,8 +29,7 @@ describe("patch-package", () => {
     `,
     )
 
-    const tmpSpawn = (command: string, args: string[]) =>
-      spawnSync(command, args, { cwd: tmpDir.name })
+    const tmpSpawn = (command: string, args: string[]) => spawnSync(command, args, { cwd: tmpDir.name })
 
     // install
     tmpSpawn("yarn", ["install"])
@@ -48,9 +47,7 @@ describe("patch-package", () => {
     tmpSpawn(patchPackageBin, ["left-pad"])
 
     // snapshot it
-    const patchContents = fs
-      .readFileSync(path.join(tmpDir.name, "patches/left-pad+1.1.3.patch"))
-      .toString()
+    const patchContents = fs.readFileSync(path.join(tmpDir.name, "patches/left-pad+1.1.3.patch")).toString()
 
     expect(patchContents).toMatchSnapshot()
 
@@ -61,9 +58,7 @@ describe("patch-package", () => {
     tmpSpawn("yarn", ["install"])
 
     // check that the file was patched
-    expect(fs.readFileSync(leftPadPath).toString()).toEqual(
-      mutatedLeftPadSource,
-    )
+    expect(fs.readFileSync(leftPadPath).toString()).toEqual(mutatedLeftPadSource)
   })
 
   it("should produce patches which can be applied with npm", () => {
@@ -95,8 +90,7 @@ describe("patch-package", () => {
     `,
     )
 
-    const tmpSpawn = (command: string, args: string[]) =>
-      spawnSync(command, args, { cwd: tmpDir.name })
+    const tmpSpawn = (command: string, args: string[]) => spawnSync(command, args, { cwd: tmpDir.name })
 
     // install
     tmpSpawn("npm", ["install"])
@@ -114,9 +108,7 @@ describe("patch-package", () => {
     tmpSpawn(patchPackageBin, ["left-pad"])
 
     // snapshot it
-    const patchContents = fs
-      .readFileSync(path.join(tmpDir.name, "patches/left-pad+1.1.3.patch"))
-      .toString()
+    const patchContents = fs.readFileSync(path.join(tmpDir.name, "patches/left-pad+1.1.3.patch")).toString()
 
     expect(patchContents).toMatchSnapshot()
 
@@ -127,8 +119,6 @@ describe("patch-package", () => {
     tmpSpawn("npm", ["install"])
 
     // check that the file was patched
-    expect(fs.readFileSync(leftPadPath).toString()).toEqual(
-      mutatedLeftPadSource,
-    )
+    expect(fs.readFileSync(leftPadPath).toString()).toEqual(mutatedLeftPadSource)
   })
 })

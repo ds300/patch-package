@@ -7,9 +7,7 @@ describe("patch-package", () => {
   project.install()
 
   function patchWasApplied() {
-    return project
-      .readFileSync("node_modules", "left-pad", "index.js")
-      .includes("patch-package")
+    return project.readFileSync("node_modules", "left-pad", "index.js").includes("patch-package")
   }
 
   // assert patch was applied to 1.1.1
@@ -18,9 +16,7 @@ describe("patch-package", () => {
   })
   // bump version to 1.1.2
   it("gives a warning when the patch is applied successfully but the version changed", () => {
-    expect(
-      project.spawnSync("yarn", ["add", "left-pad@1.1.2"]).stderr.toString(),
-    ).toMatchSnapshot()
+    expect(project.spawnSync("yarn", ["add", "left-pad@1.1.2"]).stderr.toString()).toMatchSnapshot()
 
     expect(patchWasApplied()).toBe(true)
   })

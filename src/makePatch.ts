@@ -79,7 +79,7 @@ export default function makePatch(
         deleteScripts(
           resolveRelativeFileDependenciesInPackageJson(
             appPath,
-            require(tmpRepoPackageJsonPath),
+            require(path.join(tmpRepo.name, "package.json")),
           ),
         ),
       ),

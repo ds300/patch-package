@@ -18,7 +18,7 @@
     "build": "tsc",
     "clean": "rimraf dist patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
-    "test": "./test/run-tests.sh"
+    "test": "./run-tests.sh"
   },
   "lint-staged": {
     "*.ts": [
@@ -30,7 +30,7 @@
     "transform": {
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "testRegex": "src/.*(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "testRegex": "/(src|integration-tests)/.+\\.test\\.ts$",
     "moduleFileExtensions": [
       "ts",
       "tsx",

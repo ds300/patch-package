@@ -1,16 +1,21 @@
-import { patchPackageTarballPath } from "./testProjects"
 import * as fs from "fs-extra"
-import * as path from "../path"
+import * as path from "../src/path"
 import * as tmp from "tmp"
-import spawnSync from "../spawnSafe"
+import spawnSync from "../src/spawnSafe"
 
-export function runShellTest(
+export const patchPackageTarballPath = path.resolve(
+  fs
+    .readdirSync(".")
+    .filter(nm => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
+)
+
+export function runIntegrationTest(
   projectName: string,
   shouldProduceSnapshots: boolean = true,
 ) {
   describe(`Test ${projectName}:`, () => {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
-    fs.copySync(path.join("test", projectName), tmpDir.name, {
+    fs.copySync(path.join(__dirname, projectName), tmpDir.name, {
       recursive: true,
     })
 

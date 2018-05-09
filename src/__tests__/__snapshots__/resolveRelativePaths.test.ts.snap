@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test resolve-relative-paths: a patch file got produced 1`] = `
+"SNAPSHOT: a patch file got produced
+patches/local-package+1.0.0.patch
+diff --git a/node_modules/local-package/index.js b/node_modules/local-package/index.js
+index b32e988..73efd18 100644
+--- a/node_modules/local-package/index.js
++++ b/node_modules/local-package/index.js
+@@ -1 +1 @@
+-console.log(\\"this file is unpatched\\")
++console.log(\\"this file is patched\\")
+END SNAPSHOT"
+`;

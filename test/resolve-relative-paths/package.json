@@ -1,0 +1,10 @@
+{
+  "name": "resolve-relative-paths",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "local-package": "file:./local-package",
+    "replace": "^1.0.0"
+  }
+}

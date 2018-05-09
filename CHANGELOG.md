@@ -1,5 +1,29 @@
 # Changelog
 
+## 6.0.0-5
+- Fix preventing scripts from running when making patch file
+
+## 6.0.0-4
+
+- Don't delete package.json during patch creation
+
+## 6.0.0-3
+
+- Bugfixes for patch application
+- Prevent scripts from running when making patch file
+
+## 6.0.0-2
+
+- Bugfixes for patch application
+
+## 6.0.0-1
+
+- Bugfixes for patch application
+
+## 6.0.0-0
+
+- Reimplement most of patch application in TypeScript
+
 ## 5.1.1
 
 - Fix idempotency regression. See #39

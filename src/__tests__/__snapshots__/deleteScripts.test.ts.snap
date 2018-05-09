@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test delete-scripts: a patch file got produced 1`] = `
+"SNAPSHOT: a patch file got produced
+diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
+index e90aec3..f2b8b0a 100644
+--- a/node_modules/left-pad/index.js
++++ b/node_modules/left-pad/index.js
+@@ -4,7 +4,7 @@
+      * To Public License, Version 2, as published by Sam Hocevar. See
+      * http://www.wtfpl.net/ for more details. */
+ 'use strict';
+-module.exports = leftPad;
++module.exports = patchPackage;
+ 
+ var cache = [
+   '',
+@@ -19,7 +19,7 @@ var cache = [
+   '         '
+ ];
+ 
+-function leftPad (str, len, ch) {
++function patchPackage (str, len, ch) {
+   // convert \`str\` to a \`string\`
+   str = str + '';
+   // \`len\` is the \`pad\`'s length now
+END SNAPSHOT"
+`;

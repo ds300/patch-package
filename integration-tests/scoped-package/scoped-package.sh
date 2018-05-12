@@ -5,9 +5,7 @@ echo "add patch-package"
 yarn add $1
 
 echo "SNAPSHOT: left-pad typings should contain patch-package"
-if ! grep patch-package node_modules/@types/left-pad/index.d.ts ; then
-  exit 1
-fi
+grep patch-package node_modules/@types/left-pad/index.d.ts
 echo "END SNAPSHOT"
 
 echo "modify add.d.t.s"
@@ -23,7 +21,5 @@ echo "reinstall node_modules"
 yarn
 
 echo "SNAPSHOT: add.d.ts should contain patch-package"
-if ! grep patch-package node_modules/@types/lodash/add.d.ts ; then
-  exit 1
-fi
+grep patch-package node_modules/@types/lodash/add.d.ts
 echo "END SNAPSHOT"

@@ -1,5 +1,8 @@
 # Changelog
 
+## 6.0.0-6
+- Make indlude/exclude regexes applied relative to the package root. Fixes #54
+
 ## 6.0.0-5
 - Fix preventing scripts from running when making patch file
 

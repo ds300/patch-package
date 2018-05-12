@@ -138,7 +138,13 @@ export default function makePatch(
       .split(/\r?\n/)
       .filter(Boolean)
       .forEach(fileName => {
-        if (!fileName.match(includePaths) || fileName.match(excludePaths)) {
+        const scopedFileName = fileName.slice(
+          `node_modules/${packageName}/`.length,
+        )
+        if (
+          !scopedFileName.match(includePaths) ||
+          scopedFileName.match(excludePaths)
+        ) {
           tmpExec("git", ["reset", "HEAD", fileName])
         }
       })

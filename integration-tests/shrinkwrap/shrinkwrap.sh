@@ -1,0 +1,15 @@
+# make sure errors stop the script
+set -e
+
+echo "add patch-package"
+npm i $1
+
+rimraf node_modules
+
+npm i
+
+echo "SNAPSHOT: left pad should contain patch-package"
+if ! grep patch-package node_modules/left-pad/index.js ; then
+  exit 1
+fi
+echo "END SNAPSHOT"

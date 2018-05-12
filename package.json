@@ -16,6 +16,7 @@
     "precommit": "tsc --noEmit && lint-staged",
     "prepublish": "yarn run clean && yarn run build",
     "build": "tsc",
+    "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
     "test": "./run-tests.sh"
@@ -53,6 +54,7 @@
     "prettier": "^1.11.1",
     "randomstring": "^1.1.5",
     "ts-jest": "^20.0.10",
+    "ts-node": "^6.0.3",
     "tslint": "^5.2.0",
     "typescript": "^2.7.2"
   },

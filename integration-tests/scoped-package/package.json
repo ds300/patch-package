@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@types/left-pad": "1.1.1",
-    "@types/lodash": "4.14.72"
+    "@types/lodash": "4.14.72",
+    "replace": "^1.0.0"
   }
 }

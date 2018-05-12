@@ -1,0 +1,12 @@
+{
+  "name": "include-exclude-regex-relativity",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "4.17.4",
+    "replace": "^1.0.0"
+  }
+}

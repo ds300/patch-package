@@ -24,11 +24,11 @@ export function runIntegrationTest(
       throwOnError: false,
     })
 
-    const output = result.stdout.toString() + "\n" + result.stderr.toString()
-
     it("should exit with 0 status", () => {
       expect(result.status).toBe(0)
     })
+
+    const output = result.stdout.toString() + "\n" + result.stderr.toString()
 
     if (result.status !== 0) {
       console.error(output)

@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`patch-package complains without windows error when the patch can't be applied on macOS 1`] = `
-"
+exports[`Test broken-patch-file: patch-package fails when patch file is invalid 1`] = `
+"SNAPSHOT: patch-package fails when patch file is invalid
+
 **ERROR** Failed to apply patch for package left-pad
 
   This error was caused because patch-package cannot apply the following patch file:
@@ -15,6 +16,5 @@ exports[`patch-package complains without windows error when the patch can't be a
     https://github.com/ds300/patch-package/issues
 
 
-error Command failed with exit code 1.
-"
+END SNAPSHOT"
 `;

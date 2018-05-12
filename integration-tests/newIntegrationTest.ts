@@ -41,6 +41,7 @@ set -e
 echo "add patch-package"
 yarn add $1
 `,
+  { mode: 0o755 },
 )
 
 // create typescript file boilerplate

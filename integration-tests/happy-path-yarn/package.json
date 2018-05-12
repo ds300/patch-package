@@ -1,0 +1,12 @@
+{
+  "name": "happy-path-yarn",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "replace": "^1.0.0",
+    "rimraf": "^2.6.2"
+  }
+}

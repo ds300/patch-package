@@ -70,7 +70,6 @@ function assertLineEquality(onDisk: string, expected: string) {
 
 function applyPatch({ parts, path }: FilePatch): Effect {
   // modifying the file in place
-  // check to see if the file has moved first
   const fileContents = fs.readFileSync(path).toString()
 
   const fileLines: string[] = fileContents.split(/\n/)

@@ -92,7 +92,7 @@ class PatchParser {
 
   private get fileMode() {
     // tslint:disable-next-line no-bitwise
-    return this._fileMode ? parseInt(this._fileMode, 8) & 0o777 : 0o666
+    return this._fileMode ? parseInt(this._fileMode, 8) & 0o777 : 0o644
   }
 
   constructor(private lines: string[]) {}
@@ -171,7 +171,7 @@ class PatchParser {
             path,
             lines: [""],
             // tslint:disable-next-line no-bitwise
-            mode: parseInt(this._fileMode, 8) & 0o777,
+            mode: this.fileMode,
             noNewlineAtEndOfFile: true,
           })
         }

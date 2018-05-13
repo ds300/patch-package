@@ -1,7 +1,7 @@
 import {
   resolveRelativeFileDependenciesInPackageJson,
   resolveRelativeFileDependenciesInPackageLock,
-} from "../resolveRelativeFileDependencies"
+} from "./resolveRelativeFileDependencies"
 
 describe("resolveRelativeFileDependencies", () => {
   it("works for package.json", () => {

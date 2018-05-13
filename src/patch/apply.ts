@@ -110,12 +110,6 @@ function applyPatch({ parts, path }: FilePatch): Effect {
           }
 
           if (part.type === "deletion") {
-            // console.log("bill deleter", fileLines, part.lines)
-            // console.log(
-            //   "splicin'",
-            //   contextIndex - part.lines.length,
-            //   part.lines.length,
-            // )
             fileLines.splice(
               contextIndex - part.lines.length,
               part.lines.length,
@@ -135,7 +129,6 @@ function applyPatch({ parts, path }: FilePatch): Effect {
                 noNewlineAtEndOfFile = false
               }
             }
-            // console.log("bill deleted", fileLines, part.lines)
           } else {
             if (contextIndex >= fileLines.length) {
               noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
@@ -143,13 +136,11 @@ function applyPatch({ parts, path }: FilePatch): Effect {
           }
           break
         case "insertion":
-          // console.log("inserting", fileLines, part.lines)
           fileLines.splice(contextIndex, 0, ...part.lines)
           contextIndex += part.lines.length
           if (contextIndex >= fileLines.length) {
             noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
           }
-          // console.log("done", fileLines, part.lines)
           break
       }
     }

@@ -16,7 +16,5 @@ export function patch(
     patch = reversePatch(patch)
   }
 
-  // console.dir(patch, {depth: 5})
-
   return applyPatchFile(patch)
 }

@@ -155,6 +155,7 @@ export default function makePatch(
       "--cached",
       "--no-color",
       "--ignore-space-at-eol",
+      "--no-ext-diff"
     ]).stdout.toString()
 
     if (patch.trim() === "") {

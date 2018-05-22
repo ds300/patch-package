@@ -1,5 +1,8 @@
 # Changelog
 
+## 6.0.0-7
+- Use --no-ext-diff option when generating diffs (Contribution from @janv)
+
 ## 6.0.0-6
 - Make indlude/exclude regexes applied relative to the package root. Fixes #54
 

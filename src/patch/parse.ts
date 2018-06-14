@@ -1,108 +1,112 @@
 interface HunkHeader {
-  type: "hunk header"
+  type: "hunk header";
   original: {
-    start: number
-    length: number
-  }
+    start: number;
+    length: number;
+  };
   patched: {
-    start: number
-    length: number
-  }
+    start: number;
+    length: number;
+  };
 }
 
 export function parseHunkHeaderLine(headerLine: string): HunkHeader {
   const match = headerLine
     .trim()
-    .match(/^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@.*/)
+    .match(/^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@.*/);
   if (!match) {
-    throw new Error(`Bad header line: '${headerLine}'`)
+    throw new Error(`Bad header line: '${headerLine}'`);
   }
 
   return {
     type: "hunk header",
     original: {
       start: Math.max(Number(match[1]), 1),
-      length: Number(match[3] || 1),
+      length: Number(match[3] || 1)
     },
     patched: {
       start: Math.max(Number(match[4]), 1),
-      length: Number(match[6] || 1),
-    },
-  }
+      length: Number(match[6] || 1)
+    }
+  };
 }
 
 interface Insertion {
-  type: "insertion"
-  lines: string[]
-  noNewlineAtEndOfFile: boolean
+  type: "insertion";
+  lines: string[];
+  noNewlineAtEndOfFile: boolean;
 }
 
 interface Deletion {
-  type: "deletion"
-  lines: string[]
-  noNewlineAtEndOfFile: boolean
+  type: "deletion";
+  lines: string[];
+  noNewlineAtEndOfFile: boolean;
 }
 
 interface Context {
-  type: "context"
-  lines: string[]
-  noNewlineAtEndOfFile: boolean
+  type: "context";
+  lines: string[];
+  noNewlineAtEndOfFile: boolean;
 }
 
-type PatchMutationPart = Insertion | Deletion | Context
-export type PatchHunk = HunkHeader | PatchMutationPart
+type PatchMutationPart = Insertion | Deletion | Context;
+export type PatchHunk = HunkHeader | PatchMutationPart;
 
 interface FileRename {
-  type: "rename"
-  fromPath: string
-  toPath: string
+  type: "rename";
+  fromPath: string;
+  toPath: string;
 }
 
 export interface FilePatch {
-  type: "patch"
-  path: string
-  parts: PatchHunk[]
+  type: "patch";
+  path: string;
+  parts: PatchHunk[];
 }
 
 interface FileDeletion {
-  type: "file deletion"
-  path: string
-  lines: string[]
-  mode: number
-  noNewlineAtEndOfFile: boolean
+  type: "file deletion";
+  path: string;
+  lines: string[];
+  mode: number;
+  noNewlineAtEndOfFile: boolean;
 }
 
 interface FileCreation {
-  type: "file creation"
-  mode: number
-  path: string
-  lines: string[]
-  noNewlineAtEndOfFile: boolean
+  type: "file creation";
+  mode: number;
+  path: string;
+  lines: string[];
+  noNewlineAtEndOfFile: boolean;
 }
 
-export type PatchFilePart = FilePatch | FileDeletion | FileCreation | FileRename
+export type PatchFilePart =
+  | FilePatch
+  | FileDeletion
+  | FileCreation
+  | FileRename;
 
-export type ParsedPatchFile = PatchFilePart[]
+export type ParsedPatchFile = PatchFilePart[];
 
 class PatchParser {
-  private i: number = 0
-  private result: ParsedPatchFile = []
+  private i: number = 0;
+  private result: ParsedPatchFile = [];
   // tslint:disable-next-line variable-name
-  private _fileMode: string | null = null
+  private _fileMode: string | null = null;
 
   private get fileMode() {
     // tslint:disable-next-line no-bitwise
-    return this._fileMode ? parseInt(this._fileMode, 8) & 0o777 : 0o644
+    return this._fileMode ? parseInt(this._fileMode, 8) & 0o777 : 0o644;
   }
 
   constructor(private lines: string[]) {}
 
   private get currentLine() {
-    return this.lines[this.i]
+    return this.lines[this.i];
   }
 
   private nextLine() {
-    this.i++
+    this.i++;
   }
 
   private skipHeaderCruft() {
@@ -113,41 +117,41 @@ class PatchParser {
         !this.currentLine.startsWith("new file mode") &&
         !this.currentLine.startsWith("deleted file mode")
       ) {
-        this.nextLine()
+        this.nextLine();
       } else {
-        break
+        break;
       }
     }
   }
 
   private get isEOF() {
-    return this.i >= this.lines.length
+    return this.i >= this.lines.length;
   }
 
   private get isOneLineLeft() {
-    return this.i === this.lines.length - 1
+    return this.i === this.lines.length - 1;
   }
 
   // tslint:disable member-ordering
   public parse() {
     while (!this.isEOF) {
-      this.skipHeaderCruft()
+      this.skipHeaderCruft();
 
       if (this.isEOF) {
-        break
+        break;
       }
 
       if (this.currentLine.startsWith("deleted file mode")) {
         this._fileMode = this.currentLine
           .slice("deleted file mode ".length)
-          .trim()
-        this.nextLine()
-        continue
+          .trim();
+        this.nextLine();
+        continue;
       }
 
       if (this.currentLine.startsWith("new file mode")) {
-        this._fileMode = this.currentLine.slice("new file mode ".length).trim()
-        this.nextLine()
+        this._fileMode = this.currentLine.slice("new file mode ".length).trim();
+        this.nextLine();
         // at some point in patch-package's life it was removing git headers
         // beginning `diff` and `index` for weird reasons related to
         // cross-platform functionality
@@ -159,70 +163,72 @@ class PatchParser {
           !this.lines[this.i + 1].startsWith("--- /dev/null")
         ) {
           const match = this.lines[this.i - 2].match(
-            /^diff --git a\/(.+) b\/(.+)$/,
-          )
+            /^diff --git a\/(.+) b\/(.+)$/
+          );
           if (!match) {
-            console.error(this.lines, this.i)
-            throw new Error("Creating new empty file but found no diff header.")
+            console.error(this.lines, this.i);
+            throw new Error(
+              "Creating new empty file but found no diff header."
+            );
           }
-          const path = match[1]
+          const path = match[1];
           this.result.push({
             type: "file creation",
             path,
             lines: [""],
             // tslint:disable-next-line no-bitwise
             mode: this.fileMode,
-            noNewlineAtEndOfFile: true,
-          })
+            noNewlineAtEndOfFile: true
+          });
         }
-        continue
+        continue;
       }
 
       if (this.currentLine.startsWith("rename from")) {
-        const fromPath = this.currentLine.slice("rename from ".length)
-        const toPath = this.lines[this.i++].slice("rename to ".length).trim()
-        this.result.push({ type: "rename", fromPath, toPath })
-        continue
+        const fromPath = this.currentLine.slice("rename from ".length);
+        const toPath = this.lines[this.i++].slice("rename to ".length).trim();
+        this.result.push({ type: "rename", fromPath, toPath });
+        continue;
       }
 
-      this.parseFileModification()
+      this.parseFileModification();
     }
 
-    return this.result
+    return this.result;
   }
 
   private parsePatchMutationPart(): PatchMutationPart {
-    let blockType: PatchMutationPart["type"]
-    const firstChar = this.currentLine[0]
+    let blockType: PatchMutationPart["type"];
+    const firstChar = this.currentLine[0];
     switch (firstChar) {
       case "\\":
         if (this.currentLine.startsWith("\\ No newline at end of file")) {
           return {
             type: "insertion",
             lines: [],
-            noNewlineAtEndOfFile: true,
-          } as PatchMutationPart
+            noNewlineAtEndOfFile: true
+          } as PatchMutationPart;
         } else {
-          throw new Error(`unexpected patch file comment ${this.currentLine}`)
+          throw new Error(`unexpected patch file comment ${this.currentLine}`);
         }
       case "+":
-        blockType = "insertion"
-        break
+        blockType = "insertion";
+        break;
       case "-":
-        blockType = "deletion"
-        break
+        blockType = "deletion";
+        break;
       case undefined:
       case " ":
-        blockType = "context"
-        break
+        blockType = "context";
+        break;
       default:
-        throw new Error(`unexpected patch file line ${this.currentLine}`)
+        throw new Error(`unexpected patch file line ${this.currentLine}`);
     }
 
-    const lines = []
+    const lines = [];
     do {
-      lines.push(this.currentLine.slice(1))
-      this.nextLine()
+      lines.push(this.currentLine.slice(1));
+      this.nextLine();
     } while (
       !this.isEOF &&
       // handle empty last line as not part of the context
@@ -232,26 +238,26 @@ class PatchParser {
         // handle mismatching context types
         (firstChar === " " && this.currentLine[0] === undefined) ||
         (firstChar === undefined && this.currentLine[0] === " "))
-    )
+    );
 
-    let noNewlineAtEndOfFile = false
+    let noNewlineAtEndOfFile = false;
     if (
       !this.isEOF &&
       this.currentLine.startsWith("\\ No newline at end of file")
     ) {
-      noNewlineAtEndOfFile = true
-      this.nextLine()
+      noNewlineAtEndOfFile = true;
+      this.nextLine();
     }
     return {
       type: blockType,
       lines,
-      noNewlineAtEndOfFile,
-    } as PatchMutationPart
+      noNewlineAtEndOfFile
+    } as PatchMutationPart;
   }
 
   private currentLineIsPartOfHunk(): boolean {
     if (this.isEOF) {
-      return false
+      return false;
     }
     switch (this.currentLine[0]) {
       case undefined:
@@ -259,17 +265,17 @@ class PatchParser {
       case "+":
       case "-":
       case "\\":
-        return true
+        return true;
       default:
-        return false
+        return false;
     }
   }
 
   private parseFileModification() {
-    const startPath = this.currentLine.slice("--- ".length)
-    this.nextLine()
-    const endPath = this.currentLine.trim().slice("--- ".length)
-    this.nextLine()
+    const startPath = this.currentLine.slice("--- ".length);
+    this.nextLine();
+    const endPath = this.currentLine.trim().slice("--- ".length);
+    this.nextLine();
 
     if (endPath === "/dev/null") {
       // deleting a file
@@ -277,14 +283,14 @@ class PatchParser {
       // slice of the 'a/'
 
       // ignore hunk header
-      const header = parseHunkHeaderLine(this.currentLine)
-      this.nextLine()
+      const header = parseHunkHeaderLine(this.currentLine);
+      this.nextLine();
 
-      const deletion: PatchMutationPart = this.parsePatchMutationPart()
+      const deletion: PatchMutationPart = this.parsePatchMutationPart();
       if (header.original.length !== deletion.lines.length) {
         throw new Error(
-          "hunk header integrity check failed when parsing file deletion",
-        )
+          "hunk header integrity check failed when parsing file deletion"
+        );
       }
 
       this.result.push({
@@ -292,21 +298,21 @@ class PatchParser {
         path: startPath.slice(2),
         mode: this.fileMode,
         lines: deletion.lines,
-        noNewlineAtEndOfFile: deletion.noNewlineAtEndOfFile,
-      })
+        noNewlineAtEndOfFile: deletion.noNewlineAtEndOfFile
+      });
     } else if (startPath === "/dev/null") {
       // creating a new file
       // just grab all the contents and put it in the file
       // TODO: header integrity checks
-      const header = parseHunkHeaderLine(this.currentLine)
-      this.nextLine()
+      const header = parseHunkHeaderLine(this.currentLine);
+      this.nextLine();
 
-      const addition: PatchMutationPart = this.parsePatchMutationPart()
+      const addition: PatchMutationPart = this.parsePatchMutationPart();
 
       if (header.patched.length !== addition.lines.length) {
         throw new Error(
-          "hunk header integrity check failed when parsing file addition",
-        )
+          "hunk header integrity check failed when parsing file addition"
+        );
       }
 
       this.result.push({
@@ -314,75 +320,75 @@ class PatchParser {
         path: endPath.slice(2),
         lines: addition.lines,
         mode: this.fileMode,
-        noNewlineAtEndOfFile: addition.noNewlineAtEndOfFile,
-      })
+        noNewlineAtEndOfFile: addition.noNewlineAtEndOfFile
+      });
     } else {
       const filePatch: FilePatch = {
         type: "patch",
         path: endPath.slice(2),
-        parts: [],
-      }
+        parts: []
+      };
 
-      this.result.push(filePatch)
+      this.result.push(filePatch);
 
       // iterate over hunks
       while (!this.isEOF && this.currentLine.startsWith("@@")) {
-        const header = parseHunkHeaderLine(this.currentLine)
-        const hunkParts = []
+        const header = parseHunkHeaderLine(this.currentLine);
+        const hunkParts = [];
 
-        this.nextLine()
+        this.nextLine();
 
         while (
           this.currentLineIsPartOfHunk() &&
           !(this.isOneLineLeft && this.currentLine === "")
         ) {
-          const mutations = this.parsePatchMutationPart()
-          hunkParts.push(mutations)
+          const mutations = this.parsePatchMutationPart();
+          hunkParts.push(mutations);
         }
 
         // verify hunk integrity
         const endSize = hunkParts.reduce(
           (
             { originalLength, patchedLength },
-            { type, lines }: PatchMutationPart,
+            { type, lines }: PatchMutationPart
           ) => {
             switch (type) {
               case "insertion":
                 return {
                   originalLength,
-                  patchedLength: patchedLength + lines.length,
-                }
+                  patchedLength: patchedLength + lines.length
+                };
               case "context":
                 return {
                   originalLength: originalLength + lines.length,
-                  patchedLength: patchedLength + lines.length,
-                }
+                  patchedLength: patchedLength + lines.length
+                };
               case "deletion":
                 return {
                   originalLength: originalLength + lines.length,
-                  patchedLength,
-                }
+                  patchedLength
+                };
             }
           },
-          { originalLength: 0, patchedLength: 0 },
-        )
+          { originalLength: 0, patchedLength: 0 }
+        );
 
         if (
           endSize.originalLength !== header.original.length ||
           endSize.patchedLength !== header.patched.length
         ) {
           throw new Error(
-            "hunk header integrity check failed when parsing file addition",
-          )
+            "hunk header integrity check failed when parsing file addition"
+          );
         }
 
-        filePatch.parts.push(header)
-        filePatch.parts.push(...hunkParts)
+        filePatch.parts.push(header);
+        filePatch.parts.push(...hunkParts);
       }
     }
   }
 }
 
 export function parsePatch(patchFileContents: string): ParsedPatchFile {
-  return new PatchParser(patchFileContents.split(/\n/)).parse()
+  return new PatchParser(patchFileContents.split(/\n/)).parse();
 }

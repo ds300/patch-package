@@ -1,47 +1,47 @@
-import { bold, italic } from "chalk"
-import * as process from "process"
-import * as minimist from "minimist"
+import { bold, italic } from "chalk";
+import * as process from "process";
+import * as minimist from "minimist";
 
-import { applyPatchesForApp } from "./applyPatches"
-import getAppRootPath from "./getAppRootPath"
-import makePatch from "./makePatch"
-import makeRegExp from "./makeRegExp"
-import detectPackageManager from "./detectPackageManager"
+import { applyPatchesForApp } from "./applyPatches";
+import getAppRootPath from "./getAppRootPath";
+import makePatch from "./makePatch";
+import makeRegExp from "./makeRegExp";
+import detectPackageManager from "./detectPackageManager";
 
-const appPath = getAppRootPath()
+const appPath = getAppRootPath();
 const argv = minimist(process.argv.slice(2), {
-  boolean: ["use-yarn", "case-sensitive-path-filtering", "reverse"],
-})
-const packageNames = argv._
+  boolean: ["use-yarn", "case-sensitive-path-filtering", "reverse"]
+});
+const packageNames = argv._;
 
 if (argv.help || argv.h) {
-  printHelp()
+  printHelp();
 } else {
   if (packageNames.length) {
     const include = makeRegExp(
       argv.include,
       "include",
       /.*/,
-      argv["case-sensitive-path-filtering"],
-    )
+      argv["case-sensitive-path-filtering"]
+    );
     const exclude = makeRegExp(
       argv.exclude,
       "exclude",
       /package\.json$/,
-      argv["case-sensitive-path-filtering"],
-    )
+      argv["case-sensitive-path-filtering"]
+    );
     packageNames.forEach((packageName: string) => {
       makePatch(
         packageName,
         appPath,
         detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
         include,
-        exclude,
-      )
-    })
+        exclude
+      );
+    });
   } else {
-    console.log("patch-package: Applying patches...")
-    applyPatchesForApp(appPath, !!argv["reverse"])
+    console.log("patch-package: Applying patches...");
+    applyPatchesForApp(appPath, !!argv["reverse"]);
   }
 }
 
@@ -55,7 +55,7 @@ Usage:
     ${bold("patch-package")}
 
   Without arguments, the ${bold(
-    "patch-package",
+    "patch-package"
   )} command will attempt to find and apply
   patch files to your project. It looks for files named like
 
@@ -94,5 +94,5 @@ Usage:
      ${bold("--case-sensitive-path-filtering")}
 
          Make regexps used in --include or --exclude filters case-sensitive.
-`)
+`);
 }

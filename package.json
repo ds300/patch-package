@@ -18,13 +18,13 @@
     "build": "tsc",
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
-    "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
+    "format": "prettier --write src{/**,}/*.ts",
     "test": "./run-tests.sh"
   },
   "lint-staged": {
     "*.ts": [
       "tslint -c tslint.json -p tsconfig.json",
-      "prettier --no-semi --trailing-comma=all --list-different"
+      "prettier --list-different"
     ]
   },
   "jest": {
@@ -56,6 +56,7 @@
     "ts-jest": "^20.0.10",
     "ts-node": "^6.0.3",
     "tslint": "^5.2.0",
+    "tslint-config-prettier": "^1.13.0",
     "typescript": "^2.7.2"
   },
   "dependencies": {

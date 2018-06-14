@@ -1,21 +1,18 @@
 {
   "defaultSeverity": "error",
-  "extends": ["tslint:recommended"],
-  "jsRules": {},
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier"
+  ],
   "rules": {
-    "prefer-for-of": false,
-    "trailing-comma": [false],
-    "ordered-imports": [false],
+    "interface-name": false,
+    "no-console": false,
+    "no-object-literal-type-assertion": false,
+    "no-shadowed-variable": false,
     "no-string-literal": false,
-    "arrow-parens": false,
-    "no-console": [false],
-    "semicolon": [false],
-    "whitespace": [false],
-    "interface-name": [false],
-    "one-line": [false],
-    "object-literal-sort-keys": [false],
-    "no-trailing-whitespace": [false],
-    "object-literal-key-quotes": [false]
-  },
-  "rulesDirectory": []
+    "object-literal-sort-keys": false,
+    "ordered-imports": false,
+    "prefer-for-of": false,
+    "prefer-object-spread": false
+  }
 }

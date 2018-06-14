@@ -1,75 +1,75 @@
-import { bold, cyan, green, red } from "chalk"
-import * as fs from "fs"
-import * as path from "path"
-import { getPatchFiles } from "./patchFs"
-import { patch } from "./patch"
-import { executeEffects } from "./patch/apply"
+import { bold, cyan, green, red } from "chalk";
+import * as fs from "fs";
+import * as path from "path";
+import { getPatchFiles } from "./patchFs";
+import { patch } from "./patch";
+import { executeEffects } from "./patch/apply";
 
-type OpaqueString<S extends string> = string & { type: S }
-export type AppPath = OpaqueString<"AppPath">
-type PatchesDirectory = OpaqueString<"PatchesDirectory">
-type FileName = OpaqueString<"FileName">
-type PackageName = OpaqueString<"PackageName">
-type PackageVersion = OpaqueString<"PackageVersion">
+type OpaqueString<S extends string> = string & { type: S };
+export type AppPath = OpaqueString<"AppPath">;
+type PatchesDirectory = OpaqueString<"PatchesDirectory">;
+type FileName = OpaqueString<"FileName">;
+type PackageName = OpaqueString<"PackageName">;
+type PackageVersion = OpaqueString<"PackageVersion">;
 
 function findPatchFiles(patchesDirectory: PatchesDirectory): FileName[] {
   if (!fs.existsSync(patchesDirectory)) {
-    return []
+    return [];
   }
 
-  return getPatchFiles(patchesDirectory) as FileName[]
+  return getPatchFiles(patchesDirectory) as FileName[];
 }
 
 function getPatchDetailsFromFilename(filename: FileName) {
   // ok to coerce this, since we already filtered for valid package file names
   // in getPatchFiles
-  const match = filename.match(/^(.+?)(:|\+)(.+)\.patch$/) as string[]
-  const packageName = match[1] as PackageName
-  const version = match[3] as PackageVersion
+  const match = filename.match(/^(.+?)(:|\+)(.+)\.patch$/) as string[];
+  const packageName = match[1] as PackageName;
+  const version = match[3] as PackageVersion;
 
   return {
     packageName,
-    version,
-  }
+    version
+  };
 }
 
 function getInstalledPackageVersion(
   appPath: AppPath,
-  packageName: PackageName,
+  packageName: PackageName
 ) {
-  const packageDir = path.join(appPath, "node_modules", packageName)
+  const packageDir = path.join(appPath, "node_modules", packageName);
   if (!fs.existsSync(packageDir)) {
     console.warn(
       `${red("Warning:")} Patch file found for package ${path.posix.basename(
-        packageDir,
-      )}` + ` which is not present at ${packageDir}`,
-    )
+        packageDir
+      )}` + ` which is not present at ${packageDir}`
+    );
 
-    return null
+    return null;
   }
 
   return require(path.join(packageDir, "package.json"))
-    .version as PackageVersion
+    .version as PackageVersion;
 }
 
 export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
-  const patchesDirectory = path.join(appPath, "patches") as PatchesDirectory
-  const files = findPatchFiles(patchesDirectory)
+  const patchesDirectory = path.join(appPath, "patches") as PatchesDirectory;
+  const files = findPatchFiles(patchesDirectory);
 
   if (files.length === 0) {
-    console.log(cyan("No patch files found"))
+    console.log(cyan("No patch files found"));
   }
 
   files.forEach(filename => {
-    const { packageName, version } = getPatchDetailsFromFilename(filename)
+    const { packageName, version } = getPatchDetailsFromFilename(filename);
 
     const installedPackageVersion = getInstalledPackageVersion(
       appPath,
-      packageName,
-    )
+      packageName
+    );
 
     if (!installedPackageVersion) {
-      return
+      return;
     }
 
     if (
@@ -81,51 +81,51 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
         printVersionMismatchWarning(
           packageName,
           installedPackageVersion,
-          version,
-        )
+          version
+        );
       } else {
-        console.log(`${bold(packageName)}@${version} ${green("✔")}`)
+        console.log(`${bold(packageName)}@${version} ${green("✔")}`);
       }
     } else {
       // completely failed to apply patch
       // TODO: propagate useful error messages from patch application
       if (installedPackageVersion === version) {
-        printBrokenPatchFileError(packageName, filename)
+        printBrokenPatchFileError(packageName, filename);
       } else {
         printPatchApplictionFailureError(
           packageName,
           installedPackageVersion,
           version,
-          filename,
-        )
+          filename
+        );
       }
-      process.exit(1)
+      process.exit(1);
     }
-  })
+  });
 }
 
 export function applyPatch(patchFilePath: string, reverse: boolean): boolean {
-  const patchFileContents = fs.readFileSync(patchFilePath).toString()
+  const patchFileContents = fs.readFileSync(patchFilePath).toString();
   try {
     const result = patch(patchFileContents, {
-      reverse,
-    })
-    executeEffects(result)
+      reverse
+    });
+    executeEffects(result);
   } catch (e) {
     try {
-      patch(patchFileContents, { reverse: !reverse })
+      patch(patchFileContents, { reverse: !reverse });
     } catch (e) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
 function printVersionMismatchWarning(
   packageName: PackageName,
   actualVersion: PackageVersion,
-  originalVersion: PackageVersion,
+  originalVersion: PackageVersion
 ) {
   console.warn(`
 ${red("Warning:")} patch-package detected a patch file version mismatch
@@ -148,16 +148,16 @@ ${red("Warning:")} patch-package detected a patch file version mismatch
     ${bold(`patch-package ${packageName}`)}
 
   to update the version in the patch file name and make this warning go away.
-`)
+`);
 }
 
 function printBrokenPatchFileError(
   packageName: PackageName,
-  patchFileName: FileName,
+  patchFileName: FileName
 ) {
   console.error(`
 ${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)}`,
+    `Failed to apply patch for package ${bold(packageName)}`
   )}
 
   This error was caused because patch-package cannot apply the following patch file:
@@ -170,18 +170,18 @@ ${red.bold("**ERROR**")} ${red(
 
     https://github.com/ds300/patch-package/issues
 
-`)
+`);
 }
 
 function printPatchApplictionFailureError(
   packageName: PackageName,
   actualVersion: PackageVersion,
   originalVersion: PackageVersion,
-  patchFileName: FileName,
+  patchFileName: FileName
 ) {
   console.error(`
 ${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)}`,
+    `Failed to apply patch for package ${bold(packageName)}`
   )}
 
   This error was caused because ${bold(packageName)} has changed since you
@@ -220,7 +220,7 @@ ${red.bold("**ERROR**")} ${red(
   Info:
     Patch was made for version ${green.bold(originalVersion)}
     Meanwhile node_modules/${bold(packageName)} is version ${red.bold(
-    actualVersion,
+    actualVersion
   )}
-`)
+`);
 }

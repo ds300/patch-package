@@ -5,6 +5,14 @@
     "tslint-config-prettier"
   ],
   "rules": {
-    "no-console": false
+    "interface-name": false,
+    "no-console": false,
+    "no-object-literal-type-assertion": false,
+    "no-shadowed-variable": false,
+    "no-string-literal": false,
+    "object-literal-sort-keys": false,
+    "ordered-imports": false,
+    "prefer-for-of": false,
+    "prefer-object-spread": false
   }
 }

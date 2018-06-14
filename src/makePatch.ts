@@ -127,27 +127,23 @@ export default function makePatch(
 
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)
-    fsExtra.copySync(packagePath, tmpRepoPackagePath, { recursive: true })
+
+    fsExtra.copySync(packagePath, tmpRepoPackagePath, {
+      recursive: true,
+      filter: src => {
+        const scopedFileName = src.slice(`${packagePath}/`.length)
+        const matchingInclude = scopedFileName.match(includePaths)
+        const matchingExclude = scopedFileName.match(excludePaths)
+        return (
+          matchingInclude !== null &&
+          matchingInclude.length > 0 &&
+          !(matchingExclude !== null && matchingExclude.length > 0)
+        )
+      },
+    })
 
     // stage all files
     tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
-
-    // unstage any ignored files so they don't show up in the diff
-    tmpExec("git", ["diff", "--cached", "--name-only"])
-      .stdout.toString()
-      .split(/\r?\n/)
-      .filter(Boolean)
-      .forEach(fileName => {
-        const scopedFileName = fileName.slice(
-          `node_modules/${packageName}/`.length,
-        )
-        if (
-          !scopedFileName.match(includePaths) ||
-          scopedFileName.match(excludePaths)
-        ) {
-          tmpExec("git", ["reset", "HEAD", fileName])
-        }
-      })
 
     // get diff of changes
     const patch = tmpExec("git", [
@@ -155,7 +151,7 @@ export default function makePatch(
       "--cached",
       "--no-color",
       "--ignore-space-at-eol",
-      "--no-ext-diff"
+      "--no-ext-diff",
     ]).stdout.toString()
 
     if (patch.trim() === "") {

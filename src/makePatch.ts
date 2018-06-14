@@ -1,17 +1,17 @@
 import { green } from "chalk"
 import * as fs from "fs"
-import * as path from "./path"
+import * as fsExtra from "fs-extra"
 import * as rimraf from "rimraf"
+import * as slash from "slash"
 import * as tmp from "tmp"
+import { PackageManager } from "./detectPackageManager"
+import { getPatchFiles } from "./patchFs"
+import * as path from "./path"
 import {
   resolveRelativeFileDependenciesInPackageJson,
   resolveRelativeFileDependenciesInPackageLock,
 } from "./resolveRelativeFileDependencies"
 import spawnSafeSync from "./spawnSafe"
-import { getPatchFiles } from "./patchFs"
-import * as fsExtra from "fs-extra"
-import { PackageManager } from "./detectPackageManager"
-import * as slash from "slash"
 
 function deleteScripts(json: any) {
   delete json.scripts
@@ -155,7 +155,7 @@ export default function makePatch(
       "--cached",
       "--no-color",
       "--ignore-space-at-eol",
-      "--no-ext-diff"
+      "--no-ext-diff",
     ]).stdout.toString()
 
     if (patch.trim() === "") {

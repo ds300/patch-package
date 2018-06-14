@@ -56,6 +56,7 @@
     "ts-jest": "^20.0.10",
     "ts-node": "^6.0.3",
     "tslint": "^5.2.0",
+    "tslint-config-prettier": "^1.13.0",
     "typescript": "^2.7.2"
   },
   "dependencies": {

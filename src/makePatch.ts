@@ -12,6 +12,7 @@ import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
+import * as klawSync from "klaw-sync"
 
 function deleteScripts(json: any) {
   delete json.scripts
@@ -120,27 +121,35 @@ export default function makePatch(
       "!/node_modules\n\n",
     )
     tmpExec("git", ["init"])
-    // don't commit package.json though
-    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
 
+    klawSync(tmpRepoPackagePath, { nodir: true })
+      .map(item => item.path.slice(`${tmpRepoPackagePath}/`.length))
+      .filter(
+        relativePath =>
+          !relativePath.match(includePaths) || relativePath.match(excludePaths),
+      )
+      .forEach(relativePath =>
+        fsExtra.removeSync(slash(path.join(tmpRepoPackagePath, relativePath))),
+      )
+
+    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
     tmpExec("git", ["commit", "-m", "init"])
 
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)
 
-    fsExtra.copySync(packagePath, tmpRepoPackagePath, {
-      recursive: true,
-      filter: src => {
-        const scopedFileName = src.slice(`${packagePath}/`.length)
-        const matchingInclude = scopedFileName.match(includePaths)
-        const matchingExclude = scopedFileName.match(excludePaths)
-        return (
-          matchingInclude !== null &&
-          matchingInclude.length > 0 &&
-          !(matchingExclude !== null && matchingExclude.length > 0)
-        )
-      },
-    })
+    klawSync(packagePath, { nodir: true })
+      .map(item => item.path.slice(`${packagePath}/`.length))
+      .filter(
+        relativePath =>
+          relativePath.match(includePaths) && !relativePath.match(excludePaths),
+      )
+      .forEach(relativePath =>
+        fsExtra.copySync(
+          slash(path.join(packagePath, relativePath)),
+          slash(path.join(tmpRepoPackagePath, relativePath)),
+        ),
+      )
 
     // stage all files
     tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])

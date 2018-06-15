@@ -7,7 +7,7 @@ import {
   resolveRelativeFileDependenciesInPackageJson,
   resolveRelativeFileDependenciesInPackageLock,
 } from "./resolveRelativeFileDependencies"
-import spawnSafeSync from "./spawnSafe"
+import { spawnSafeSync } from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"

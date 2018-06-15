@@ -2,19 +2,19 @@ import { parsePatch } from "./parse"
 import { applyPatchFile, Effect } from "./apply"
 import { reversePatch } from "./reverse"
 
-export function patch(
+export const patch = (
   patchFileContents: string,
   {
     reverse = false,
   }: {
     reverse?: boolean
   } = {},
-): Effect[] {
-  let patch = parsePatch(patchFileContents)
+): Effect[] => {
+  let parsedPatch = parsePatch(patchFileContents)
 
   if (reverse) {
-    patch = reversePatch(patch)
+    parsedPatch = reversePatch(parsedPatch)
   }
 
-  return applyPatchFile(patch)
+  return applyPatchFile(parsedPatch)
 }

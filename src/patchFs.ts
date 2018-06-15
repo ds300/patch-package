@@ -19,7 +19,7 @@ function _getPatchFiles(
   return acc
 }
 
-export function getPatchFiles(patchesDir: string) {
+export const getPatchFiles = (patchesDir: string) => {
   return _getPatchFiles(patchesDir).filter(filename =>
     filename.match(/^.+(:|\+).+\.patch$/),
   )

@@ -28,7 +28,7 @@ export type Effect =
       noNewlineAtEndOfFile: boolean
     }
 
-export function executeEffects(effects: Effect[]) {
+export const executeEffects = (effects: Effect[]) => {
   effects.forEach(eff => {
     switch (eff.type) {
       case "file deletion":
@@ -153,7 +153,7 @@ function applyPatch({ parts, path }: FilePatch): Effect {
   }
 }
 
-export function applyPatchFile(patch: ParsedPatchFile): Effect[] {
+export const applyPatchFile = (patch: ParsedPatchFile): Effect[] => {
   const effects: Effect[] = []
 
   for (const part of patch) {

@@ -3,10 +3,10 @@ import * as process from "process"
 import * as minimist from "minimist"
 
 import { applyPatchesForApp } from "./applyPatches"
-import getAppRootPath from "./getAppRootPath"
-import makePatch from "./makePatch"
-import makeRegExp from "./makeRegExp"
-import detectPackageManager from "./detectPackageManager"
+import { getAppRootPath } from "./getAppRootPath"
+import { makePatch } from "./makePatch"
+import { makeRegExp } from "./makeRegExp"
+import { detectPackageManager } from "./detectPackageManager"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {

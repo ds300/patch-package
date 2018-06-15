@@ -15,7 +15,8 @@
     "one-line": [false],
     "object-literal-sort-keys": [false],
     "no-trailing-whitespace": [false],
-    "object-literal-key-quotes": [false]
+    "object-literal-key-quotes": [false],
+    "no-default-export": true
   },
   "rulesDirectory": []
 }

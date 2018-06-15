@@ -133,7 +133,7 @@ export default function makePatch(
       )
 
     tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
-    tmpExec("git", ["commit", "-m", "init"])
+    tmpExec("git", ["commit", "--allow-empty", "-m", "init"])
 
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)

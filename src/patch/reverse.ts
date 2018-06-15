@@ -44,41 +44,39 @@ function reverseHunks(hunks: PatchHunk[]): PatchHunk[] {
 
 export function reversePatch(patch: ParsedPatchFile): ParsedPatchFile {
   return patch
-    .map(
-      (part: PatchFilePart): PatchFilePart => {
-        switch (part.type) {
-          case "file creation":
-            return {
-              type: "file deletion",
-              path: part.path,
-              lines: part.lines,
-              mode: part.mode,
-              noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
-            }
-          case "file deletion":
-            return {
-              type: "file creation",
-              path: part.path,
-              lines: part.lines,
-              mode: part.mode,
-              noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
-            }
-          case "rename":
-            return {
-              type: "rename",
-              fromPath: part.toPath,
-              toPath: part.fromPath,
-            }
-          case "patch":
-            return {
-              type: "patch",
-              path: part.path,
-              parts: reverseHunks(part.parts),
-            }
-          default:
-            throw new Error()
-        }
-      },
-    )
+    .map((part: PatchFilePart): PatchFilePart => {
+      switch (part.type) {
+        case "file creation":
+          return {
+            type: "file deletion",
+            path: part.path,
+            lines: part.lines,
+            mode: part.mode,
+            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
+          }
+        case "file deletion":
+          return {
+            type: "file creation",
+            path: part.path,
+            lines: part.lines,
+            mode: part.mode,
+            noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
+          }
+        case "rename":
+          return {
+            type: "rename",
+            fromPath: part.toPath,
+            toPath: part.fromPath,
+          }
+        case "patch":
+          return {
+            type: "patch",
+            path: part.path,
+            parts: reverseHunks(part.parts),
+          }
+        default:
+          throw new Error()
+      }
+    })
     .reverse()
 }

@@ -137,10 +137,10 @@ export const makePatch = (
           !relativePath.match(includePaths) || relativePath.match(excludePaths),
       )
       .forEach(relativePath =>
-        fsExtra.removeSync(slash(path.join(tmpRepoPackagePath, relativePath))),
+        fsExtra.removeSync(slash(join(tmpRepoPackagePath, relativePath))),
       )
 
-    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
+    tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
     tmpExec("git", ["commit", "--allow-empty", "-m", "init"])
 
     // replace package with user's version
@@ -154,8 +154,8 @@ export const makePatch = (
       )
       .forEach(relativePath =>
         fsExtra.copySync(
-          slash(path.join(packagePath, relativePath)),
-          slash(path.join(tmpRepoPackagePath, relativePath)),
+          slash(join(packagePath, relativePath)),
+          slash(join(tmpRepoPackagePath, relativePath)),
         ),
       )
 

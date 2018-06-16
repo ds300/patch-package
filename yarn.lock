@@ -1949,6 +1949,12 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
+klaw-sync@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/klaw-sync/-/klaw-sync-4.0.0.tgz#7785692ea1a320ac3dda7a6c0c22b33a30aa3b3f"
+  dependencies:
+    graceful-fs "^4.1.11"
+
 latest-version@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-3.1.0.tgz#a205383fea322b33b5ae3b18abee0dc2f356ee15"

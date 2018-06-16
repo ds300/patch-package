@@ -12,6 +12,7 @@ import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
+import * as klawSync from "klaw-sync"
 
 function deleteScripts(json: any) {
   delete json.scripts
@@ -128,34 +129,38 @@ export const makePatch = (
     console.info(green("☑"), "Diffing your files with clean files")
     fs.writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
     tmpExec("git", ["init"])
-    // don't commit package.json though
-    tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
 
-    tmpExec("git", ["commit", "-m", "init"])
+    klawSync(tmpRepoPackagePath, { nodir: true })
+      .map(item => item.path.slice(`${tmpRepoPackagePath}/`.length))
+      .filter(
+        relativePath =>
+          !relativePath.match(includePaths) || relativePath.match(excludePaths),
+      )
+      .forEach(relativePath =>
+        fsExtra.removeSync(slash(path.join(tmpRepoPackagePath, relativePath))),
+      )
+
+    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
+    tmpExec("git", ["commit", "--allow-empty", "-m", "init"])
 
     // replace package with user's version
     rimraf.sync(tmpRepoPackagePath)
-    fsExtra.copySync(packagePath, tmpRepoPackagePath, { recursive: true })
+
+    klawSync(packagePath, { nodir: true })
+      .map(item => item.path.slice(`${packagePath}/`.length))
+      .filter(
+        relativePath =>
+          relativePath.match(includePaths) && !relativePath.match(excludePaths),
+      )
+      .forEach(relativePath =>
+        fsExtra.copySync(
+          slash(path.join(packagePath, relativePath)),
+          slash(path.join(tmpRepoPackagePath, relativePath)),
+        ),
+      )
 
     // stage all files
     tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
-
-    // unstage any ignored files so they don't show up in the diff
-    tmpExec("git", ["diff", "--cached", "--name-only"])
-      .stdout.toString()
-      .split(/\r?\n/)
-      .filter(Boolean)
-      .forEach(fileName => {
-        const scopedFileName = fileName.slice(
-          `node_modules/${packageName}/`.length,
-        )
-        if (
-          !scopedFileName.match(includePaths) ||
-          scopedFileName.match(excludePaths)
-        ) {
-          tmpExec("git", ["reset", "HEAD", fileName])
-        }
-      })
 
     // get diff of changes
     const patch = tmpExec("git", [

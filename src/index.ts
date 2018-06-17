@@ -21,20 +21,20 @@ const packageNames = argv._
 if (argv.help || argv.h) {
   printHelp()
 } else {
-  console.info(green("☑"), "Creating temporary folder")
-  const tempDirectory = createTempDirectory()
-  const tempDirectoryPath = tempDirectory.name
+  if (packageNames.length) {
+    console.info(green("☑"), "Creating temporary folder")
+    const tempDirectory = createTempDirectory()
+    const tempDirectoryPath = tempDirectory.name
 
-  try {
-    const packageManager = detectPackageManager(
-      appPath,
-      argv["use-yarn"] ? "yarn" : null,
-    )
+    try {
+      const packageManager = detectPackageManager(
+        appPath,
+        argv["use-yarn"] ? "yarn" : null,
+      )
 
-    preparePackageJson(appPath, tempDirectoryPath)
-    checkoutCleanNodeModules(appPath, tempDirectoryPath, packageManager)
+      preparePackageJson(appPath, tempDirectoryPath)
+      checkoutCleanNodeModules(appPath, tempDirectoryPath, packageManager)
 
-    if (packageNames.length) {
       const include = makeRegExp(
         argv.include,
         "include",
@@ -51,15 +51,15 @@ if (argv.help || argv.h) {
         cleanExistingPatch(appPath, packageName)
         makePatch(appPath, packageName, include, exclude, tempDirectoryPath)
       })
-    } else {
-      console.log("patch-package: Applying patches...")
-      applyPatchesForApp(appPath, !!argv["reverse"])
+    } catch (e) {
+      console.error(e)
+      throw e
+    } finally {
+      tempDirectory.removeCallback()
     }
-  } catch (e) {
-    console.error(e)
-    throw e
-  } finally {
-    tempDirectory.removeCallback()
+  } else {
+    console.log("patch-package: Applying patches...")
+    applyPatchesForApp(appPath, !!argv["reverse"])
   }
 }
 

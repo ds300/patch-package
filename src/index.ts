@@ -49,7 +49,7 @@ if (argv.help || argv.h) {
       )
       packageNames.forEach((packageName: string) => {
         cleanExistingPatch(appPath, packageName)
-        makePatch(packageName, appPath, include, exclude, tempDirectoryPath)
+        makePatch(appPath, packageName, include, exclude, tempDirectoryPath)
       })
     } else {
       console.log("patch-package: Applying patches...")

@@ -19,8 +19,8 @@ function printNoPackageFoundError(
 }
 
 export const makePatch = (
-  packageName: string,
   appPath: string,
+  packageName: string,
   includePaths: RegExp,
   excludePaths: RegExp,
   tempDirectoryPath: string,

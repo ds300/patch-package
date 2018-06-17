@@ -9,7 +9,6 @@ import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 import * as klawSync from "klaw-sync"
-import { preparePackageJson } from "./preparePackageJson"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -65,8 +64,6 @@ export const makePatch = (
 
   const tmpExec = (command: string, args?: string[]) =>
     spawnSafeSync(command, args, { cwd: tempDirectoryPath })
-
-  preparePackageJson(appPath, tempDirectoryPath)
 
   if (packageManager === "yarn") {
     fsExtra.copySync(

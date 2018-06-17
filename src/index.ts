@@ -8,6 +8,7 @@ import { makePatch } from "./makePatch"
 import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
 import { createTempDirectory } from "./createTempDirectory"
+import { preparePackageJson } from "./preparePackageJson"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -23,6 +24,8 @@ if (argv.help || argv.h) {
   const tempDirectoryPath = tempDirectory.name
 
   try {
+    preparePackageJson(appPath, tempDirectoryPath)
+
     if (packageNames.length) {
       const include = makeRegExp(
         argv.include,

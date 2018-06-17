@@ -2,12 +2,12 @@ import { green } from "chalk"
 import * as fs from "fs"
 import { dirname, join } from "./path"
 import * as rimraf from "rimraf"
-import { resolveRelativeFileDependenciesInPackageLock } from "./resolveRelativeFileDependencies"
 import { spawnSafeSync } from "./spawnSafe"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 import * as klawSync from "klaw-sync"
+import { checkoutNodeModules } from "./checkoutNodeModules"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -43,33 +43,7 @@ export const makePatch = (
   const tmpExec = (command: string, args?: string[]) =>
     spawnSafeSync(command, args, { cwd: tempDirectoryPath })
 
-  if (packageManager === "yarn") {
-    fsExtra.copySync(
-      join(appPath, "yarn.lock"),
-      join(tempDirectoryPath, "yarn.lock"),
-    )
-    console.info(green("☑"), "Building clean node_modules with yarn")
-    tmpExec(`yarn`)
-  } else {
-    const lockFileName =
-      packageManager === "npm-shrinkwrap"
-        ? "npm-shrinkwrap.json"
-        : "package-lock.json"
-
-    const lockFileContents = JSON.parse(
-      fsExtra.readFileSync(join(appPath, lockFileName)).toString(),
-    )
-    const resolvedLockFileContents = resolveRelativeFileDependenciesInPackageLock(
-      appPath,
-      lockFileContents,
-    )
-    fs.writeFileSync(
-      join(tempDirectoryPath, lockFileName),
-      JSON.stringify(resolvedLockFileContents),
-    )
-    console.info(green("☑"), "Building clean node_modules with npm")
-    tmpExec("npm", ["i"])
-  }
+  checkoutNodeModules(appPath, tempDirectoryPath, packageManager)
 
   // commit the package
   console.info(green("☑"), "Diffing your files with clean files")

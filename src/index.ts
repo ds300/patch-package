@@ -18,9 +18,7 @@ const argv = minimist(process.argv.slice(2), {
 })
 const packageNames = argv._
 
-if (argv.help || argv.h) {
-  printHelp()
-} else {
+if (!(argv.help || argv.h)) {
   if (packageNames.length) {
     console.info(green("☑"), "Creating temporary folder")
     const tempDirectory = createTempDirectory()
@@ -61,6 +59,8 @@ if (argv.help || argv.h) {
     console.log("patch-package: Applying patches...")
     applyPatchesForApp(appPath, !!argv["reverse"])
   }
+} else {
+  printHelp()
 }
 
 function printHelp() {

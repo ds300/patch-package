@@ -1,8 +1,7 @@
 import { green } from "chalk"
 import * as fs from "fs"
-import { join, dirname, relative } from "./path"
+import { dirname, join, relative } from "./path"
 import * as rimraf from "rimraf"
-import * as tmp from "tmp"
 import {
   resolveRelativeFileDependenciesInPackageJson,
   resolveRelativeFileDependenciesInPackageLock,
@@ -13,6 +12,7 @@ import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 import * as klawSync from "klaw-sync"
+import { createTempDirectory } from "./createTempDirectory"
 
 function deleteScripts(json: any) {
   delete json.scripts
@@ -46,8 +46,7 @@ export const makePatch = (
   }
 
   const packageVersion = require(packageJsonPath).version
-
-  const tmpRepo = tmp.dirSync({ unsafeCleanup: true })
+  const tmpRepo = createTempDirectory()
   const tmpRepoNodeModulesPath = join(tmpRepo.name, "node_modules")
   const tmpRepoPackageJsonPath = join(tmpRepo.name, "package.json")
   const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)

@@ -10,7 +10,7 @@ interface HunkHeader {
   }
 }
 
-export function parseHunkHeaderLine(headerLine: string): HunkHeader {
+export const parseHunkHeaderLine = (headerLine: string): HunkHeader => {
   const match = headerLine
     .trim()
     .match(/^@@ -(\d+)(,(\d+))? \+(\d+)(,(\d+))? @@.*/)
@@ -383,6 +383,6 @@ class PatchParser {
   }
 }
 
-export function parsePatch(patchFileContents: string): ParsedPatchFile {
+export const parsePatch = (patchFileContents: string): ParsedPatchFile => {
   return new PatchParser(patchFileContents.split(/\n/)).parse()
 }

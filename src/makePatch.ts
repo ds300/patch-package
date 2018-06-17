@@ -1,13 +1,13 @@
 import { green } from "chalk"
 import * as fs from "fs"
-import * as path from "./path"
+import { join, dirname, relative } from "./path"
 import * as rimraf from "rimraf"
 import * as tmp from "tmp"
 import {
   resolveRelativeFileDependenciesInPackageJson,
   resolveRelativeFileDependenciesInPackageLock,
 } from "./resolveRelativeFileDependencies"
-import spawnSafeSync from "./spawnSafe"
+import { spawnSafeSync } from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
@@ -19,16 +19,27 @@ function deleteScripts(json: any) {
   return json
 }
 
-export default function makePatch(
+function printNoPackageFoundError(
+  packageName: string,
+  packageJsonPath: string,
+) {
+  console.error(
+    `No such package ${packageName}
+
+  File not found: ${packageJsonPath}`,
+  )
+}
+
+export const makePatch = (
   packageName: string,
   appPath: string,
   packageManager: PackageManager,
   includePaths: RegExp,
   excludePaths: RegExp,
-) {
-  const nodeModulesPath = path.join(appPath, "node_modules")
-  const packagePath = path.join(nodeModulesPath, packageName)
-  const packageJsonPath = path.join(packagePath, "package.json")
+) => {
+  const nodeModulesPath = join(appPath, "node_modules")
+  const packagePath = join(nodeModulesPath, packageName)
+  const packageJsonPath = join(packagePath, "package.json")
   if (!fs.existsSync(packageJsonPath)) {
     printNoPackageFoundError(packageName, packageJsonPath)
     process.exit(1)
@@ -37,12 +48,12 @@ export default function makePatch(
   const packageVersion = require(packageJsonPath).version
 
   const tmpRepo = tmp.dirSync({ unsafeCleanup: true })
-  const tmpRepoNodeModulesPath = path.join(tmpRepo.name, "node_modules")
-  const tmpRepoPackageJsonPath = path.join(tmpRepo.name, "package.json")
-  const tmpRepoPackagePath = path.join(tmpRepoNodeModulesPath, packageName)
+  const tmpRepoNodeModulesPath = join(tmpRepo.name, "node_modules")
+  const tmpRepoPackageJsonPath = join(tmpRepo.name, "package.json")
+  const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
 
   try {
-    const patchesDir = path.join(appPath, "patches")
+    const patchesDir = join(appPath, "patches")
 
     if (!fs.existsSync(patchesDir)) {
       fs.mkdirSync(patchesDir)
@@ -56,9 +67,9 @@ export default function makePatch(
           console.info(
             green("☑"),
             "Removing existing",
-            path.relative(process.cwd(), path.join(patchesDir, fileName)),
+            relative(process.cwd(), join(patchesDir, fileName)),
           )
-          fs.unlinkSync(path.join(patchesDir, fileName))
+          fs.unlinkSync(join(patchesDir, fileName))
         }
       })
     }
@@ -69,8 +80,8 @@ export default function makePatch(
       spawnSafeSync(command, args, { cwd: tmpRepo.name })
     // reinstall a clean version of the user's node_modules in our tmp location
     fsExtra.copySync(
-      path.join(appPath, "package.json"),
-      path.join(tmpRepo.name, "package.json"),
+      join(appPath, "package.json"),
+      join(tmpRepo.name, "package.json"),
     )
     // resolve relative file paths in package.json
     // also delete scripts
@@ -80,7 +91,7 @@ export default function makePatch(
         deleteScripts(
           resolveRelativeFileDependenciesInPackageJson(
             appPath,
-            require(path.join(tmpRepo.name, "package.json")),
+            require(join(tmpRepo.name, "package.json")),
           ),
         ),
       ),
@@ -88,8 +99,8 @@ export default function makePatch(
 
     if (packageManager === "yarn") {
       fsExtra.copySync(
-        path.join(appPath, "yarn.lock"),
-        path.join(tmpRepo.name, "yarn.lock"),
+        join(appPath, "yarn.lock"),
+        join(tmpRepo.name, "yarn.lock"),
       )
       console.info(green("☑"), "Building clean node_modules with yarn")
       tmpExec(`yarn`)
@@ -100,14 +111,14 @@ export default function makePatch(
           : "package-lock.json"
 
       const lockFileContents = JSON.parse(
-        fsExtra.readFileSync(path.join(appPath, lockFileName)).toString(),
+        fsExtra.readFileSync(join(appPath, lockFileName)).toString(),
       )
       const resolvedLockFileContents = resolveRelativeFileDependenciesInPackageLock(
         appPath,
         lockFileContents,
       )
       fs.writeFileSync(
-        path.join(tmpRepo.name, lockFileName),
+        join(tmpRepo.name, lockFileName),
         JSON.stringify(resolvedLockFileContents),
       )
       console.info(green("☑"), "Building clean node_modules with npm")
@@ -116,10 +127,7 @@ export default function makePatch(
 
     // commit the package
     console.info(green("☑"), "Diffing your files with clean files")
-    fs.writeFileSync(
-      path.join(tmpRepo.name, ".gitignore"),
-      "!/node_modules\n\n",
-    )
+    fs.writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
     tmpExec("git", ["init"])
 
     klawSync(tmpRepoPackagePath, { nodir: true })
@@ -129,10 +137,10 @@ export default function makePatch(
           !relativePath.match(includePaths) || relativePath.match(excludePaths),
       )
       .forEach(relativePath =>
-        fsExtra.removeSync(slash(path.join(tmpRepoPackagePath, relativePath))),
+        fsExtra.removeSync(slash(join(tmpRepoPackagePath, relativePath))),
       )
 
-    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
+    tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
     tmpExec("git", ["commit", "--allow-empty", "-m", "init"])
 
     // replace package with user's version
@@ -146,13 +154,13 @@ export default function makePatch(
       )
       .forEach(relativePath =>
         fsExtra.copySync(
-          slash(path.join(packagePath, relativePath)),
-          slash(path.join(tmpRepoPackagePath, relativePath)),
+          slash(join(packagePath, relativePath)),
+          slash(join(tmpRepoPackagePath, relativePath)),
         ),
       )
 
     // stage all files
-    tmpExec("git", ["add", "-f", slash(path.join("node_modules", packageName))])
+    tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
 
     // get diff of changes
     const patch = tmpExec("git", [
@@ -169,10 +177,10 @@ export default function makePatch(
       process.exit(1)
     } else {
       const patchFileName = `${packageName}+${packageVersion}.patch`
-      const patchPath = path.join(patchesDir, patchFileName)
-      if (!fs.existsSync(path.dirname(patchPath))) {
+      const patchPath = join(patchesDir, patchFileName)
+      if (!fs.existsSync(dirname(patchPath))) {
         // scoped package
-        fs.mkdirSync(path.dirname(patchPath))
+        fs.mkdirSync(dirname(patchPath))
       }
       fs.writeFileSync(patchPath, patch)
       console.log(`${green("✔")} Created file patches/${patchFileName}`)
@@ -183,15 +191,4 @@ export default function makePatch(
   } finally {
     tmpRepo.removeCallback()
   }
-}
-
-function printNoPackageFoundError(
-  packageName: string,
-  packageJsonPath: string,
-) {
-  console.error(
-    `No such package ${packageName}
-
-  File not found: ${packageJsonPath}`,
-  )
 }

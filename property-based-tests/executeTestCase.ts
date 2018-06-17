@@ -2,7 +2,7 @@ import * as tmp from "tmp"
 import * as fs from "fs-extra"
 import * as path from "path"
 
-import spawnSafeSync from "../src/spawnSafe"
+import { spawnSafeSync } from "../src/spawnSafe"
 import { patch } from "../src/patch"
 import { executeEffects } from "../src/patch/apply"
 import { parsePatch } from "../src/patch/parse"

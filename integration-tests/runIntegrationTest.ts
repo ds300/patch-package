@@ -1,9 +1,9 @@
 import * as fs from "fs-extra"
-import * as path from "../src/path"
+import { join, resolve } from "../src/path"
 import * as tmp from "tmp"
-import spawnSync from "../src/spawnSafe"
+import { spawnSafeSync } from "../src/spawnSafe"
 
-export const patchPackageTarballPath = path.resolve(
+export const patchPackageTarballPath = resolve(
   fs
     .readdirSync(".")
     .filter(nm => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
@@ -15,14 +15,18 @@ export function runIntegrationTest(
 ) {
   describe(`Test ${projectName}:`, () => {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
-    fs.copySync(path.join(__dirname, projectName), tmpDir.name, {
+    fs.copySync(join(__dirname, projectName), tmpDir.name, {
       recursive: true,
     })
 
-    const result = spawnSync(`./${projectName}.sh`, [patchPackageTarballPath], {
-      cwd: tmpDir.name,
-      throwOnError: false,
-    })
+    const result = spawnSafeSync(
+      `./${projectName}.sh`,
+      [patchPackageTarballPath],
+      {
+        cwd: tmpDir.name,
+        throwOnError: false,
+      },
+    )
 
     it("should exit with 0 status", () => {
       expect(result.status).toBe(0)

@@ -52,7 +52,10 @@ function getInstalledPackageVersion(
     .version as PackageVersion
 }
 
-export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
+export const applyPatchesForApp = (
+  appPath: AppPath,
+  reverse: boolean,
+): void => {
   const patchesDirectory = path.join(appPath, "patches") as PatchesDirectory
   const files = findPatchFiles(patchesDirectory)
 
@@ -104,7 +107,10 @@ export function applyPatchesForApp(appPath: AppPath, reverse: boolean): void {
   })
 }
 
-export function applyPatch(patchFilePath: string, reverse: boolean): boolean {
+export const applyPatch = (
+  patchFilePath: string,
+  reverse: boolean,
+): boolean => {
   const patchFileContents = fs.readFileSync(patchFilePath).toString()
   try {
     const result = patch(patchFileContents, {

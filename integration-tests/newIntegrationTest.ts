@@ -1,6 +1,6 @@
 import * as fs from "fs-extra"
 import * as path from "path"
-import spawnSafeSync from "../src/spawnSafe"
+import { spawnSafeSync } from "../src/spawnSafe"
 
 const testName = process.argv[2]
 

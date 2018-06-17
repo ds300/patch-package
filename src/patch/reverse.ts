@@ -42,7 +42,7 @@ function reverseHunks(hunks: PatchHunk[]): PatchHunk[] {
   return result
 }
 
-export function reversePatch(patch: ParsedPatchFile): ParsedPatchFile {
+export const reversePatch = (patch: ParsedPatchFile): ParsedPatchFile => {
   return patch
     .map((part: PatchFilePart): PatchFilePart => {
       switch (part.type) {

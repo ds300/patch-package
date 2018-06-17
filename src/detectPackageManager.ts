@@ -1,43 +1,9 @@
 import * as fs from "fs"
-import * as path from "./path"
+import { join } from "./path"
 import * as chalk from "chalk"
 import * as process from "process"
 
 export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
-
-export default function detectPackageManager(
-  appRootPath: string,
-  overridePackageManager: PackageManager | null,
-): PackageManager {
-  const packageLockExists = fs.existsSync(
-    path.join(appRootPath, "package-lock.json"),
-  )
-  const shrinkWrapExists = fs.existsSync(
-    path.join(appRootPath, "npm-shrinkwrap.json"),
-  )
-  const yarnLockExists = fs.existsSync(path.join(appRootPath, "yarn.lock"))
-  if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
-    if (overridePackageManager) {
-      return overridePackageManager
-    } else {
-      printSelectingDefaultMessage()
-      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
-    }
-  } else if (packageLockExists || shrinkWrapExists) {
-    if (overridePackageManager === "yarn") {
-      printNoYarnLockfileError()
-      process.exit(1)
-    } else {
-      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
-    }
-  } else if (yarnLockExists) {
-    return "yarn"
-  } else {
-    printNoLockfilesError()
-    process.exit(1)
-  }
-  throw Error()
-}
 
 function printNoYarnLockfileError() {
   console.error(`
@@ -68,4 +34,38 @@ You can override this setting by passing --use-yarn or deleting
 package-lock.json if you don't need it
 `,
   )
+}
+
+export const detectPackageManager = (
+  appRootPath: string,
+  overridePackageManager: PackageManager | null,
+): PackageManager => {
+  const packageLockExists = fs.existsSync(
+    join(appRootPath, "package-lock.json"),
+  )
+  const shrinkWrapExists = fs.existsSync(
+    join(appRootPath, "npm-shrinkwrap.json"),
+  )
+  const yarnLockExists = fs.existsSync(join(appRootPath, "yarn.lock"))
+  if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
+    if (overridePackageManager) {
+      return overridePackageManager
+    } else {
+      printSelectingDefaultMessage()
+      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
+    }
+  } else if (packageLockExists || shrinkWrapExists) {
+    if (overridePackageManager === "yarn") {
+      printNoYarnLockfileError()
+      process.exit(1)
+    } else {
+      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
+    }
+  } else if (yarnLockExists) {
+    return "yarn"
+  } else {
+    printNoLockfilesError()
+    process.exit(1)
+  }
+  throw Error()
 }

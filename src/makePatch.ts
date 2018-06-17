@@ -25,52 +25,54 @@ export const makePatch = (
   excludePaths: RegExp,
   tempDirectoryPath: string,
 ) => {
-  const nodeModulesPath = join(appPath, "node_modules")
-  const packagePath = join(nodeModulesPath, packageName)
-  const packageJsonPath = join(packagePath, "package.json")
-  if (!fs.existsSync(packageJsonPath)) {
-    printNoPackageFoundError(packageName, packageJsonPath)
+  const originalNodeModulesPath = join(appPath, "node_modules")
+  const originalPackagePath = join(originalNodeModulesPath, packageName)
+  const originalPackageJsonPath = join(originalPackagePath, "package.json")
+  const packageVersion = require(originalPackageJsonPath).version
+
+  if (!fs.existsSync(originalPackageJsonPath)) {
+    printNoPackageFoundError(packageName, originalPackageJsonPath)
     process.exit(1)
   }
 
-  const packageVersion = require(packageJsonPath).version
-  const tmpRepoNodeModulesPath = join(tempDirectoryPath, "node_modules")
-  const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
+  const tempNodeModulesPath = join(tempDirectoryPath, "node_modules")
+  const tempPackagePath = join(tempNodeModulesPath, packageName)
 
   const tmpExec = (command: string, args?: string[]) =>
     spawnSafeSync(command, args, { cwd: tempDirectoryPath })
 
-  // commit the package
   console.info(green("☑"), "Diffing your files with clean files")
+
   fs.writeFileSync(join(tempDirectoryPath, ".gitignore"), "!/node_modules\n\n")
+
   tmpExec("git", ["init"])
 
-  klawSync(tmpRepoPackagePath, { nodir: true })
-    .map(item => item.path.slice(`${tmpRepoPackagePath}/`.length))
+  klawSync(tempPackagePath, { nodir: true })
+    .map(item => item.path.slice(`${tempPackagePath}/`.length))
     .filter(
       relativePath =>
         !relativePath.match(includePaths) || relativePath.match(excludePaths),
     )
     .forEach(relativePath =>
-      fsExtra.removeSync(slash(join(tmpRepoPackagePath, relativePath))),
+      fsExtra.removeSync(slash(join(tempPackagePath, relativePath))),
     )
 
   tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
   tmpExec("git", ["commit", "--allow-empty", "-m", "init"])
 
   // replace package with user's version
-  rimraf.sync(tmpRepoPackagePath)
+  rimraf.sync(tempPackagePath)
 
-  klawSync(packagePath, { nodir: true })
-    .map(item => item.path.slice(`${packagePath}/`.length))
+  klawSync(originalPackagePath, { nodir: true })
+    .map(item => item.path.slice(`${originalPackagePath}/`.length))
     .filter(
       relativePath =>
         relativePath.match(includePaths) && !relativePath.match(excludePaths),
     )
     .forEach(relativePath =>
       fsExtra.copySync(
-        slash(join(packagePath, relativePath)),
-        slash(join(tmpRepoPackagePath, relativePath)),
+        slash(join(originalPackagePath, relativePath)),
+        slash(join(tempPackagePath, relativePath)),
       ),
     )
 

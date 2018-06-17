@@ -1,14 +1,14 @@
 import { green } from "chalk"
 import * as fs from "fs"
-import { dirname, join, relative } from "./path"
+import { dirname, join } from "./path"
 import * as rimraf from "rimraf"
 import { resolveRelativeFileDependenciesInPackageLock } from "./resolveRelativeFileDependencies"
 import { spawnSafeSync } from "./spawnSafe"
-import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 import * as klawSync from "klaw-sync"
+import { cleanExistingPatch } from "./cleanExistingPatch"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -41,26 +41,7 @@ export const makePatch = (
   const tmpRepoNodeModulesPath = join(tempDirectoryPath, "node_modules")
   const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
 
-  const patchesDir = join(appPath, "patches")
-
-  if (!fs.existsSync(patchesDir)) {
-    fs.mkdirSync(patchesDir)
-  } else {
-    // remove exsiting patch for this package, if any
-    getPatchFiles(patchesDir).forEach(fileName => {
-      if (
-        fileName.startsWith(packageName + ":") ||
-        fileName.startsWith(packageName + "+")
-      ) {
-        console.info(
-          green("☑"),
-          "Removing existing",
-          relative(process.cwd(), join(patchesDir, fileName)),
-        )
-        fs.unlinkSync(join(patchesDir, fileName))
-      }
-    })
-  }
+  cleanExistingPatch(appPath, packageName)
 
   const tmpExec = (command: string, args?: string[]) =>
     spawnSafeSync(command, args, { cwd: tempDirectoryPath })
@@ -144,6 +125,7 @@ export const makePatch = (
     console.warn(`⁉️  There don't appear to be any changes.`)
     process.exit(1)
   } else {
+    const patchesDir = join(appPath, "patches")
     const patchFileName = `${packageName}+${packageVersion}.patch`
     const patchPath = join(patchesDir, patchFileName)
     if (!fs.existsSync(dirname(patchPath))) {

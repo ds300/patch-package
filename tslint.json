@@ -16,7 +16,8 @@
     "object-literal-sort-keys": [false],
     "no-trailing-whitespace": [false],
     "object-literal-key-quotes": [false],
-    "no-default-export": true
+    "no-default-export": true,
+    "forin": false
   },
   "rulesDirectory": []
 }

@@ -1,49 +1,6 @@
-import {
-  resolveRelativeFileDependenciesInPackageJson,
-  resolveRelativeFileDependenciesInPackageLock,
-} from "./resolveRelativeFileDependencies"
+import { resolveRelativeFileDependenciesInPackageLock } from "./resolveRelativeFileDependencies"
 
 describe("resolveRelativeFileDependencies", () => {
-  it("works for package.json", () => {
-    const appRootPath = "/foo/bar"
-
-    const packageJson = {
-      dependencies: {
-        absolute: "file:/not-foo/bar",
-        relative: "file:../baz",
-        remote: "git+https://blah.com/blah.git",
-        version: "^434.34.34",
-      },
-      devDependencies: {
-        absolute: "file:/not-foo/bar",
-        relative: "file:../baz",
-        remote: "git+https://blah.com/blah.git",
-        version: "^434.34.34",
-      },
-    }
-
-    const expected = {
-      dependencies: {
-        absolute: "file:/not-foo/bar",
-        relative: "file:/foo/baz",
-        remote: "git+https://blah.com/blah.git",
-        version: "^434.34.34",
-      },
-      devDependencies: {
-        absolute: "file:/not-foo/bar",
-        relative: "file:/foo/baz",
-        remote: "git+https://blah.com/blah.git",
-        version: "^434.34.34",
-      },
-    }
-
-    expect(
-      resolveRelativeFileDependenciesInPackageJson(
-        appRootPath,
-        JSON.parse(JSON.stringify(packageJson)),
-      ),
-    ).toEqual(expected)
-  })
   it("works for package-lock.json", () => {
     const appRootPath = "/bloo/far"
 

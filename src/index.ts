@@ -8,9 +8,11 @@ import { makePatch } from "./makePatch"
 import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
 import { createTempDirectory } from "./createTempDirectory"
-import { preparePackageJson } from "./preparePackageJson"
+import { PackageJsonBuilder, IPackageJson } from "./PackageJsonBuilder"
 import { cleanExistingPatch } from "./cleanExistingPatch"
 import { checkoutCleanNodeModules } from "./checkoutCleanNodeModules"
+import { join } from "./path"
+import { readFileSync, writeFileSync } from "fs"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -25,12 +27,43 @@ if (!(argv.help || argv.h)) {
     const tempDirectoryPath = tempDirectory.name
 
     try {
+      const originalPackageJsonPath = join(appPath, "package.json")
+      const originalPackageJson: IPackageJson = JSON.parse(
+        readFileSync(originalPackageJsonPath).toString(),
+      )
+
+      const newPackageJsonBuilder = new PackageJsonBuilder()
+
+      if (originalPackageJson.dependencies) {
+        for (const dependency in originalPackageJson.dependencies) {
+          newPackageJsonBuilder.withDependency(
+            dependency,
+            originalPackageJson.dependencies[dependency],
+          )
+        }
+      }
+
+      if (originalPackageJson.devDependencies) {
+        for (const dependency in originalPackageJson.devDependencies) {
+          newPackageJsonBuilder.withDevDependency(
+            dependency,
+            originalPackageJson.devDependencies[dependency],
+          )
+        }
+      }
+
+      const tempPackageJsonPath = join(tempDirectoryPath, "package.json")
+
+      writeFileSync(
+        tempPackageJsonPath,
+        JSON.stringify(newPackageJsonBuilder.build()),
+      )
+
       const packageManager = detectPackageManager(
         appPath,
         argv["use-yarn"] ? "yarn" : null,
       )
 
-      preparePackageJson(appPath, tempDirectoryPath)
       checkoutCleanNodeModules(appPath, tempDirectoryPath, packageManager)
 
       const include = makeRegExp(

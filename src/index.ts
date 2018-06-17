@@ -1,4 +1,4 @@
-import { bold, italic } from "chalk"
+import { bold, green, italic } from "chalk"
 import * as process from "process"
 import * as minimist from "minimist"
 
@@ -7,6 +7,7 @@ import { getAppRootPath } from "./getAppRootPath"
 import { makePatch } from "./makePatch"
 import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
+import { createTempDirectory } from "./createTempDirectory"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -17,31 +18,43 @@ const packageNames = argv._
 if (argv.help || argv.h) {
   printHelp()
 } else {
-  if (packageNames.length) {
-    const include = makeRegExp(
-      argv.include,
-      "include",
-      /.*/,
-      argv["case-sensitive-path-filtering"],
-    )
-    const exclude = makeRegExp(
-      argv.exclude,
-      "exclude",
-      /package\.json$/,
-      argv["case-sensitive-path-filtering"],
-    )
-    packageNames.forEach((packageName: string) => {
-      makePatch(
-        packageName,
-        appPath,
-        detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
-        include,
-        exclude,
+  console.info(green("☑"), "Creating temporary folder")
+  const tempDirectory = createTempDirectory()
+  const tempDirectoryPath = tempDirectory.name
+
+  try {
+    if (packageNames.length) {
+      const include = makeRegExp(
+        argv.include,
+        "include",
+        /.*/,
+        argv["case-sensitive-path-filtering"],
       )
-    })
-  } else {
-    console.log("patch-package: Applying patches...")
-    applyPatchesForApp(appPath, !!argv["reverse"])
+      const exclude = makeRegExp(
+        argv.exclude,
+        "exclude",
+        /package\.json$/,
+        argv["case-sensitive-path-filtering"],
+      )
+      packageNames.forEach((packageName: string) => {
+        makePatch(
+          packageName,
+          appPath,
+          detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
+          include,
+          exclude,
+          tempDirectoryPath,
+        )
+      })
+    } else {
+      console.log("patch-package: Applying patches...")
+      applyPatchesForApp(appPath, !!argv["reverse"])
+    }
+  } catch (e) {
+    console.error(e)
+    throw e
+  } finally {
+    tempDirectory.removeCallback()
   }
 }
 

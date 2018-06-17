@@ -9,6 +9,7 @@ import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
 import { createTempDirectory } from "./createTempDirectory"
 import { preparePackageJson } from "./preparePackageJson"
+import { cleanExistingPatch } from "./cleanExistingPatch"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -45,6 +46,7 @@ if (argv.help || argv.h) {
         argv["case-sensitive-path-filtering"],
       )
       packageNames.forEach((packageName: string) => {
+        cleanExistingPatch(appPath, packageName)
         makePatch(
           packageName,
           appPath,

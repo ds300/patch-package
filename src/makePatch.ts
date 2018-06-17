@@ -8,7 +8,6 @@ import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 import * as klawSync from "klaw-sync"
-import { cleanExistingPatch } from "./cleanExistingPatch"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -40,8 +39,6 @@ export const makePatch = (
   const packageVersion = require(packageJsonPath).version
   const tmpRepoNodeModulesPath = join(tempDirectoryPath, "node_modules")
   const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
-
-  cleanExistingPatch(appPath, packageName)
 
   const tmpExec = (command: string, args?: string[]) =>
     spawnSafeSync(command, args, { cwd: tempDirectoryPath })

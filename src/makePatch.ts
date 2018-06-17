@@ -4,10 +4,8 @@ import { dirname, join } from "./path"
 import * as rimraf from "rimraf"
 import { spawnSafeSync } from "./spawnSafe"
 import * as fsExtra from "fs-extra"
-import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 import * as klawSync from "klaw-sync"
-import { checkoutNodeModules } from "./checkoutNodeModules"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -23,7 +21,6 @@ function printNoPackageFoundError(
 export const makePatch = (
   packageName: string,
   appPath: string,
-  packageManager: PackageManager,
   includePaths: RegExp,
   excludePaths: RegExp,
   tempDirectoryPath: string,
@@ -42,8 +39,6 @@ export const makePatch = (
 
   const tmpExec = (command: string, args?: string[]) =>
     spawnSafeSync(command, args, { cwd: tempDirectoryPath })
-
-  checkoutNodeModules(appPath, tempDirectoryPath, packageManager)
 
   // commit the package
   console.info(green("☑"), "Diffing your files with clean files")

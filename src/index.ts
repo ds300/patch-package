@@ -10,6 +10,7 @@ import { detectPackageManager } from "./detectPackageManager"
 import { createTempDirectory } from "./createTempDirectory"
 import { preparePackageJson } from "./preparePackageJson"
 import { cleanExistingPatch } from "./cleanExistingPatch"
+import { checkoutNodeModules } from "./checkoutNodeModules"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -31,6 +32,7 @@ if (argv.help || argv.h) {
     )
 
     preparePackageJson(appPath, tempDirectoryPath)
+    checkoutNodeModules(appPath, tempDirectoryPath, packageManager)
 
     if (packageNames.length) {
       const include = makeRegExp(
@@ -47,14 +49,7 @@ if (argv.help || argv.h) {
       )
       packageNames.forEach((packageName: string) => {
         cleanExistingPatch(appPath, packageName)
-        makePatch(
-          packageName,
-          appPath,
-          packageManager,
-          include,
-          exclude,
-          tempDirectoryPath,
-        )
+        makePatch(packageName, appPath, include, exclude, tempDirectoryPath)
       })
     } else {
       console.log("patch-package: Applying patches...")

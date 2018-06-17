@@ -2,21 +2,14 @@ import { green } from "chalk"
 import * as fs from "fs"
 import { dirname, join, relative } from "./path"
 import * as rimraf from "rimraf"
-import {
-  resolveRelativeFileDependenciesInPackageJson,
-  resolveRelativeFileDependenciesInPackageLock,
-} from "./resolveRelativeFileDependencies"
+import { resolveRelativeFileDependenciesInPackageLock } from "./resolveRelativeFileDependencies"
 import { spawnSafeSync } from "./spawnSafe"
 import { getPatchFiles } from "./patchFs"
 import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
 import * as slash from "slash"
 import * as klawSync from "klaw-sync"
-
-function deleteScripts(json: any) {
-  delete json.scripts
-  return json
-}
+import { preparePackageJson } from "./preparePackageJson"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -47,7 +40,6 @@ export const makePatch = (
 
   const packageVersion = require(packageJsonPath).version
   const tmpRepoNodeModulesPath = join(tempDirectoryPath, "node_modules")
-  const tmpRepoPackageJsonPath = join(tempDirectoryPath, "package.json")
   const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
 
   const patchesDir = join(appPath, "patches")
@@ -73,24 +65,8 @@ export const makePatch = (
 
   const tmpExec = (command: string, args?: string[]) =>
     spawnSafeSync(command, args, { cwd: tempDirectoryPath })
-  // reinstall a clean version of the user's node_modules in our tmp location
-  fsExtra.copySync(
-    join(appPath, "package.json"),
-    join(tempDirectoryPath, "package.json"),
-  )
-  // resolve relative file paths in package.json
-  // also delete scripts
-  fs.writeFileSync(
-    tmpRepoPackageJsonPath,
-    JSON.stringify(
-      deleteScripts(
-        resolveRelativeFileDependenciesInPackageJson(
-          appPath,
-          require(join(tempDirectoryPath, "package.json")),
-        ),
-      ),
-    ),
-  )
+
+  preparePackageJson(appPath, tempDirectoryPath)
 
   if (packageManager === "yarn") {
     fsExtra.copySync(

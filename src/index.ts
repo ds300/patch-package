@@ -24,6 +24,11 @@ if (argv.help || argv.h) {
   const tempDirectoryPath = tempDirectory.name
 
   try {
+    const packageManager = detectPackageManager(
+      appPath,
+      argv["use-yarn"] ? "yarn" : null,
+    )
+
     preparePackageJson(appPath, tempDirectoryPath)
 
     if (packageNames.length) {
@@ -43,7 +48,7 @@ if (argv.help || argv.h) {
         makePatch(
           packageName,
           appPath,
-          detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
+          packageManager,
           include,
           exclude,
           tempDirectoryPath,

@@ -6,7 +6,7 @@ import { green } from "chalk"
 import { resolveRelativeFileDependenciesInPackageLock } from "./resolveRelativeFileDependencies"
 import * as fs from "fs"
 
-export const checkoutNodeModules = (
+export const checkoutCleanNodeModules = (
   appPath: string,
   tempDirectoryPath: string,
   packageManager: PackageManager,

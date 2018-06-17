@@ -10,7 +10,7 @@ import { detectPackageManager } from "./detectPackageManager"
 import { createTempDirectory } from "./createTempDirectory"
 import { preparePackageJson } from "./preparePackageJson"
 import { cleanExistingPatch } from "./cleanExistingPatch"
-import { checkoutNodeModules } from "./checkoutNodeModules"
+import { checkoutCleanNodeModules } from "./checkoutCleanNodeModules"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -32,7 +32,7 @@ if (argv.help || argv.h) {
     )
 
     preparePackageJson(appPath, tempDirectoryPath)
-    checkoutNodeModules(appPath, tempDirectoryPath, packageManager)
+    checkoutCleanNodeModules(appPath, tempDirectoryPath, packageManager)
 
     if (packageNames.length) {
       const include = makeRegExp(

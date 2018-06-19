@@ -1,5 +1,8 @@
 # Changelog
 
+## 6.0.0-8
+- Improve diffing speed (Contribution from @KevinVlaanderen)
+
 ## 6.0.0-7
 - Use --no-ext-diff option when generating diffs (Contribution from @janv)
 

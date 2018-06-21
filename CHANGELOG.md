@@ -7,7 +7,7 @@
 - Use --no-ext-diff option when generating diffs (Contribution from @janv)
 
 ## 6.0.0-6
-- Make indlude/exclude regexes applied relative to the package root. Fixes #54
+- Make include/exclude regexes applied relative to the package root. Fixes #54
 
 ## 6.0.0-5
 - Fix preventing scripts from running when making patch file
@@ -44,7 +44,7 @@
 ## 5.0.0
 
 - Remove yarn patching code
-- Recommend postinstall-prepare in README for yarn compatibiltiy
+- Recommend postinstall-prepare in README for yarn compatibility
 
 ## 4.0.0
 

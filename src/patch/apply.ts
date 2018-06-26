@@ -1,4 +1,5 @@
 import * as fs from "fs-extra"
+import { dirname } from "path"
 import { ParsedPatchFile, FilePatch } from "./parse"
 
 export type Effect =
@@ -38,6 +39,7 @@ export const executeEffects = (effects: Effect[]) => {
         fs.moveSync(eff.fromPath, eff.toPath)
         break
       case "file creation":
+        fs.ensureDirSync(dirname(eff.path))
         fs.writeFileSync(
           eff.path,
           eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),

@@ -1,5 +1,8 @@
 # Changelog
 
+## 6.0.0-9
+- Fix patch application bug when creating new files (Contribution from @stmarkidis)
+
 ## 6.0.0-8
 - Improve diffing speed (Contribution from @KevinVlaanderen)
 

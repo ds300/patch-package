@@ -10,7 +10,7 @@ import { detectPackageManager } from "./detectPackageManager"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
-  boolean: ["use-yarn", "case-sensitive-path-filtering", "reverse"],
+  boolean: ["use-yarn", "use-pnpm", "case-sensitive-path-filtering", "reverse"],
 })
 const packageNames = argv._
 
@@ -34,7 +34,7 @@ if (argv.help || argv.h) {
       makePatch(
         packageName,
         appPath,
-        detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
+        detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : argv["use-pnpm"] ? "pnpm" : null),
         include,
         exclude,
       )
@@ -55,8 +55,8 @@ Usage:
     ${bold("patch-package")}
 
   Without arguments, the ${bold(
-    "patch-package",
-  )} command will attempt to find and apply
+      "patch-package",
+    )} command will attempt to find and apply
   patch files to your project. It looks for files named like
 
      ./patches/<package-name>+<version>.patch
@@ -67,15 +67,21 @@ Usage:
     ${bold("patch-package")} <package-name>${italic("[ <package-name>]")}
 
   When given package names as arguments, patch-package will create patch files
-  based on any changes you've made to the versions installed by yarn/npm.
+  based on any changes you've made to the versions installed by yarn/npm/pnpm.
 
   Options:
 
      ${bold("--use-yarn")}
 
-         By default, patch-package checks whether you use npm or yarn based on
-         which lockfile you have. If you have both, it uses npm by default.
+         By default, patch-package checks whether you use npm, yarn or pnpm based on
+         which lockfile you have. If you have all, it uses npm by default.
          Set this option to override that default and always use yarn.
+
+     ${bold("--use-pnpm")}
+
+         By default, patch-package checks whether you use npm, yarn or pnpm based on
+         which lockfile you have. If you have all, it uses npm by default.
+         Set this option to override that default and always use pnpm.
 
      ${bold("--exclude <regexp>")}
 

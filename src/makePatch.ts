@@ -104,6 +104,13 @@ export const makePatch = (
       )
       console.info(green("☑"), "Building clean node_modules with yarn")
       tmpExec(`yarn`)
+    } else if (packageManager === "pnpm") {
+      fsExtra.copySync(
+        join(appPath, "shrinkwrap.yaml"),
+        join(tmpRepo.name, "shrinkwrap.yaml"),
+      )
+      console.info(green("☑"), "Building clean node_modules with pnpm")
+      tmpExec("pnpm", ["i"])
     } else {
       const lockFileName =
         packageManager === "npm-shrinkwrap"

@@ -1,4 +1,4 @@
-import { bold, cyan, green, red } from "chalk"
+import { bold, cyan, green, red, yellow } from "chalk"
 import * as fs from "fs"
 import * as path from "path"
 import { getPatchFiles } from "./patchFs"
@@ -40,7 +40,7 @@ function getInstalledPackageVersion(
   const packageDir = path.join(appPath, "node_modules", packageName)
   if (!fs.existsSync(packageDir)) {
     console.warn(
-      `${red("Warning:")} Patch file found for package ${path.posix.basename(
+      `${yellow("Warning:")} Patch file found for package ${path.posix.basename(
         packageDir,
       )}` + ` which is not present at ${packageDir}`,
     )

@@ -105,6 +105,10 @@ Run `patch-package` without arguments to apply all patches in your project.
 
   This option was added to help people using CircleCI avoid [an issue around caching and patch file updates](https://github.com/ds300/patch-package/issues/37) but might be useful in other contexts too.
 
+* `--patches-dir`
+
+  Specifies patches directory. defaults to `patches`
+
 #### Notes
 
 To apply patches individually, you may use `git`:

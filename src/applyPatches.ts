@@ -55,8 +55,9 @@ function getInstalledPackageVersion(
 export const applyPatchesForApp = (
   appPath: AppPath,
   reverse: boolean,
+  patchDir: string = "patches",
 ): void => {
-  const patchesDirectory = path.join(appPath, "patches") as PatchesDirectory
+  const patchesDirectory = path.join(appPath, patchDir) as PatchesDirectory
   const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {

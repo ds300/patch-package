@@ -11,7 +11,7 @@ import { detectPackageManager } from "./detectPackageManager"
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
   boolean: ["use-yarn", "case-sensitive-path-filtering", "reverse"],
-  string: ["patches-dir"],
+  string: ["patch-dir"],
 })
 const packageNames = argv._
 
@@ -38,11 +38,12 @@ if (argv.help || argv.h) {
         detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
         include,
         exclude,
+        argv["patch-dir"],
       )
     })
   } else {
     console.log("patch-package: Applying patches...")
-    applyPatchesForApp(appPath, !!argv["reverse"], argv["patches-dir"])
+    applyPatchesForApp(appPath, !!argv["reverse"], argv["patch-dir"])
   }
 }
 

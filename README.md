@@ -87,6 +87,10 @@ which is a diff between normal old `package-name` and your fixed version. Commit
 
   Make regexps used in --include or --exclude filters case-sensitive.
 
+* `--patches-dir`
+
+  Specifies patches directory. defaults to `patches`
+
 ### Updating patches
 
 Use exactly the same process as for making patches in the first place, i.e. make more changes, run patch-package, commit the changes to the patch file.

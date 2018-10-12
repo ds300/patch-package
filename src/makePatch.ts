@@ -36,6 +36,7 @@ export const makePatch = (
   packageManager: PackageManager,
   includePaths: RegExp,
   excludePaths: RegExp,
+  patchDir: string = "patches",
 ) => {
   const nodeModulesPath = join(appPath, "node_modules")
   const packagePath = join(nodeModulesPath, packageName)
@@ -53,7 +54,7 @@ export const makePatch = (
   const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
 
   try {
-    const patchesDir = join(appPath, "patches")
+    const patchesDir = join(appPath, patchDir)
 
     if (!fs.existsSync(patchesDir)) {
       fs.mkdirSync(patchesDir)
@@ -183,7 +184,7 @@ export const makePatch = (
         fs.mkdirSync(dirname(patchPath))
       }
       fs.writeFileSync(patchPath, patch)
-      console.log(`${green("✔")} Created file patches/${patchFileName}`)
+      console.log(`${green("✔")} Created file ${patchDir}/${patchFileName}`)
     }
   } catch (e) {
     console.error(e)

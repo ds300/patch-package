@@ -91,6 +91,15 @@ index 2de83dd..842652c 100644
  file
 `
 
+const crlfLineBreaks = `diff --git a/banana.ts b/banana.ts
+new file mode 100644
+index 0000000..3e1267f
+--- /dev/null
++++ b/banana.ts
+@@ -0,0 +1 @@
++this is a new file
+`.replace(/\n/g, "\r\n")
+
 describe("the patch parser", () => {
   it("works for a simple case", () => {
     expect(parsePatch(patch)).toMatchSnapshot()
@@ -104,5 +113,8 @@ describe("the patch parser", () => {
   })
   it("is OK when blank lines are accidentally created", () => {
     expect(parsePatch(accidentalBlankLine)).toEqual(parsePatch(patch))
+  })
+  it(`can handle files with CRLF line breaks`, () => {
+    expect(parsePatch(crlfLineBreaks)).toMatchSnapshot()
   })
 })

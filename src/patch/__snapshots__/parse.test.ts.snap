@@ -1,5 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`the patch parser can handle files with CRLF line breaks 1`] = `
+Array [
+  Object {
+    "lines": Array [
+      "this is a new file
+",
+    ],
+    "mode": 420,
+    "noNewlineAtEndOfFile": false,
+    "path": "banana.ts",
+    "type": "file creation",
+  },
+]
+`;
+
 exports[`the patch parser works for a simple case 1`] = `
 Array [
   Object {

@@ -266,7 +266,7 @@ class PatchParser {
   }
 
   private parseFileModification() {
-    const startPath = this.currentLine.slice("--- ".length)
+    const startPath = this.currentLine.trim().slice("--- ".length)
     this.nextLine()
     const endPath = this.currentLine.trim().slice("--- ".length)
     this.nextLine()

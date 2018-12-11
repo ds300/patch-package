@@ -1,26 +1,26 @@
 import * as fs from "fs-extra"
-import { join } from "./path"
+import { join, relative } from "./path"
 
 function _getPatchFiles(
-  rootPatchesDir: string,
+  currentPatchesDir: string,
   scopedDir: string = "",
   acc: string[] = [],
+  rootPatchesDir: string,
 ) {
-  fs.readdirSync(join(rootPatchesDir, scopedDir)).forEach(filename => {
+  fs.readdirSync(join(currentPatchesDir, scopedDir)).forEach(filename => {
     if (filename.endsWith(".patch")) {
-      acc.push(join(scopedDir, filename))
-    } else if (
-      filename.startsWith("@") &&
-      fs.statSync(join(rootPatchesDir, filename)).isDirectory()
-    ) {
-      _getPatchFiles(rootPatchesDir, filename, acc)
+      acc.push(
+        relative(rootPatchesDir, join(currentPatchesDir, scopedDir, filename)),
+      )
+    } else if (fs.statSync(join(currentPatchesDir, filename)).isDirectory()) {
+      _getPatchFiles(join(currentPatchesDir, filename), "", acc, rootPatchesDir)
     }
   })
   return acc
 }
 
 export const getPatchFiles = (patchesDir: string) => {
-  return _getPatchFiles(patchesDir).filter(filename =>
-    filename.match(/^.+(:|\+).+\.patch$/),
+  return _getPatchFiles(patchesDir, undefined, [], patchesDir).filter(
+    filename => filename.match(/^.+(:|\+).+\.patch$/),
   )
 }

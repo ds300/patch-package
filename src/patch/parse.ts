@@ -253,6 +253,10 @@ class PatchParser {
     if (this.isEOF) {
       return false
     }
+    // Next hunk is starting
+    if (this.currentLine.startsWith('---')) {
+      return false;
+    }
     switch (this.currentLine[0]) {
       case undefined:
       case " ":

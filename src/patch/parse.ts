@@ -254,8 +254,8 @@ class PatchParser {
       return false
     }
     // Next hunk is starting
-    if (this.currentLine.startsWith('---')) {
-      return false;
+    if (this.currentLine.startsWith("---")) {
+      return false
     }
     switch (this.currentLine[0]) {
       case undefined:

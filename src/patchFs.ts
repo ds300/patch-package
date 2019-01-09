@@ -19,10 +19,6 @@ function _getPatchFilesLegacy(
   return acc
 }
 
-// function _getPatchFiles(dir: string) {
-//   return fs.readdirSync(dir).filter(name => name.endsWith(".patch"))
-// }
-
 export const getPatchFiles = (patchesDir: string) => {
   return _getPatchFilesLegacy(patchesDir).filter(filename =>
     filename.match(/^.+(:|\+).+\.patch$/),

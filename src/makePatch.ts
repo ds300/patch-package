@@ -3,43 +3,61 @@ import { join, dirname, resolve } from "./path"
 import { spawnSafeSync } from "./spawnSafe"
 import { PackageManager } from "./detectPackageManager"
 import { removeIgnoredFiles } from "./filterFiles"
-import { writeFileSync, existsSync, mkdirSync } from "fs-extra"
+import { writeFileSync, existsSync, mkdirSync, unlinkSync } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
 import { dirSync } from "tmp"
+import { renderPackageName, parsePackageName } from "./packageNames"
+import { getPatchFiles } from "./patchFs"
+import { relative } from "path"
 
 function printNoPackageFoundError(
-  packageName: string,
+  unsafePackageName: string,
   packageJsonPath: string,
 ) {
   console.error(
-    `No such package ${packageName}
+    `No such package ${unsafePackageName}
 
   File not found: ${packageJsonPath}`,
   )
 }
 
 export const makePatch = (
-  packageName: string,
+  packagePathSpecifier: string,
   appPath: string,
   packageManager: PackageManager,
   includePaths: RegExp,
   excludePaths: RegExp,
   patchDir: string = "patches",
 ) => {
+  const relativePackagePath = packagePathSpecifier.replace(
+    "=>",
+    "/node_modules/",
+  )
+  const isNested = relativePackagePath.includes("/node_modules/")
   const nodeModulesPath = join(appPath, "node_modules")
   const appPackageJson = require(join(appPath, "package.json"))
-  const packagePath = join(nodeModulesPath, packageName)
+  const packagePath = join(nodeModulesPath, relativePackagePath)
   const packageJsonPath = join(packagePath, "package.json")
 
   if (!existsSync(packageJsonPath)) {
-    printNoPackageFoundError(packageName, packageJsonPath)
+    printNoPackageFoundError(packagePathSpecifier, packageJsonPath)
     process.exit(1)
   }
 
-  let packageVersionSpecifier =
-    appPackageJson.dependencies[packageName] ||
-    appPackageJson.devDependencies[packageName]
+  const unsafePackageName = require(packageJsonPath).name
+  const packageVersion = require(packageJsonPath).version as string
+
+  // packageVersionSpecifier is the version string used by the app package.json
+  // it won't be present for nested deps.
+  // We need it only for patching deps specified with file:./
+  // which I think only happens in tests
+  // but might happen in real life too.
+  let packageVersionSpecifier: null | string = isNested
+    ? null
+    : appPackageJson.dependencies[unsafePackageName] ||
+      appPackageJson.devDependencies[unsafePackageName] ||
+      null
 
   if (
     packageVersionSpecifier &&
@@ -52,12 +70,10 @@ export const makePatch = (
     packageVersionSpecifier = null
   }
 
-  const packageVersion = require(packageJsonPath).version
-
   const tmpRepo = dirSync({ unsafeCleanup: true })
   const tmpRepoNodeModulesPath = join(tmpRepo.name, "node_modules")
   const tmpRepoPackageJsonPath = join(tmpRepo.name, "package.json")
-  const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
+  const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, unsafePackageName)
 
   try {
     const patchesDir = join(appPath, patchDir)
@@ -73,7 +89,7 @@ export const makePatch = (
       tmpRepoPackageJsonPath,
       JSON.stringify({
         dependencies: {
-          [packageName]: packageVersionSpecifier || packageVersion,
+          [unsafePackageName]: packageVersionSpecifier || packageVersion,
         },
       }),
     )
@@ -81,13 +97,13 @@ export const makePatch = (
     if (packageManager === "yarn") {
       console.info(
         green("✔"),
-        `Installing ${packageName}@${packageVersion} with yarn`,
+        `Installing ${unsafePackageName}@${packageVersion} with yarn`,
       )
       tmpExec(`yarn`)
     } else {
       console.info(
         green("✔"),
-        `Installing ${packageName}@${packageVersion} with npm`,
+        `Installing ${unsafePackageName}@${packageVersion} with npm`,
       )
       tmpExec("npm", ["i"])
     }
@@ -103,7 +119,7 @@ export const makePatch = (
     // remove ignored files first
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
-    tmpExec("git", ["add", "-f", join("node_modules", packageName)])
+    tmpExec("git", ["add", "-f", join("node_modules", unsafePackageName)])
     tmpExec("git", ["commit", "--allow-empty", "-m", "init"])
 
     // replace package with user's version
@@ -118,7 +134,7 @@ export const makePatch = (
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
     // stage all files
-    tmpExec("git", ["add", "-f", join("node_modules", packageName)])
+    tmpExec("git", ["add", "-f", join("node_modules", unsafePackageName)])
 
     // get diff of changes
     const patch = tmpExec("git", [
@@ -130,11 +146,27 @@ export const makePatch = (
     ]).stdout.toString()
 
     if (patch.trim() === "") {
-      console.warn(`⁉️  Not creating patch file for package '${packageName}'`)
+      console.warn(
+        `⁉️  Not creating patch file for package '${packagePathSpecifier}'`,
+      )
       console.warn(`⁉️  There don't appear to be any changes.`)
       process.exit(1)
     } else {
-      const patchFileName = `${packageName}+${packageVersion}.patch`
+      const packageNames = packagePathSpecifier
+        .split("=>")
+        .map(parsePackageName)
+        .map(name => renderPackageName(name, { urlSafe: true }))
+        .join("=>")
+
+      // maybe delete existing
+      getPatchFiles(patchDir).forEach(filename => {
+        if (relative(filename, patchDir).startsWith(packageNames)) {
+          unlinkSync(filename)
+        }
+      })
+
+      const patchFileName = `${packageNames}+${packageVersion}.patch`
+
       const patchPath = join(patchesDir, patchFileName)
       if (!existsSync(dirname(patchPath))) {
         // scoped package

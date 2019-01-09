@@ -21,7 +21,7 @@ replace 'a' 'patch-package' node_modules/alphabet/index.js
 node add-whitespace.js 2
 
 echo "make patch file for line a"
-patch-package alphabet
+npx patch-package alphabet
 
 echo "SNAPSHOT: line a changed"
 cat patches/alphabet*.patch
@@ -30,19 +30,19 @@ echo "END SNAPSHOT"
 echo "make sure the patch can be applied to clean files"
 rm -rf node_modules
 yarn
-patch-package
+npx patch-package
 grep patch-package node_modules/alphabet/index.js
 
 echo "make sure the patch can be applied to dirty files"
 rm -rf node_modules
 yarn
 node add-whitespace.js
-patch-package
+npx patch-package
 grep patch-package node_modules/alphabet/index.js
 
 echo "make sure the patch can be applied to dirty files with different whitespace"
 rm -rf node_modules
 yarn
 node add-whitespace.js 1
-patch-package
+npx patch-package
 grep patch-package node_modules/alphabet/index.js

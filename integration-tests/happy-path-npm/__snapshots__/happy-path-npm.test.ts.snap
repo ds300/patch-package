@@ -2,9 +2,10 @@
 
 exports[`Test happy-path-npm: making patch 1`] = `
 "SNAPSHOT: making patch
-☑ Creating temporary folder
-☑ Building clean node_modules with npm
-☑ Diffing your files with clean files
+✔ Creating temporary folder
+✔ Making tmp package.json
+✔ Installing left-pad@1.1.3 with npm
+✔ Diffing your files with clean files
 ✔ Created file patches/left-pad+1.1.3.patch
 END SNAPSHOT"
 `;

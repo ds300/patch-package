@@ -1,7 +1,7 @@
-import * as fs from "fs"
+import fs from "fs-extra"
 import { join } from "./path"
-import * as chalk from "chalk"
-import * as process from "process"
+import chalk from "chalk"
+import process from "process"
 
 export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
 

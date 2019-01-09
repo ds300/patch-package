@@ -1,9 +1,10 @@
 import { bold, cyan, green, red, yellow } from "chalk"
-import * as fs from "fs"
-import * as path from "path"
 import { getPatchFiles } from "./patchFs"
 import { patch } from "./patch"
 import { executeEffects } from "./patch/apply"
+import { existsSync, readFileSync } from "fs-extra"
+import { join, resolve } from "./path"
+import { posix } from "path"
 
 type OpaqueString<S extends string> = string & { type: S }
 export type AppPath = OpaqueString<"AppPath">
@@ -13,7 +14,7 @@ type PackageName = OpaqueString<"PackageName">
 type PackageVersion = OpaqueString<"PackageVersion">
 
 function findPatchFiles(patchesDirectory: PatchesDirectory): FileName[] {
-  if (!fs.existsSync(patchesDirectory)) {
+  if (!existsSync(patchesDirectory)) {
     return []
   }
 
@@ -37,10 +38,10 @@ function getInstalledPackageVersion(
   appPath: AppPath,
   packageName: PackageName,
 ) {
-  const packageDir = path.join(appPath, "node_modules", packageName)
-  if (!fs.existsSync(packageDir)) {
+  const packageDir = join(appPath, "node_modules", packageName)
+  if (!existsSync(packageDir)) {
     console.warn(
-      `${yellow("Warning:")} Patch file found for package ${path.posix.basename(
+      `${yellow("Warning:")} Patch file found for package ${posix.basename(
         packageDir,
       )}` + ` which is not present at ${packageDir}`,
     )
@@ -48,8 +49,7 @@ function getInstalledPackageVersion(
     return null
   }
 
-  return require(path.join(packageDir, "package.json"))
-    .version as PackageVersion
+  return require(join(packageDir, "package.json")).version as PackageVersion
 }
 
 export const applyPatchesForApp = (
@@ -57,7 +57,7 @@ export const applyPatchesForApp = (
   reverse: boolean,
   patchDir: string = "patches",
 ): void => {
-  const patchesDirectory = path.join(appPath, patchDir) as PatchesDirectory
+  const patchesDirectory = join(appPath, patchDir) as PatchesDirectory
   const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
@@ -76,9 +76,7 @@ export const applyPatchesForApp = (
       return
     }
 
-    if (
-      applyPatch(path.resolve(patchesDirectory, filename) as FileName, reverse)
-    ) {
+    if (applyPatch(resolve(patchesDirectory, filename) as FileName, reverse)) {
       // yay patch was applied successfully
       // print warning if version mismatch
       if (installedPackageVersion !== version) {
@@ -112,7 +110,7 @@ export const applyPatch = (
   patchFilePath: string,
   reverse: boolean,
 ): boolean => {
-  const patchFileContents = fs.readFileSync(patchFilePath).toString()
+  const patchFileContents = readFileSync(patchFilePath).toString()
   try {
     const result = patch(patchFileContents, {
       reverse,

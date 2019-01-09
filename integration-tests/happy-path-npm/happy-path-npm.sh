@@ -13,7 +13,7 @@ echo "replace pad with yarn in left-pad/index.js"
 replace pad npm node_modules/left-pad/index.js
 
 echo "SNAPSHOT: making patch"
-patch-package left-pad
+npx patch-package left-pad
 echo "END SNAPSHOT"
 
 echo "SNAPSHOT: the patch looks like this"

@@ -11,14 +11,14 @@ echo "remove a file"
 rm node_modules/lodash/fp/__.js
 
 echo "generate patch file"
-patch-package lodash
+npx patch-package lodash
 
 echo "remove node_modules"
 rm -rf node_modules
 
 echo "resintall and patch node_modules"
 yarn
-yarn patch-package
+npx patch-package
 
 echo "check that the file was added"
 ls node_modules/lodash/newFile.md

@@ -12,7 +12,7 @@ echo "modify add.d.t.s"
 replace add patch-package node_modules/@types/lodash/add.d.ts
 
 echo "patch-package can make patches for scoped packages"
-patch-package @types/lodash
+npx patch-package @types/lodash
 
 echo "remove node_modules"
 rimraf node_modules

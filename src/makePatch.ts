@@ -1,23 +1,12 @@
 import { green } from "chalk"
-import * as fs from "fs"
-import { join, dirname, relative } from "./path"
-import * as rimraf from "rimraf"
-import * as tmp from "tmp"
-import {
-  resolveRelativeFileDependenciesInPackageJson,
-  resolveRelativeFileDependenciesInPackageLock,
-} from "./resolveRelativeFileDependencies"
+import { join, dirname, resolve } from "./path"
 import { spawnSafeSync } from "./spawnSafe"
-import { getPatchFiles } from "./patchFs"
-import * as fsExtra from "fs-extra"
 import { PackageManager } from "./detectPackageManager"
-import * as slash from "slash"
-import * as klawSync from "klaw-sync"
-
-function deleteScripts(json: any) {
-  delete json.scripts
-  return json
-}
+import { removeIgnoredFiles } from "./filterFiles"
+import { writeFileSync, existsSync, mkdirSync } from "fs-extra"
+import { sync as rimraf } from "rimraf"
+import { copySync } from "fs-extra"
+import { dirSync } from "tmp"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -39,16 +28,33 @@ export const makePatch = (
   patchDir: string = "patches",
 ) => {
   const nodeModulesPath = join(appPath, "node_modules")
+  const appPackageJson = require(join(appPath, "package.json"))
   const packagePath = join(nodeModulesPath, packageName)
   const packageJsonPath = join(packagePath, "package.json")
-  if (!fs.existsSync(packageJsonPath)) {
+
+  if (!existsSync(packageJsonPath)) {
     printNoPackageFoundError(packageName, packageJsonPath)
     process.exit(1)
   }
 
+  let packageVersionSpecifier =
+    appPackageJson.dependencies[packageName] ||
+    appPackageJson.devDependencies[packageName]
+
+  if (
+    packageVersionSpecifier &&
+    packageVersionSpecifier.startsWith("file:") &&
+    packageVersionSpecifier[5] !== "/"
+  ) {
+    packageVersionSpecifier =
+      "file:" + resolve(appPath, packageVersionSpecifier.slice(5))
+  } else {
+    packageVersionSpecifier = null
+  }
+
   const packageVersion = require(packageJsonPath).version
 
-  const tmpRepo = tmp.dirSync({ unsafeCleanup: true })
+  const tmpRepo = dirSync({ unsafeCleanup: true })
   const tmpRepoNodeModulesPath = join(tmpRepo.name, "node_modules")
   const tmpRepoPackageJsonPath = join(tmpRepo.name, "package.json")
   const tmpRepoPackagePath = join(tmpRepoNodeModulesPath, packageName)
@@ -56,112 +62,63 @@ export const makePatch = (
   try {
     const patchesDir = join(appPath, patchDir)
 
-    if (!fs.existsSync(patchesDir)) {
-      fs.mkdirSync(patchesDir)
-    } else {
-      // remove exsiting patch for this package, if any
-      getPatchFiles(patchesDir).forEach(fileName => {
-        if (
-          fileName.startsWith(packageName + ":") ||
-          fileName.startsWith(packageName + "+")
-        ) {
-          console.info(
-            green("☑"),
-            "Removing existing",
-            relative(process.cwd(), join(patchesDir, fileName)),
-          )
-          fs.unlinkSync(join(patchesDir, fileName))
-        }
-      })
-    }
-
-    console.info(green("☑"), "Creating temporary folder")
+    console.info(green("✔"), "Creating temporary folder")
 
     const tmpExec = (command: string, args?: string[]) =>
       spawnSafeSync(command, args, { cwd: tmpRepo.name })
-    // reinstall a clean version of the user's node_modules in our tmp location
-    fsExtra.copySync(
-      join(appPath, "package.json"),
-      join(tmpRepo.name, "package.json"),
-    )
-    // resolve relative file paths in package.json
-    // also delete scripts
-    fs.writeFileSync(
+
+    // make a blank package.json
+    console.info(green("✔"), "Making tmp package.json")
+    writeFileSync(
       tmpRepoPackageJsonPath,
-      JSON.stringify(
-        deleteScripts(
-          resolveRelativeFileDependenciesInPackageJson(
-            appPath,
-            require(join(tmpRepo.name, "package.json")),
-          ),
-        ),
-      ),
+      JSON.stringify({
+        dependencies: {
+          [packageName]: packageVersionSpecifier || packageVersion,
+        },
+      }),
     )
 
     if (packageManager === "yarn") {
-      fsExtra.copySync(
-        join(appPath, "yarn.lock"),
-        join(tmpRepo.name, "yarn.lock"),
+      console.info(
+        green("✔"),
+        `Installing ${packageName}@${packageVersion} with yarn`,
       )
-      console.info(green("☑"), "Building clean node_modules with yarn")
       tmpExec(`yarn`)
     } else {
-      const lockFileName =
-        packageManager === "npm-shrinkwrap"
-          ? "npm-shrinkwrap.json"
-          : "package-lock.json"
-
-      const lockFileContents = JSON.parse(
-        fsExtra.readFileSync(join(appPath, lockFileName)).toString(),
+      console.info(
+        green("✔"),
+        `Installing ${packageName}@${packageVersion} with npm`,
       )
-      const resolvedLockFileContents = resolveRelativeFileDependenciesInPackageLock(
-        appPath,
-        lockFileContents,
-      )
-      fs.writeFileSync(
-        join(tmpRepo.name, lockFileName),
-        JSON.stringify(resolvedLockFileContents),
-      )
-      console.info(green("☑"), "Building clean node_modules with npm")
       tmpExec("npm", ["i"])
     }
 
+    // remove nested node_modules just to be safe
+    rimraf(join(tmpRepoPackagePath, "node_modules"))
+
     // commit the package
-    console.info(green("☑"), "Diffing your files with clean files")
-    fs.writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
+    console.info(green("✔"), "Diffing your files with clean files")
+    writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
     tmpExec("git", ["init"])
 
-    klawSync(tmpRepoPackagePath, { nodir: true })
-      .map(item => item.path.slice(`${tmpRepoPackagePath}/`.length))
-      .filter(
-        relativePath =>
-          !relativePath.match(includePaths) || relativePath.match(excludePaths),
-      )
-      .forEach(relativePath =>
-        fsExtra.removeSync(slash(join(tmpRepoPackagePath, relativePath))),
-      )
+    // remove ignored files first
+    removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
-    tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
+    tmpExec("git", ["add", "-f", join("node_modules", packageName)])
     tmpExec("git", ["commit", "--allow-empty", "-m", "init"])
 
     // replace package with user's version
-    rimraf.sync(tmpRepoPackagePath)
+    rimraf(tmpRepoPackagePath)
 
-    klawSync(packagePath, { nodir: true })
-      .map(item => item.path.slice(`${packagePath}/`.length))
-      .filter(
-        relativePath =>
-          relativePath.match(includePaths) && !relativePath.match(excludePaths),
-      )
-      .forEach(relativePath =>
-        fsExtra.copySync(
-          slash(join(packagePath, relativePath)),
-          slash(join(tmpRepoPackagePath, relativePath)),
-        ),
-      )
+    copySync(packagePath, tmpRepoPackagePath)
+
+    // remove nested node_modules just to be safe
+    rimraf(join(tmpRepoPackagePath, "node_modules"))
+
+    // also remove ignored files like before
+    removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
     // stage all files
-    tmpExec("git", ["add", "-f", slash(join("node_modules", packageName))])
+    tmpExec("git", ["add", "-f", join("node_modules", packageName)])
 
     // get diff of changes
     const patch = tmpExec("git", [
@@ -179,11 +136,11 @@ export const makePatch = (
     } else {
       const patchFileName = `${packageName}+${packageVersion}.patch`
       const patchPath = join(patchesDir, patchFileName)
-      if (!fs.existsSync(dirname(patchPath))) {
+      if (!existsSync(dirname(patchPath))) {
         // scoped package
-        fs.mkdirSync(dirname(patchPath))
+        mkdirSync(dirname(patchPath))
       }
-      fs.writeFileSync(patchPath, patch)
+      writeFileSync(patchPath, patch)
       console.log(`${green("✔")} Created file ${patchDir}/${patchFileName}`)
     }
   } catch (e) {

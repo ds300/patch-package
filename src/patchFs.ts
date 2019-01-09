@@ -1,26 +1,34 @@
 import * as fs from "fs-extra"
-import { join, relative } from "./path"
+import { join } from "./path"
 
-function _getPatchFiles(
-  currentPatchesDir: string,
+function _getPatchFilesLegacy(
+  rootPatchesDir: string,
   scopedDir: string = "",
   acc: string[] = [],
-  rootPatchesDir: string,
 ) {
-  fs.readdirSync(join(currentPatchesDir, scopedDir)).forEach(filename => {
+  fs.readdirSync(join(rootPatchesDir, scopedDir)).forEach(filename => {
     if (filename.endsWith(".patch")) {
-      acc.push(
-        relative(rootPatchesDir, join(currentPatchesDir, scopedDir, filename)),
-      )
-    } else if (fs.statSync(join(currentPatchesDir, filename)).isDirectory()) {
-      _getPatchFiles(join(currentPatchesDir, filename), "", acc, rootPatchesDir)
+      acc.push(join(scopedDir, filename))
+    } else if (
+      filename.startsWith("@") &&
+      fs.statSync(join(rootPatchesDir, filename)).isDirectory()
+    ) {
+      _getPatchFilesLegacy(rootPatchesDir, filename, acc)
     }
   })
   return acc
 }
 
+// function _getPatchFiles(dir: string) {
+//   return fs.readdirSync(dir).filter(name => name.endsWith(".patch"))
+// }
+
 export const getPatchFiles = (patchesDir: string) => {
-  return _getPatchFiles(patchesDir, undefined, [], patchesDir).filter(
-    filename => filename.match(/^.+(:|\+).+\.patch$/),
+  return _getPatchFilesLegacy(patchesDir).filter(filename =>
+    filename.match(/^.+(:|\+).+\.patch$/),
   )
 }
+
+// /patches
+// /patches/@types~patch-package+4.3.5.patch
+// /patches/@types~patch-package+4.3.5=>@types~banana+2.4.3.patch

@@ -14,7 +14,7 @@ fi
 replace leftPad patchPackage node_modules/left-pad/index.js
 
 echo 'but patch-package still works because it ignores scripts'
-patch-package left-pad
+npx patch-package left-pad
 
 echo "SNAPSHOT: a patch file got produced"
 cat patches/left-pad*.patch

@@ -3,18 +3,25 @@
 exports[`Test broken-patch-file: patch-package fails when patch file is invalid 1`] = `
 "SNAPSHOT: patch-package fails when patch file is invalid
 
-**ERROR** Failed to apply patch for package left-pad
+**ERROR** Failed to apply patch for package left-pad at path
+  
+    node_modules/left-pad
 
   This error was caused because patch-package cannot apply the following patch file:
 
     patches/left-pad+1.1.3.patch
 
-  If removing node_modules and trying again doesn't fix this, maybe there was
-  an accidental change made to the patch file? If not, then it's probably a bug
-  in patch-package, so please submit a bug report. Thanks!
+  Try removing node_modules and trying again. If that doesn't work, maybe there was
+  an accidental change made to the patch file? Try recreating it by manually
+  editing the appropriate files and running:
+  
+    patch-package left-pad
+  
+  If that doesn't work, then it's a bug in patch-package, so please submit a bug
+  report. Thanks!
 
     https://github.com/ds300/patch-package/issues
-
+    
 
 END SNAPSHOT"
 `;

@@ -31,17 +31,14 @@
     "globals": {
       "ts-jest": {
         "diagnostics": false
-      } 
+      }
     },
     "transform": {
-      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      ".(ts|tsx)": "ts-jest"
     },
-    "testRegex": "/(src|integration-tests|property-based-tests)/.+\\.test\\.ts$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ]
+    "testRegex":
+      "/(src|integration-tests|property-based-tests)/.+\\.test\\.ts$",
+    "moduleFileExtensions": ["ts", "tsx", "js"]
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",

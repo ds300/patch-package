@@ -24,12 +24,12 @@ function getInstalledPackageVersion({
   path: string
   pathSpecifier: string
 }): string | null {
-  const packageDir = join(appPath, "node_modules", path)
+  const packageDir = join(appPath, path)
   if (!existsSync(packageDir)) {
-    console.warn(
+    console.log(
       `${yellow("Warning:")} Patch file found for package ${posix.basename(
         pathSpecifier,
-      )}` + ` which is not present at ${path}`,
+      )}` + ` which is not present at ${packageDir}`,
     )
 
     return null
@@ -67,13 +67,17 @@ export const applyPatchesForApp = (
     })
 
     if (!installedPackageVersion) {
+      console.warn("")
       return
     }
 
+    console.log("trying to patch", filename)
     if (applyPatch(resolve(patchesDirectory, filename) as string, reverse)) {
+      console.log("a")
       // yay patch was applied successfully
       // print warning if version mismatch
       if (installedPackageVersion !== version) {
+        console.log("b")
         printVersionMismatchWarning({
           packageName: name,
           actualVersion: installedPackageVersion,
@@ -82,12 +86,15 @@ export const applyPatchesForApp = (
           path,
         })
       } else {
+        console.log("c")
         console.log(`${bold(pathSpecifier)}@${version} ${green("✔")}`)
       }
     } else {
+      console.log("d")
       // completely failed to apply patch
       // TODO: propagate useful error messages from patch application
       if (installedPackageVersion === version) {
+        console.log("e")
         printBrokenPatchFileError({
           packageName: name,
           patchFileName: filename,
@@ -95,6 +102,7 @@ export const applyPatchesForApp = (
           path,
         })
       } else {
+        console.log("f")
         printPatchApplictionFailureError({
           packageName: name,
           actualVersion: installedPackageVersion,
@@ -104,8 +112,10 @@ export const applyPatchesForApp = (
           pathSpecifier,
         })
       }
+      console.log("g")
       process.exit(1)
     }
+    console.log("h")
   })
 }
 

@@ -9,6 +9,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "inlineSourceMap": true,
+    "noEmitOnError": false,
     "inlineSources": true
   },
   "include": ["typings/**/*.d.ts", "src/**/*.ts"],

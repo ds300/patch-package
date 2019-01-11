@@ -5,59 +5,45 @@ import { executeEffects } from "./patch/apply"
 import { existsSync, readFileSync } from "fs-extra"
 import { join, resolve } from "./path"
 import { posix } from "path"
+import { getPatchDetailsFromFilename } from "./getPatchDetailsFromFilename"
 
-type OpaqueString<S extends string> = string & { type: S }
-export type AppPath = OpaqueString<"AppPath">
-type PatchesDirectory = OpaqueString<"PatchesDirectory">
-type FileName = OpaqueString<"FileName">
-type PackageName = OpaqueString<"PackageName">
-type PackageVersion = OpaqueString<"PackageVersion">
-
-function findPatchFiles(patchesDirectory: PatchesDirectory): FileName[] {
+function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
     return []
   }
 
-  return getPatchFiles(patchesDirectory) as FileName[]
+  return getPatchFiles(patchesDirectory) as string[]
 }
 
-function getPatchDetailsFromFilename(filename: FileName) {
-  // ok to coerce this, since we already filtered for valid package file names
-  // in getPatchFiles
-  const match = filename.match(/^(.+?)(:|\+)(.+)\.patch$/) as string[]
-  const packageName = match[1] as PackageName
-  const version = match[3] as PackageVersion
-
-  return {
-    packageName,
-    version,
-  }
-}
-
-function getInstalledPackageVersion(
-  appPath: AppPath,
-  packageName: PackageName,
-) {
-  const packageDir = join(appPath, "node_modules", packageName)
+function getInstalledPackageVersion({
+  appPath,
+  path,
+  pathSpecifier,
+}: {
+  appPath: string
+  path: string
+  pathSpecifier: string
+}): string | null {
+  const packageDir = join(appPath, "node_modules", path)
   if (!existsSync(packageDir)) {
     console.warn(
       `${yellow("Warning:")} Patch file found for package ${posix.basename(
-        packageDir,
-      )}` + ` which is not present at ${packageDir}`,
+        pathSpecifier,
+      )}` + ` which is not present at ${path}`,
     )
 
     return null
   }
 
-  return require(join(packageDir, "package.json")).version as PackageVersion
+  return require(join(packageDir, "package.json")).version
 }
 
 export const applyPatchesForApp = (
-  appPath: AppPath,
+  appPath: string,
   reverse: boolean,
   patchDir: string = "patches",
 ): void => {
-  const patchesDirectory = join(appPath, patchDir) as PatchesDirectory
+  const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
@@ -65,41 +51,58 @@ export const applyPatchesForApp = (
   }
 
   files.forEach(filename => {
-    const { packageName, version } = getPatchDetailsFromFilename(filename)
+    const details = getPatchDetailsFromFilename(filename)
 
-    const installedPackageVersion = getInstalledPackageVersion(
+    if (!details) {
+      console.warn(`Unrecognized patch file in patches directory ${filename}`)
+      return
+    }
+
+    const { name, version, path, pathSpecifier } = details
+
+    const installedPackageVersion = getInstalledPackageVersion({
       appPath,
-      packageName,
-    )
+      path,
+      pathSpecifier,
+    })
 
     if (!installedPackageVersion) {
       return
     }
 
-    if (applyPatch(resolve(patchesDirectory, filename) as FileName, reverse)) {
+    if (applyPatch(resolve(patchesDirectory, filename) as string, reverse)) {
       // yay patch was applied successfully
       // print warning if version mismatch
       if (installedPackageVersion !== version) {
-        printVersionMismatchWarning(
-          packageName,
-          installedPackageVersion,
-          version,
-        )
+        printVersionMismatchWarning({
+          packageName: name,
+          actualVersion: installedPackageVersion,
+          originalVersion: version,
+          pathSpecifier,
+          path,
+        })
       } else {
-        console.log(`${bold(packageName)}@${version} ${green("✔")}`)
+        console.log(`${bold(pathSpecifier)}@${version} ${green("✔")}`)
       }
     } else {
       // completely failed to apply patch
       // TODO: propagate useful error messages from patch application
       if (installedPackageVersion === version) {
-        printBrokenPatchFileError(packageName, filename)
+        printBrokenPatchFileError({
+          packageName: name,
+          patchFileName: filename,
+          pathSpecifier,
+          path,
+        })
       } else {
-        printPatchApplictionFailureError(
-          packageName,
-          installedPackageVersion,
-          version,
-          filename,
-        )
+        printPatchApplictionFailureError({
+          packageName: name,
+          actualVersion: installedPackageVersion,
+          originalVersion: version,
+          patchFileName: filename,
+          path,
+          pathSpecifier,
+        })
       }
       process.exit(1)
     }
@@ -127,11 +130,19 @@ export const applyPatch = (
   return true
 }
 
-function printVersionMismatchWarning(
-  packageName: PackageName,
-  actualVersion: PackageVersion,
-  originalVersion: PackageVersion,
-) {
+function printVersionMismatchWarning({
+  packageName,
+  actualVersion,
+  originalVersion,
+  pathSpecifier,
+  path,
+}: {
+  packageName: string
+  actualVersion: string
+  originalVersion: string
+  pathSpecifier: string
+  path: string
+}) {
   console.warn(`
 ${red("Warning:")} patch-package detected a patch file version mismatch
 
@@ -145,49 +156,78 @@ ${red("Warning:")} patch-package detected a patch file version mismatch
   applied to
 
     ${packageName}@${bold(actualVersion)}
+  
+  At path
+  
+    ${path}
 
   This warning is just to give you a heads-up. There is a small chance of
   breakage even though the patch was applied successfully. Make sure the package
   still behaves like you expect (you wrote tests, right?) and then run
 
-    ${bold(`patch-package ${packageName}`)}
+    ${bold(`patch-package ${pathSpecifier}`)}
 
   to update the version in the patch file name and make this warning go away.
 `)
 }
 
-function printBrokenPatchFileError(
-  packageName: PackageName,
-  patchFileName: FileName,
-) {
+function printBrokenPatchFileError({
+  packageName,
+  patchFileName,
+  path,
+  pathSpecifier,
+}: {
+  packageName: string
+  patchFileName: string
+  path: string
+  pathSpecifier: string
+}) {
   console.error(`
 ${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)}`,
+    `Failed to apply patch for package ${bold(packageName)} at path`,
   )}
+  
+    ${path}
 
   This error was caused because patch-package cannot apply the following patch file:
 
     patches/${patchFileName}
 
-  If removing node_modules and trying again doesn't fix this, maybe there was
-  an accidental change made to the patch file? If not, then it's probably a bug
-  in patch-package, so please submit a bug report. Thanks!
+  Try removing node_modules and trying again. If that doesn't work, maybe there was
+  an accidental change made to the patch file? Try recreating it by manually
+  editing the appropriate files and running:
+  
+    patch-package ${pathSpecifier}
+  
+  If that doesn't work, then it's a bug in patch-package, so please submit a bug
+  report. Thanks!
 
     https://github.com/ds300/patch-package/issues
-
+    
 `)
 }
 
-function printPatchApplictionFailureError(
-  packageName: PackageName,
-  actualVersion: PackageVersion,
-  originalVersion: PackageVersion,
-  patchFileName: FileName,
-) {
+function printPatchApplictionFailureError({
+  packageName,
+  actualVersion,
+  originalVersion,
+  patchFileName,
+  path,
+  pathSpecifier,
+}: {
+  packageName: string
+  actualVersion: string
+  originalVersion: string
+  patchFileName: string
+  path: string
+  pathSpecifier: string
+}) {
   console.error(`
 ${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)}`,
+    `Failed to apply patch for package ${bold(packageName)} at path`,
   )}
+  
+    ${path}
 
   This error was caused because ${bold(packageName)} has changed since you
   made the patch file for it. This introduced conflicts with your patch,
@@ -197,35 +237,18 @@ ${red.bold("**ERROR**")} ${red(
   Maybe this means your patch file is no longer necessary, in which case
   hooray! Just delete it!
 
-  Otherwise, you need to manually fix the patch file. Or generate a new one
+  Otherwise, you need generate a new patch file.
 
   To generate a new one, just repeat the steps you made to generate the first
-  one, but accounting for the changes in ${packageName}.
+  one.
 
-  i.e. make changes, run \`patch-package ${packageName}\`, and commit.
+  i.e. manually make the appropriate file changes, then run 
 
-  To manually fix a patch file, Run:
-
-     ${bold(`patch -p1 -i patches/${patchFileName} --verbose --dry-run`)}
-
-  To list rejected hunks. A 'hunk' is a section of patch file that describes
-  one contiguous area of changes. They are numbered from 1 and begin with lines
-  that look like this:
-
-    @@ -48,5 +49,6 @@ function foo(bar) {
-
-  Remove the conflicting hunks, then manually edit files in
-
-    node_modules/${packageName}
-
-  to reflect the changes that the conflicting hunks were supposed to make.
-
-  Then run \`patch-package ${packageName}\`
+    patch-package ${pathSpecifier}
 
   Info:
-    Patch was made for version ${green.bold(originalVersion)}
-    Meanwhile node_modules/${bold(packageName)} is version ${red.bold(
-    actualVersion,
-  )}
+    Patch file: patches/${patchFileName}
+    Patch was made for version: ${green.bold(originalVersion)}
+    Installed version ${red.bold(actualVersion)}
 `)
 }

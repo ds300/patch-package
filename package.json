@@ -28,30 +28,38 @@
     ]
   },
   "jest": {
+    "globals": {
+      "ts-jest": {
+        "diagnostics": false
+      } 
+    },
     "transform": {
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "testRegex":
-      "/(src|integration-tests|property-based-tests)/.+\\.test\\.ts$",
-    "moduleFileExtensions": ["ts", "tsx", "js"]
+    "testRegex": "/(src|integration-tests|property-based-tests)/.+\\.test\\.ts$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",
     "@types/chalk": "^0.4.31",
     "@types/fs-extra": "^4.0.0",
-    "@types/jest": "^20.0.6",
+    "@types/jest": "^23.3.12",
     "@types/minimist": "^1.2.0",
     "@types/node": "^7.0.18",
     "@types/rimraf": "^0.0.28",
     "@types/tmp": "^0.0.33",
     "husky": "^0.13.3",
-    "jest": "^20.0.4",
+    "jest": "^23.6.0",
     "lint-staged": "^3.4.1",
     "np": "^2.15.0",
     "prettier": "^1.11.1",
     "randomstring": "^1.1.5",
-    "ts-jest": "^20.0.10",
-    "ts-node": "^6.0.3",
+    "ts-jest": "^23.10.5",
+    "ts-node": "^7.0.1",
     "tslint": "^5.2.0",
     "typescript": "^3.2.2"
   },

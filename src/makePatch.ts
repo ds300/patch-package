@@ -45,7 +45,7 @@ export const makePatch = (
     process.exit(1)
   }
 
-  const unsafePackageName = require(packageJsonPath).name
+  const unsafePackageName = require(packageJsonPath).name as string
   const packageVersion = require(packageJsonPath).version as string
 
   // packageVersionSpecifier is the version string used by the app package.json
@@ -160,7 +160,13 @@ export const makePatch = (
 
       // maybe delete existing
       getPatchFiles(patchDir).forEach(filename => {
-        if (relative(filename, patchDir).startsWith(packageNames)) {
+        const relativeFilename = relative(patchDir, filename)
+        if (
+          // add '+'s to avoid deleting nested patches when parent is being patched
+          relativeFilename.startsWith(packageNames + "+") ||
+          relativeFilename.startsWith(unsafePackageName + "+") ||
+          relativeFilename.startsWith(unsafePackageName + ":") // legacy
+        ) {
           unlinkSync(filename)
         }
       })

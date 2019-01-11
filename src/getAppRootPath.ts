@@ -1,12 +1,11 @@
 import { join, resolve } from "./path"
 import process from "process"
-import { AppPath } from "./applyPatches"
 import { existsSync } from "fs-extra"
 
-export const getAppRootPath = (): AppPath => {
+export const getAppRootPath = (): string => {
   let cwd = process.cwd()
   while (!existsSync(join(cwd, "package.json"))) {
     cwd = resolve(cwd, "../")
   }
-  return cwd as AppPath
+  return cwd
 }

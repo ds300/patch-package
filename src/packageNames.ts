@@ -23,7 +23,7 @@ export function renderPackageName(
   }
 
   if (opts.urlSafe) {
-    return `@${name.scope}~${name.name}`
+    return `@${name.scope}+${name.name}`
   }
 
   return `@${name.scope}/${name.name}`

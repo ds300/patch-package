@@ -76,7 +76,10 @@ export function getPatchDetailsFromFilename(
   return {
     name: lastPart.name,
     version: lastPart.version,
-    path: parts.map(({ name }) => name).join("/node_modules/"),
+    path: join(
+      "node_modules",
+      parts.map(({ name }) => name).join("/node_modules/"),
+    ),
     pathSpecifier: parts.map(({ name }) => name).join("=>"),
   }
 }

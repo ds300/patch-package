@@ -67,17 +67,13 @@ export const applyPatchesForApp = (
     })
 
     if (!installedPackageVersion) {
-      console.warn("")
       return
     }
 
-    console.log("trying to patch", filename)
     if (applyPatch(resolve(patchesDirectory, filename) as string, reverse)) {
-      console.log("a")
       // yay patch was applied successfully
       // print warning if version mismatch
       if (installedPackageVersion !== version) {
-        console.log("b")
         printVersionMismatchWarning({
           packageName: name,
           actualVersion: installedPackageVersion,
@@ -86,15 +82,12 @@ export const applyPatchesForApp = (
           path,
         })
       } else {
-        console.log("c")
         console.log(`${bold(pathSpecifier)}@${version} ${green("✔")}`)
       }
     } else {
-      console.log("d")
       // completely failed to apply patch
       // TODO: propagate useful error messages from patch application
       if (installedPackageVersion === version) {
-        console.log("e")
         printBrokenPatchFileError({
           packageName: name,
           patchFileName: filename,
@@ -102,7 +95,6 @@ export const applyPatchesForApp = (
           path,
         })
       } else {
-        console.log("f")
         printPatchApplictionFailureError({
           packageName: name,
           actualVersion: installedPackageVersion,
@@ -112,10 +104,8 @@ export const applyPatchesForApp = (
           pathSpecifier,
         })
       }
-      console.log("g")
       process.exit(1)
     }
-    console.log("h")
   })
 }
 
@@ -259,6 +249,6 @@ ${red.bold("**ERROR**")} ${red(
   Info:
     Patch file: patches/${patchFileName}
     Patch was made for version: ${green.bold(originalVersion)}
-    Installed version ${red.bold(actualVersion)}
+    Installed version: ${red.bold(actualVersion)}
 `)
 }

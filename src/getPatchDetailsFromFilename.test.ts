@@ -42,7 +42,7 @@ Object {
       .toMatchInlineSnapshot(`
 Object {
   "name": "apple",
-  "path": "banana/node_modules/apple",
+  "path": "node_modules/banana/node_modules/apple",
   "pathSpecifier": "banana=>apple",
   "version": "0.4.2",
 }
@@ -55,7 +55,7 @@ Object {
     ).toMatchInlineSnapshot(`
 Object {
   "name": "@mollusc/man",
-  "path": "@types/banana/node_modules/@types/apple/node_modules/@mollusc/man",
+  "path": "node_modules/@types/banana/node_modules/@types/apple/node_modules/@mollusc/man",
   "pathSpecifier": "@types/banana=>@types/apple=>@mollusc/man",
   "version": "0.4.2-banana-tree",
 }

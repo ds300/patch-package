@@ -60,7 +60,7 @@ rimraf node_modules
 yarn
 
 echo "edit lodash's package.json"
-replace description patchPackageRulezLol node_modules/lodash/package.json
+npx replace description patchPackageRulezLol node_modules/lodash/package.json
 
 echo "check that the edit was ignored by default"
 if npx patch-package lodash

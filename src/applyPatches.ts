@@ -5,7 +5,7 @@ import { executeEffects } from "./patch/apply"
 import { existsSync, readFileSync } from "fs-extra"
 import { join, resolve } from "./path"
 import { posix } from "path"
-import { getPatchDetailsFromFilename } from "./getPatchDetailsFromFilename"
+import { getPackageDetailsFromPatchFilename } from "./PackageDetails"
 
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
@@ -51,7 +51,7 @@ export const applyPatchesForApp = (
   }
 
   files.forEach(filename => {
-    const details = getPatchDetailsFromFilename(filename)
+    const details = getPackageDetailsFromPatchFilename(filename)
 
     if (!details) {
       console.warn(`Unrecognized patch file in patches directory ${filename}`)

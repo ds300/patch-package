@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test nested-scoped-packages: create the patch 1`] = `
+"SNAPSHOT: create the patch
+✔ Creating temporary folder
+✔ Making tmp package.json
+✔ Installing @types/angular@1.6.53 with yarn
+✔ Diffing your files with clean files
+✔ Created file patches/@microsoft+mezzurite-core++@types+angular+1.6.53.patch
+END SNAPSHOT"
+`;
+
+exports[`Test nested-scoped-packages: run patch-package 1`] = `
+"SNAPSHOT: run patch-package
+patch-package: Applying patches...
+@microsoft/mezzurite-core/@types/angular@1.6.53 ✔
+END SNAPSHOT"
+`;

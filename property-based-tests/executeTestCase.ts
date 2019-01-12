@@ -67,10 +67,13 @@ export function executeTestCase(testCase: TestCase) {
     try {
       f()
     } catch (e) {
-      console.error("TEST CASE FAILED", {
-        testCase,
-        workingFiles: fs.getWorkingFiles(),
-      })
+      console.error(
+        "TEST CASE FAILED",
+        JSON.stringify({
+          testCase,
+          workingFiles: fs.getWorkingFiles(),
+        }),
+      )
       throw e
     }
   }

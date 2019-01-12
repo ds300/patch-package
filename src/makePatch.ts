@@ -125,6 +125,8 @@ export const makePatch = (
     console.info(green("✔"), "Diffing your files with clean files")
     writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
     git("init")
+    git("config", "--local", "user.name", "patch-package")
+    git("config", "--local", "user.email", "patch@pack.age")
 
     // remove ignored files first
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)

@@ -120,6 +120,8 @@ export const makePatch = (
 
     // remove nested node_modules just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))
+    // remove .git just to be safe
+    rimraf(join(tmpRepoPackagePath, "node_modules"))
 
     // commit the package
     console.info(green("✔"), "Diffing your files with clean files")
@@ -140,6 +142,8 @@ export const makePatch = (
     copySync(packagePath, tmpRepoPackagePath)
 
     // remove nested node_modules just to be safe
+    rimraf(join(tmpRepoPackagePath, "node_modules"))
+    // remove .git just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))
 
     // also remove ignored files like before

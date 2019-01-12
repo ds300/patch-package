@@ -3,7 +3,9 @@
 exports[`Test package-gets-updated: fail when the patch was not applied 1`] = `
 "SNAPSHOT: fail when the patch was not applied
 
-**ERROR** Failed to apply patch for package left-pad
+**ERROR** Failed to apply patch for package left-pad at path
+  
+    node_modules/left-pad
 
   This error was caused because left-pad has changed since you
   made the patch file for it. This introduced conflicts with your patch,
@@ -13,34 +15,19 @@ exports[`Test package-gets-updated: fail when the patch was not applied 1`] = `
   Maybe this means your patch file is no longer necessary, in which case
   hooray! Just delete it!
 
-  Otherwise, you need to manually fix the patch file. Or generate a new one
+  Otherwise, you need generate a new patch file.
 
   To generate a new one, just repeat the steps you made to generate the first
-  one, but accounting for the changes in left-pad.
+  one.
 
-  i.e. make changes, run \`patch-package left-pad\`, and commit.
+  i.e. manually make the appropriate file changes, then run 
 
-  To manually fix a patch file, Run:
-
-     patch -p1 -i patches/left-pad+1.1.1.patch --verbose --dry-run
-
-  To list rejected hunks. A 'hunk' is a section of patch file that describes
-  one contiguous area of changes. They are numbered from 1 and begin with lines
-  that look like this:
-
-    @@ -48,5 +49,6 @@ function foo(bar) {
-
-  Remove the conflicting hunks, then manually edit files in
-
-    node_modules/left-pad
-
-  to reflect the changes that the conflicting hunks were supposed to make.
-
-  Then run \`patch-package left-pad\`
+    patch-package left-pad
 
   Info:
-    Patch was made for version 1.1.1
-    Meanwhile node_modules/left-pad is version 1.1.3
+    Patch file: patches/left-pad+1.1.1.patch
+    Patch was made for version: 1.1.1
+    Installed version: 1.1.3
 
 error Command failed with exit code 1.
 END SNAPSHOT"
@@ -73,6 +60,10 @@ Warning: patch-package detected a patch file version mismatch
   applied to
 
     left-pad@1.1.2
+  
+  At path
+  
+    node_modules/left-pad
 
   This warning is just to give you a heads-up. There is a small chance of
   breakage even though the patch was applied successfully. Make sure the package

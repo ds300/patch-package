@@ -1,0 +1,12 @@
+{
+  "name": "nested-scoped-packages",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@microsoft/mezzurite-angular": "^2.0.18",
+    "@types/angular": "1.5",
+    "replace": "^1.0.1",
+    "rimraf": "^2.6.3"
+  }
+}

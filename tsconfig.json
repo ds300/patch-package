@@ -2,19 +2,16 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "lib": [
-      "es2015"
-    ],
+    "lib": ["es2015"],
     "strict": true,
+    "esModuleInterop": true,
     "outDir": "dist",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "inlineSourceMap": true,
+    "noEmitOnError": false,
     "inlineSources": true
   },
-  "include": [
-    "typings/**/*.d.ts",
-    "src/**/*.ts"
-  ],
+  "include": ["typings/**/*.d.ts", "src/**/*.ts"],
   "compileOnSave": true
 }

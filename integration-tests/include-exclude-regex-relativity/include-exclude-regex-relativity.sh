@@ -5,7 +5,7 @@ echo "add patch-package"
 yarn add $1
 
 echo "mutate words.js"
-replace words patch-packages node_modules/lodash/words.js
+npx replace words patch-packages node_modules/lodash/words.js
 
 echo "patch-package includes words.js in a patch by default"
 npx patch-package lodash

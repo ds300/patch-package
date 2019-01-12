@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test nested-packages: create the patch 1`] = `
+"SNAPSHOT: create the patch
+✔ Creating temporary folder
+✔ Making tmp package.json
+✔ Installing string-width@2.1.1 with yarn
+✔ Diffing your files with clean files
+✔ Created file patches/wrap-ansi++string-width+2.1.1.patch
+END SNAPSHOT"
+`;
+
+exports[`Test nested-packages: run patch-package 1`] = `
+"SNAPSHOT: run patch-package
+patch-package: Applying patches...
+wrap-ansi/string-width@2.1.1 ✔
+END SNAPSHOT"
+`;
+
+exports[`Test nested-packages: the patch file contents 1`] = `
+"SNAPSHOT: the patch file contents
+diff --git a/node_modules/wrap-ansi/node_modules/string-width/index.js b/node_modules/wrap-ansi/node_modules/string-width/index.js
+index bbc49d2..6407f49 100644
+--- a/node_modules/wrap-ansi/node_modules/string-width/index.js
++++ b/node_modules/wrap-ansi/node_modules/string-width/index.js
+@@ -1,6 +1,6 @@
+ 'use strict';
+ const stripAnsi = require('strip-ansi');
+-const isFullwidthCodePoint = require('is-fullwidth-code-point');
++const isFullpatch-packageCodePoint = require('is-fullpatch-package-code-point');
+ 
+ module.exports = str => {
+ 	if (typeof str !== 'string' || str.length === 0) {
+@@ -9,7 +9,7 @@ module.exports = str => {
+ 
+ 	str = stripAnsi(str);
+ 
+-	let width = 0;
++	let patch-package = 0;
+ 
+ 	for (let i = 0; i < str.length; i++) {
+ 		const code = str.codePointAt(i);
+@@ -29,8 +29,8 @@ module.exports = str => {
+ 			i++;
+ 		}
+ 
+-		width += isFullwidthCodePoint(code) ? 2 : 1;
++		patch-package += isFullpatch-packageCodePoint(code) ? 2 : 1;
+ 	}
+ 
+-	return width;
++	return patch-package;
+ };
+END SNAPSHOT"
+`;

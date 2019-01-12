@@ -1,6 +1,6 @@
 import { bold, italic } from "chalk"
-import * as process from "process"
-import * as minimist from "minimist"
+import process from "process"
+import minimist from "minimist"
 
 import { applyPatchesForApp } from "./applyPatches"
 import { getAppRootPath } from "./getAppRootPath"

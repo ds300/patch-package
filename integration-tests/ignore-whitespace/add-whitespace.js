@@ -13,6 +13,6 @@ const withWhitespace = lines
   )
   .join("\n")
 
-const buf = new Buffer(withWhitespace)
+const buf = Buffer.from(withWhitespace)
 
 fs.writeFileSync(file, buf)

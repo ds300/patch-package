@@ -1,0 +1,12 @@
+{
+  "name": "nested-packages",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "replace": "1.0.1",
+    "rimraf": "2.6.3",
+    "string-width": "1",
+    "wrap-ansi": "4.0.0"
+  }
+}

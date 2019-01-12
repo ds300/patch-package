@@ -1,3 +1,2 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-
-runIntegrationTest("resolve-relative-paths")
+runIntegrationTest("nested-scoped-packages", true)

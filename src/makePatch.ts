@@ -147,15 +147,15 @@ export const makePatch = (
     git("add", "-f", packageDetails.path)
 
     // get diff of changes
-    const patch = git(
+    const diffResult = git(
       "diff",
       "--cached",
       "--no-color",
       "--ignore-space-at-eol",
       "--no-ext-diff",
-    ).stdout.toString()
+    )
 
-    if (patch.trim() === "") {
+    if (diffResult.stdout.length === 0) {
       console.warn(
         `⁉️  Not creating patch file for package '${packagePathSpecifier}'`,
       )
@@ -187,7 +187,7 @@ export const makePatch = (
         // scoped package
         mkdirSync(dirname(patchPath))
       }
-      writeFileSync(patchPath, patch)
+      writeFileSync(patchPath, diffResult.stdout)
       console.log(`${green("✔")} Created file ${patchDir}/${patchFileName}`)
     }
   } catch (e) {

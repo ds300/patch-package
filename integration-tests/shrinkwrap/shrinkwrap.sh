@@ -4,7 +4,7 @@ set -e
 echo "add patch-package"
 npm i $1
 
-rimraf node_modules
+npx rimraf node_modules
 
 npm i
 

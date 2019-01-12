@@ -5,9 +5,9 @@ echo "add patch-package"
 yarn add $1
 
 echo "edit some files"
-replace exports patchPackage node_modules/lodash/_baseClamp.js
-replace exports patchPackage node_modules/lodash/_baseClone.js
-replace exports patchPackage node_modules/lodash/flip.js
+npx replace exports patchPackage node_modules/lodash/_baseClamp.js
+npx replace exports patchPackage node_modules/lodash/_baseClone.js
+npx replace exports patchPackage node_modules/lodash/flip.js
 
 echo "add a file"
 echo "this is a new file" > node_modules/lodash/newFile.md
@@ -55,8 +55,8 @@ fi
 echo "run patch package including newFile (case insensitive)"
 npx patch-package lodash --include newFile --case-sensitive-path-filtering
 
-echo "revet to the beginning"
-rimraf node_modules
+echo "revert to the beginning"
+npx rimraf node_modules
 yarn
 
 echo "edit lodash's package.json"

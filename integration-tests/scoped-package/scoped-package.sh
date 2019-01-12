@@ -9,13 +9,13 @@ grep patch-package node_modules/@types/left-pad/index.d.ts
 echo "END SNAPSHOT"
 
 echo "modify add.d.t.s"
-replace add patch-package node_modules/@types/lodash/add.d.ts
+npx replace add patch-package node_modules/@types/lodash/add.d.ts
 
 echo "patch-package can make patches for scoped packages"
 npx patch-package @types/lodash
 
 echo "remove node_modules"
-rimraf node_modules
+npx rimraf node_modules
 
 echo "reinstall node_modules"
 yarn

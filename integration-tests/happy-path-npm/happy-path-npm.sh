@@ -21,7 +21,7 @@ cat patches/left-pad+1.1.3.patch
 echo "END SNAPSHOT"
 
 echo "reinstall node_modules"
-rimraf node_modules
+npx rimraf node_modules
 npm i
 
 echo "patch-package didn't run"
@@ -33,7 +33,7 @@ echo "add patch-package to postinstall hook"
 node ./add-postinstall.js
 
 echo "reinstall node_modules"
-rimraf node_modules
+npx rimraf node_modules
 npm i
 
 echo "patch-package did run"

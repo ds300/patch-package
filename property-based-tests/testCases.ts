@@ -122,7 +122,12 @@ function mutateFiles(files: Files): Files {
         break
       }
       case "createFile": {
-        mutatedFiles[makeFileName()] = makeFileContents()
+        // TODO make sure there isn't a dir with that filename already
+        let filename = makeFileName()
+        while (Object.keys(mutatedFiles).some(k => k.startsWith(filename))) {
+          filename = makeFileName()
+        }
+        mutatedFiles[filename] = makeFileContents()
         break
       }
       case "deleteLine": {

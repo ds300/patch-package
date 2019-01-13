@@ -31,31 +31,18 @@ export const parseHunkHeaderLine = (headerLine: string): HunkHeader => {
   }
 }
 
-interface Insertion {
-  type: "insertion"
+interface PatchMutationPart {
+  type: "context" | "insertion" | "deletion"
   lines: string[]
   noNewlineAtEndOfFile: boolean
 }
-
-interface Deletion {
-  type: "deletion"
-  lines: string[]
-  noNewlineAtEndOfFile: boolean
-}
-
-interface Context {
-  type: "context"
-  lines: string[]
-  noNewlineAtEndOfFile: boolean
-}
-
-type PatchMutationPart = Insertion | Deletion | Context
 export type PatchHunk = HunkHeader | PatchMutationPart
 
 interface FileRename {
   type: "rename"
   fromPath: string
   toPath: string
+  // TODO: check wheter renaming a file can have \ No newline at end of file
 }
 
 export interface FilePatch {
@@ -201,7 +188,7 @@ class PatchParser {
             type: "insertion",
             lines: [],
             noNewlineAtEndOfFile: true,
-          } as PatchMutationPart
+          }
         } else {
           throw new Error(`unexpected patch file comment ${this.currentLine}`)
         }
@@ -246,7 +233,7 @@ class PatchParser {
       type: blockType,
       lines,
       noNewlineAtEndOfFile,
-    } as PatchMutationPart
+    }
   }
 
   private currentLineIsPartOfHunk(): boolean {

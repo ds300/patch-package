@@ -155,4 +155,21 @@ describe("regression tests", () => {
       modifiedFiles: { "1dkfI.J": { contents: "b\nb\nc", mode: 420 } },
     })
   })
+
+  describe("16", () => {
+    executeTestCase({
+      cleanFiles: {
+        "k/1dt4myqe.e1": {
+          contents: "a\n\n\n\nbanana\n",
+          mode: 420,
+        },
+      },
+      modifiedFiles: {
+        "k/1dt4myqe.e1": {
+          contents: "b\n\n\n\nbanana\n",
+          mode: 420,
+        },
+      },
+    })
+  })
 })

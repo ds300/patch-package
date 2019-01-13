@@ -26,7 +26,6 @@ export type Effect =
       type: "replace"
       path: string
       lines: string[]
-      noNewlineAtEndOfFile: boolean
     }
 
 export const executeEffects = (effects: Effect[]) => {
@@ -47,10 +46,7 @@ export const executeEffects = (effects: Effect[]) => {
         )
         break
       case "replace":
-        fs.writeFileSync(
-          eff.path,
-          eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
-        )
+        fs.writeFileSync(eff.path, eff.lines.join("\n"))
         break
     }
   })
@@ -70,16 +66,33 @@ function assertLineEquality(onDisk: string, expected: string) {
   }
 }
 
+/**
+ * How does noNewLineAtEndOfFile work?
+ *
+ * if you remove the newline from a file that had one without editing other bits:
+ *
+ *    it creates an insertion/removal pair where the insertion has \ No new line at end of file
+ *
+ * if you edit a file that didn't have a new line and don't add one:
+ *
+ *    both insertion and deletion have \ No new line at end of file
+ *
+ * if you edit a file that didn't have a new line and add one:
+ *
+ *    deletion has \ No new line at end of file
+ *    but not insertion
+ *
+ * if you edit a file that had a new line and leave it in:
+ *
+ *    neither insetion nor deletion have the annoation
+ *
+ */
+
 function applyPatch({ parts, path }: FilePatch): Effect {
   // modifying the file in place
   const fileContents = fs.readFileSync(path).toString()
 
   const fileLines: string[] = fileContents.split(/\n/)
-  if (fileLines[fileLines.length - 1] === "") {
-    fileLines.pop()
-  }
-
-  let noNewlineAtEndOfFile = true
 
   // when adding or removing lines from a file, gotta
   // make sure that the original lines in hunk headers match up
@@ -117,30 +130,19 @@ function applyPatch({ parts, path }: FilePatch): Effect {
             )
             contextIndex -= part.lines.length
 
-            if (contextIndex >= fileLines.length) {
-              if (
-                (hunkHeader.patched.length > 0 && part.noNewlineAtEndOfFile) ||
-                (parts[i - 2] &&
-                  (parts[i - 2].type === "insertion" ||
-                    parts[i - 2].type === "context") &&
-                  !(parts[i - 2] as any).noNewlineAtEndOfFile)
-              ) {
-                // delete the fact that there was no newline at the end of the file
-                // by adding a newline to the end of the file
-                noNewlineAtEndOfFile = false
-              }
-            }
-          } else {
-            if (contextIndex >= fileLines.length) {
-              noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
+            if (part.noNewlineAtEndOfFile) {
+              fileLines.push("")
             }
           }
           break
         case "insertion":
           fileLines.splice(contextIndex, 0, ...part.lines)
           contextIndex += part.lines.length
-          if (contextIndex >= fileLines.length) {
-            noNewlineAtEndOfFile = part.noNewlineAtEndOfFile
+          if (part.noNewlineAtEndOfFile) {
+            if (contextIndex !== fileLines.length - 1) {
+              throw new Error("Invalid patch application state.")
+            }
+            fileLines.pop()
           }
           break
       }
@@ -149,7 +151,6 @@ function applyPatch({ parts, path }: FilePatch): Effect {
 
   return {
     type: "replace",
-    noNewlineAtEndOfFile,
     path,
     lines: fileLines,
   }

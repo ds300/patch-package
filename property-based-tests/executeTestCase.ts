@@ -7,6 +7,7 @@ import { executeEffects } from "../src/patch/apply"
 import { parsePatch } from "../src/patch/parse"
 
 import { TestCase, Files } from "./testCases"
+import { appendFileSync, existsSync, writeFileSync } from "fs"
 
 jest.mock("fs-extra", () => {
   let workingFiles: Files
@@ -67,13 +68,12 @@ export function executeTestCase(testCase: TestCase) {
     try {
       f()
     } catch (e) {
-      console.error(
-        "TEST CASE FAILED",
-        JSON.stringify({
-          testCase,
-          workingFiles: fs.getWorkingFiles(),
-        }),
-      )
+      const data = JSON.stringify(testCase) + "\n\n"
+      if (!existsSync("generative-test-errors.log")) {
+        writeFileSync("generative-test-errors.log", data)
+      } else {
+        appendFileSync("generative-test-errors.log", data)
+      }
       throw e
     }
   }

@@ -172,4 +172,13 @@ describe("regression tests", () => {
       },
     })
   })
+
+  describe("17", () => {
+    executeTestCase({
+      cleanFiles: {
+        abc: { contents: "E\n", mode: 420 },
+      },
+      modifiedFiles: { cpz: { contents: "E\n", mode: 420 } },
+    })
+  })
 })

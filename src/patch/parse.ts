@@ -167,7 +167,7 @@ class PatchParser {
 
       if (this.currentLine.startsWith("rename from")) {
         const fromPath = this.currentLine.slice("rename from ".length)
-        const toPath = this.lines[this.i++].slice("rename to ".length).trim()
+        const toPath = this.lines[++this.i].slice("rename to ".length).trim()
         this.result.push({ type: "rename", fromPath, toPath })
         continue
       }

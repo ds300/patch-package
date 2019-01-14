@@ -2,51 +2,53 @@ import fs from "fs-extra"
 import { dirname } from "path"
 import { ParsedPatchFile, FilePatch } from "./parse"
 
-export type Effect =
-  | {
-      type: "file deletion"
-      path: string
-      lines: string[]
-      mode: number
-      noNewlineAtEndOfFile: boolean
-    }
-  | {
-      type: "rename"
-      fromPath: string
-      toPath: string
-    }
-  | {
-      type: "file creation"
-      path: string
-      lines: string[]
-      mode: number
-      noNewlineAtEndOfFile: boolean
-    }
-  | {
-      type: "replace"
-      path: string
-      lines: string[]
-    }
-
-export const executeEffects = (effects: Effect[]) => {
+export const executeEffects = (
+  effects: ParsedPatchFile,
+  { dryRun }: { dryRun: boolean },
+) => {
   effects.forEach(eff => {
     switch (eff.type) {
       case "file deletion":
-        fs.unlinkSync(eff.path)
+        if (dryRun) {
+          if (!fs.existsSync(eff.path)) {
+            throw new Error(
+              "Trying to delete file that doesn't exist: " + eff.path,
+            )
+          }
+        } else {
+          fs.unlinkSync(eff.path)
+        }
         break
       case "rename":
-        fs.moveSync(eff.fromPath, eff.toPath)
+        if (dryRun) {
+          // TODO: see what patch files look like if moving to exising path
+          if (!fs.existsSync(eff.fromPath)) {
+            throw new Error(
+              "Trying to move file that doesn't exist: " + eff.fromPath,
+            )
+          }
+        } else {
+          fs.moveSync(eff.fromPath, eff.toPath)
+        }
         break
       case "file creation":
-        fs.ensureDirSync(dirname(eff.path))
-        fs.writeFileSync(
-          eff.path,
-          eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
-          { mode: eff.mode },
-        )
+        if (dryRun) {
+          if (fs.existsSync(eff.path)) {
+            throw new Error(
+              "Trying to create file that already exists: " + eff.path,
+            )
+          }
+        } else {
+          fs.ensureDirSync(dirname(eff.path))
+          fs.writeFileSync(
+            eff.path,
+            eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
+            { mode: eff.mode },
+          )
+        }
         break
-      case "replace":
-        fs.writeFileSync(eff.path, eff.lines.join("\n"))
+      case "patch":
+        applyPatch(eff, { dryRun })
         break
     }
   })
@@ -88,7 +90,10 @@ function assertLineEquality(onDisk: string, expected: string) {
  *
  */
 
-function applyPatch({ parts, path }: FilePatch): Effect {
+function applyPatch(
+  { parts, path }: FilePatch,
+  { dryRun }: { dryRun: boolean },
+): void {
   // modifying the file in place
   const fileContents = fs.readFileSync(path).toString()
 
@@ -149,27 +154,7 @@ function applyPatch({ parts, path }: FilePatch): Effect {
     }
   }
 
-  return {
-    type: "replace",
-    path,
-    lines: fileLines,
+  if (!dryRun) {
+    fs.writeFileSync(path, fileLines.join("\n"))
   }
-}
-
-export const applyPatchFile = (patch: ParsedPatchFile): Effect[] => {
-  const effects: Effect[] = []
-
-  for (const part of patch) {
-    switch (part.type) {
-      case "file creation":
-      case "file deletion":
-      case "rename":
-        effects.push(part)
-        break
-      case "patch":
-        effects.push(applyPatch(part))
-    }
-  }
-
-  return effects
 }

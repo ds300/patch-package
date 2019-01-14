@@ -63,11 +63,17 @@ function makeFiles(): Files {
   return fileSystem
 }
 
-type MutationKind = "deleteFile" | "createFile" | "deleteLine" | "insertLine"
+type MutationKind =
+  | "deleteFile"
+  | "createFile"
+  | "deleteLine"
+  | "insertLine"
+  | "renameFile"
 
 const mutationKindLikelihoods: Array<[MutationKind, number]> = [
   ["deleteFile", 1],
   ["createFile", 1],
+  ["renameFile", 1],
   ["deleteLine", 10],
   ["insertLine", 10],
 ]
@@ -105,6 +111,15 @@ function insertLinesIntoFile(file: File): File {
   return { ...file, contents: lines.join("\n") }
 }
 
+function getUniqueFilename(files: Files) {
+  let filename = makeFileName()
+  const ks = Object.keys(files)
+  while (ks.some(k => k.startsWith(filename))) {
+    filename = makeFileName()
+  }
+  return filename
+}
+
 function mutateFiles(files: Files): Files {
   const mutatedFiles = { ...files }
 
@@ -122,12 +137,7 @@ function mutateFiles(files: Files): Files {
         break
       }
       case "createFile": {
-        // TODO make sure there isn't a dir with that filename already
-        let filename = makeFileName()
-        while (Object.keys(mutatedFiles).some(k => k.startsWith(filename))) {
-          filename = makeFileName()
-        }
-        mutatedFiles[filename] = makeFileContents()
+        mutatedFiles[getUniqueFilename(mutatedFiles)] = makeFileContents()
         break
       }
       case "deleteLine": {
@@ -144,10 +154,16 @@ function mutateFiles(files: Files): Files {
         )
         // select a file at random and insert some text in there
         break
+      case "renameFile":
+        const pathToRename = selectRandomElement(Object.keys(mutatedFiles))
+        mutatedFiles[getUniqueFilename(mutatedFiles)] =
+          mutatedFiles[pathToRename]
+        delete mutatedFiles[pathToRename]
+        break
     }
   }
 
-  return mutatedFiles
+  return { ...mutatedFiles }
 }
 
 export function generateTestCase(): TestCase {

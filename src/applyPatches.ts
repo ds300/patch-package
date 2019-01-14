@@ -1,11 +1,12 @@
 import { bold, cyan, green, red, yellow } from "chalk"
 import { getPatchFiles } from "./patchFs"
-import { patch } from "./patch"
 import { executeEffects } from "./patch/apply"
 import { existsSync, readFileSync } from "fs-extra"
 import { join, resolve } from "./path"
 import { posix } from "path"
 import { getPackageDetailsFromPatchFilename } from "./PackageDetails"
+import { parsePatch } from "./patch/parse"
+import { reversePatch } from "./patch/reverse"
 
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
@@ -114,14 +115,12 @@ export const applyPatch = (
   reverse: boolean,
 ): boolean => {
   const patchFileContents = readFileSync(patchFilePath).toString()
+  const patch = parsePatch(patchFileContents)
   try {
-    const result = patch(patchFileContents, {
-      reverse,
-    })
-    executeEffects(result)
+    executeEffects(reverse ? reversePatch(patch) : patch, { dryRun: false })
   } catch (e) {
     try {
-      patch(patchFileContents, { reverse: !reverse })
+      executeEffects(reverse ? patch : reversePatch(patch), { dryRun: true })
     } catch (e) {
       return false
     }

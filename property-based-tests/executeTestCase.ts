@@ -2,9 +2,9 @@ import * as tmp from "tmp"
 import * as path from "path"
 
 import { spawnSafeSync } from "../src/spawnSafe"
-import { patch } from "../src/patch"
 import { executeEffects } from "../src/patch/apply"
 import { parsePatch } from "../src/patch/parse"
+import { reversePatch } from "../src/patch/reverse"
 
 import { TestCase, Files } from "./testCases"
 import { appendFileSync, existsSync, writeFileSync } from "fs"
@@ -124,8 +124,8 @@ export function executeTestCase(testCase: TestCase) {
   it("works forwards", () => {
     fs.setWorkingFiles({ ...testCase.cleanFiles })
     reportingFailures(() => {
-      const effects = patch(patchFileContents)
-      executeEffects(effects)
+      const effects = parsePatch(patchFileContents)
+      executeEffects(effects, { dryRun: false })
       expect(fs.getWorkingFiles()).toEqual(testCase.modifiedFiles)
     })
   })
@@ -133,8 +133,8 @@ export function executeTestCase(testCase: TestCase) {
   it("works backwards", () => {
     fs.setWorkingFiles({ ...testCase.modifiedFiles })
     reportingFailures(() => {
-      const result = patch(patchFileContents, { reverse: true })
-      executeEffects(result)
+      const effects = reversePatch(parsePatch(patchFileContents))
+      executeEffects(effects, { dryRun: false })
       expect(fs.getWorkingFiles()).toEqual(testCase.cleanFiles)
     })
   })

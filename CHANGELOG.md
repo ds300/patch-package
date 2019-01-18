@@ -1,5 +1,22 @@
 # Changelog
 
+## 6.0.0-14
+- Handle renaming files properly
+
+## 6.0.0-13
+- Handle large diffs by not calling .toString on stdout buffer
+- Git usage fixes
+
+## 6.0.0-12
+- Support explicit nested package patching
+- Improve performance of patch creation
+
+## 6.0.0-11
+- Handle crlf line breaks in patch parser (Contribution from @NMinhNguyen)
+
+## 6.0.0-10
+- Add --patches-dir option (Contribution from @davidpett)
+
 ## 6.0.0-9
 - Fix patch application bug when creating new files (Contribution from @stmarkidis)
 

@@ -7,6 +7,11 @@ import { posix } from "path"
 import { getPackageDetailsFromPatchFilename } from "./PackageDetails"
 import { parsePatchFile } from "./patch/parse"
 import { reversePatch } from "./patch/reverse"
+import isCi from "is-ci"
+
+// don't want to exit(1) on postinsall locally.
+// see https://github.com/ds300/patch-package/issues/86
+const shouldExitPostinstallWithError = isCi || process.env.NODE_ENV === "test"
 
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
@@ -49,7 +54,7 @@ export const applyPatchesForApp = (
 
   if (files.length === 0) {
     console.error(red("No patch files found"))
-    process.exit(1)
+    process.exit(shouldExitPostinstallWithError ? 1 : 0)
   }
 
   files.forEach(filename => {
@@ -106,7 +111,7 @@ export const applyPatchesForApp = (
           pathSpecifier,
         })
       }
-      process.exit(1)
+      process.exit(shouldExitPostinstallWithError ? 1 : 0)
     }
   })
 }

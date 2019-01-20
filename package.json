@@ -15,7 +15,7 @@
   "scripts": {
     "precommit": "tsc --noEmit && lint-staged",
     "prepublishOnly": "yarn run clean && yarn run build",
-    "build": "tsc",
+    "build": "tsc --project tsconfig.build.json",
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",

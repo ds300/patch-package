@@ -2,6 +2,7 @@
 
 exports[`Test nested-packages: create the patch 1`] = `
 "SNAPSHOT: create the patch
+patch-package 0.0.0
 ✔ Creating temporary folder
 ✔ Making tmp package.json
 ✔ Installing string-width@2.1.1 with yarn
@@ -12,7 +13,8 @@ END SNAPSHOT"
 
 exports[`Test nested-packages: run patch-package 1`] = `
 "SNAPSHOT: run patch-package
-patch-package: Applying patches...
+patch-package 0.0.0
+Applying patches...
 wrap-ansi/string-width@2.1.1 ✔
 END SNAPSHOT"
 `;

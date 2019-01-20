@@ -1,0 +1,8 @@
+diff --git a/node_modules/lodash/index.js b/node_modules/lodash/index.js
+index 5d063e2..9fe7004 100644
+--- a/node_modules/lodash/index.js
++++ b/node_modules/lodash/index.js
+@@ -1 +1 @@
+-module.exports = require('./lodash');
+\ No newline at end of file
++module.patchPackage = require('./lodash');

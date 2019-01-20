@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.0.0-16
+
+- Fail postinstall only on CI to prevent weird upgrade issues locally (see #86)
+- Fail if no patches are present
+
 ## 6.0.0-15
 
 - Handle mode changes

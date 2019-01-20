@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.0-17
+
+- Fix the removal of old patch files when creating new ones.
+
 ## 6.0.0-16
 
 - Fail postinstall only on CI to prevent weird upgrade issues locally (see #86)

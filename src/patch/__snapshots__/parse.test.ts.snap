@@ -33,6 +33,141 @@ Array [
 ]
 `;
 
+exports[`the patch parser parses old-style patches 1`] = `
+Array [
+  Object {
+    "afterHash": null,
+    "beforeHash": null,
+    "hunks": Array [
+      Object {
+        "header": Object {
+          "original": Object {
+            "length": 10,
+            "start": 41,
+          },
+          "patched": Object {
+            "length": 11,
+            "start": 41,
+          },
+        },
+        "parts": Array [
+          Object {
+            "lines": Array [
+              " */",
+              "function isValidNameError(name, node) {",
+              "  !(typeof name === 'string') ? (0, _invariant2.default)(0, 'Expected string') : void 0;",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+          Object {
+            "lines": Array [
+              "  if (name.length > 1 && name[0] === '_' && name[1] === '_') {",
+              "    return new _GraphQLError.GraphQLError('Name \\"' + name + '\\" must not begin with \\"__\\", which is reserved by ' + 'GraphQL introspection.', node);",
+              "  }",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "deletion",
+          },
+          Object {
+            "lines": Array [
+              "  // if (name.length > 1 && name[0] === '_' && name[1] === '_') {",
+              "  //   return new _GraphQLError.GraphQLError('Name \\"' + name + '\\" must not begin with \\"__\\", which is reserved by ' + 'GraphQL introspection.', node);",
+              "  // }",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "insertion",
+          },
+          Object {
+            "lines": Array [
+              "  if (!NAME_RX.test(name)) {",
+              "    return new _GraphQLError.GraphQLError('Names must match /^[_a-zA-Z][_a-zA-Z0-9]*$/ but \\"' + name + '\\" does not.', node);",
+              "  }",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+          Object {
+            "lines": Array [
+              "",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "insertion",
+          },
+          Object {
+            "lines": Array [
+              "}",
+            ],
+            "noNewlineAtEndOfFile": true,
+            "type": "context",
+          },
+        ],
+      },
+    ],
+    "path": "node_modules/graphql/utilities/assertValidName.js",
+    "type": "patch",
+  },
+  Object {
+    "afterHash": null,
+    "beforeHash": null,
+    "hunks": Array [
+      Object {
+        "header": Object {
+          "original": Object {
+            "length": 9,
+            "start": 29,
+          },
+          "patched": Object {
+            "length": 9,
+            "start": 29,
+          },
+        },
+        "parts": Array [
+          Object {
+            "lines": Array [
+              " */",
+              "export function isValidNameError(name, node) {",
+              "  !(typeof name === 'string') ? invariant(0, 'Expected string') : void 0;",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+          Object {
+            "lines": Array [
+              "  if (name.length > 1 && name[0] === '_' && name[1] === '_') {",
+              "    return new GraphQLError('Name \\"' + name + '\\" must not begin with \\"__\\", which is reserved by ' + 'GraphQL introspection.', node);",
+              "  }",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "deletion",
+          },
+          Object {
+            "lines": Array [
+              "  // if (name.length > 1 && name[0] === '_' && name[1] === '_') {",
+              "  //   return new GraphQLError('Name \\"' + name + '\\" must not begin with \\"__\\", which is reserved by ' + 'GraphQL introspection.', node);",
+              "  // }",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "insertion",
+          },
+          Object {
+            "lines": Array [
+              "  if (!NAME_RX.test(name)) {",
+              "    return new GraphQLError('Names must match /^[_a-zA-Z][_a-zA-Z0-9]*$/ but \\"' + name + '\\" does not.', node);",
+              "  }",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+        ],
+      },
+    ],
+    "path": "node_modules/graphql/utilities/assertValidName.mjs",
+    "type": "patch",
+  },
+]
+`;
+
 exports[`the patch parser works 1`] = `
 Array [
   Object {

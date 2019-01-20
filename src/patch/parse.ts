@@ -144,7 +144,10 @@ const hunkLinetypes: {
   undefined: "context",
 }
 
-function parsePatchLines(lines: string[]): FileDeets[] {
+function parsePatchLines(
+  lines: string[],
+  { supportLegacyDiffs }: { supportLegacyDiffs: boolean },
+): FileDeets[] {
   const result: FileDeets[] = []
   let currentFilePatch: FileDeets = emptyFilePatch()
   let state: State = "parsing header"
@@ -213,6 +216,12 @@ function parsePatchLines(lines: string[]): FileDeets[] {
         currentFilePatch.toPath = line.slice("+++ b/".length)
       }
     } else {
+      if (supportLegacyDiffs && line.startsWith("--- a/")) {
+        state = "parsing header"
+        commitFilePatch()
+        i--
+        continue
+      }
       // parsing hunks
       const lineType = hunkLinetypes[line[0]] || null
       switch (lineType) {
@@ -399,7 +408,21 @@ export function parsePatchFile(file: string): ParsedPatchFile {
   if (lines[lines.length - 1] === "") {
     lines.pop()
   }
-  return interpretParsedPatchFile(parsePatchLines(lines))
+  try {
+    return interpretParsedPatchFile(
+      parsePatchLines(lines, { supportLegacyDiffs: false }),
+    )
+  } catch (e) {
+    if (
+      e instanceof Error &&
+      e.message === "hunk header integrity check failed"
+    ) {
+      return interpretParsedPatchFile(
+        parsePatchLines(lines, { supportLegacyDiffs: true }),
+      )
+    }
+    throw e
+  }
 }
 
 export function verifyHunkIntegrity(hunk: Hunk) {

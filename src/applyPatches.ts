@@ -1,4 +1,4 @@
-import { bold, cyan, green, red, yellow } from "chalk"
+import { bold, green, red, yellow } from "chalk"
 import { getPatchFiles } from "./patchFs"
 import { executeEffects } from "./patch/apply"
 import { existsSync, readFileSync } from "fs-extra"
@@ -48,7 +48,8 @@ export const applyPatchesForApp = (
   const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
-    console.log(cyan("No patch files found"))
+    console.error(red("No patch files found"))
+    process.exit(1)
   }
 
   files.forEach(filename => {

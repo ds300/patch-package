@@ -2,6 +2,7 @@
 
 exports[`Test happy-path-npm: making patch 1`] = `
 "SNAPSHOT: making patch
+patch-package 0.0.0
 ✔ Creating temporary folder
 ✔ Making tmp package.json
 ✔ Installing left-pad@1.1.3 with npm

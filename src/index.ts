@@ -7,6 +7,7 @@ import { getAppRootPath } from "./getAppRootPath"
 import { makePatch } from "./makePatch"
 import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
+import { join } from "./path"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -14,6 +15,12 @@ const argv = minimist(process.argv.slice(2), {
   string: ["patch-dir"],
 })
 const packageNames = argv._
+
+console.log(
+  bold("patch-package"),
+  // tslint:disable-next-line:no-var-requires
+  require(join(__dirname, "../package.json")).version,
+)
 
 if (argv.help || argv.h) {
   printHelp()
@@ -42,7 +49,7 @@ if (argv.help || argv.h) {
       )
     })
   } else {
-    console.log("patch-package: Applying patches...")
+    console.log("Applying patches...")
     applyPatchesForApp(appPath, !!argv["reverse"], argv["patch-dir"])
   }
 }

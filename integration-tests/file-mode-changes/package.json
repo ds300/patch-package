@@ -1,0 +1,12 @@
+{
+  "name": "file-mode-changes",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "prettier": "^1.16.0",
+    "shx": "^0.3.2"
+  }
+}

@@ -1,35 +1,50 @@
 # Changelog
 
+## 6.0.0-15
+
+- Handle mode changes
+- Backwards-compatible patch file parsing
+
 ## 6.0.0-14
+
 - Handle renaming files properly
 
 ## 6.0.0-13
+
 - Handle large diffs by not calling .toString on stdout buffer
 - Git usage fixes
 
 ## 6.0.0-12
+
 - Support explicit nested package patching
 - Improve performance of patch creation
 
 ## 6.0.0-11
+
 - Handle crlf line breaks in patch parser (Contribution from @NMinhNguyen)
 
 ## 6.0.0-10
+
 - Add --patches-dir option (Contribution from @davidpett)
 
 ## 6.0.0-9
+
 - Fix patch application bug when creating new files (Contribution from @stmarkidis)
 
 ## 6.0.0-8
+
 - Improve diffing speed (Contribution from @KevinVlaanderen)
 
 ## 6.0.0-7
+
 - Use --no-ext-diff option when generating diffs (Contribution from @janv)
 
 ## 6.0.0-6
+
 - Make include/exclude regexes applied relative to the package root. Fixes #54
 
 ## 6.0.0-5
+
 - Fix preventing scripts from running when making patch file
 
 ## 6.0.0-4
@@ -121,14 +136,17 @@
 - Fix CRLF handling on Windows
 
 ## 3.4.0
+
 - Add npm shrinkwrap support
 
 ## 3.3.6
+
 - Use posix paths and line separators even on windows, for git's sake.
 
 ## 3.3.5
+
 - Resolve paths in patch files for situations where the git root is not
-the same as the app root.
+  the same as the app root.
 
 ## 3.3.4
 
@@ -158,6 +176,7 @@ Contribution by [@ashmind](https://github.com/ashmind)
 ## 3.3.0
 
 - Use `+` instead of `:` in patch file names because `:` is illegal on Windows.
+
 ## 3.2.1
 
 - Make update-notifier message show local install

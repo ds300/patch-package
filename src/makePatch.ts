@@ -14,8 +14,10 @@ import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
 import { dirSync } from "tmp"
 import { getPatchFiles } from "./patchFs"
-import { relative } from "path"
-import { getPatchDetailsFromCliString } from "./PackageDetails"
+import {
+  getPatchDetailsFromCliString,
+  getPackageDetailsFromPatchFilename,
+} from "./PackageDetails"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -174,15 +176,9 @@ export const makePatch = (
 
       // maybe delete existing
       getPatchFiles(patchDir).forEach(filename => {
-        const relativeFilename = relative(patchDir, filename)
-        if (
-          // add '+'s to avoid deleting nested patches when parent is being patched
-          relativeFilename.startsWith(packageNames + "+") ||
-          (relativeFilename.startsWith(packageDetails.name + "+") &&
-            !relativeFilename.startsWith(packageDetails.name + "++")) ||
-          relativeFilename.startsWith(packageDetails.name + ":") // legacy
-        ) {
-          unlinkSync(filename)
+        const deets = getPackageDetailsFromPatchFilename(filename)
+        if (deets && deets.path === packageDetails.path) {
+          unlinkSync(join(patchDir, filename))
         }
       })
 

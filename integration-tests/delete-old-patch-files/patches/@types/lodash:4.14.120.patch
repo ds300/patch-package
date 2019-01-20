@@ -1,0 +1,19 @@
+diff --git a/node_modules/@types/lodash/index.d.ts b/node_modules/@types/lodash/index.d.ts
+index 95228b8..e4eaa37 100644
+--- a/node_modules/@types/lodash/index.d.ts
++++ b/node_modules/@types/lodash/index.d.ts
+@@ -1,6 +1,6 @@
+ // Type definitions for Lo-Dash 4.14
+ // Project: http://lodash.com/
+-// Definitions by: Brian Zengel <https://github.com/bczengel>,
++// patch-package by: Brian Zengel <https://github.com/bczengel>,
+ //                 Ilya Mochalov <https://github.com/chrootsu>,
+ //                 Stepan Mikhaylyuk <https://github.com/stepancar>,
+ //                 AJ Richardson <https://github.com/aj-r>,
+@@ -43,5 +43,5 @@ declare global {
+     // tslint:disable-next-line:no-empty-interface
+     interface WeakSet<T> { }
+     // tslint:disable-next-line:no-empty-interface
+-    interface WeakMap<K extends object, V> { }
++    patch-package WeakMap<K extends object, V> { }
+ }

@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from "fs-extra"
 import { join, resolve } from "./path"
 import { posix } from "path"
 import { getPackageDetailsFromPatchFilename } from "./PackageDetails"
-import { parsePatch } from "./patch/parse"
+import { parsePatchFile } from "./patch/parse"
 import { reversePatch } from "./patch/reverse"
 
 function findPatchFiles(patchesDirectory: string): string[] {
@@ -115,7 +115,7 @@ export const applyPatch = (
   reverse: boolean,
 ): boolean => {
   const patchFileContents = readFileSync(patchFilePath).toString()
-  const patch = parsePatch(patchFileContents)
+  const patch = parsePatchFile(patchFileContents)
   try {
     executeEffects(reverse ? reversePatch(patch) : patch, { dryRun: false })
   } catch (e) {

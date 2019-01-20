@@ -3,7 +3,7 @@ import * as path from "path"
 
 import { spawnSafeSync } from "../src/spawnSafe"
 import { executeEffects } from "../src/patch/apply"
-import { parsePatch } from "../src/patch/parse"
+import { parsePatchFile } from "../src/patch/parse"
 import { reversePatch } from "../src/patch/reverse"
 
 import { TestCase, Files } from "./testCases"
@@ -37,6 +37,11 @@ jest.mock("fs-extra", () => {
     moveSync: jest.fn((from, to) => {
       getWorkingFiles()[to] = getWorkingFiles()[from]
       delete getWorkingFiles()[from]
+    }),
+    statSync: jest.fn(path => getWorkingFiles()[path]),
+    chmodSync: jest.fn((path, mode) => {
+      const { contents } = getWorkingFiles()[path]
+      getWorkingFiles()[path] = { contents, mode }
     }),
   }
 })
@@ -85,12 +90,14 @@ export function executeTestCase(testCase: TestCase) {
   writeFiles(tmpDir.name, testCase.cleanFiles)
 
   spawnSafeSync("git", ["add", "-A"], { cwd: tmpDir.name })
-  spawnSafeSync("git", ["commit", "-m", "blah"], {
+  spawnSafeSync("git", ["commit", "--allow-empty", "-m", "blah"], {
     cwd: tmpDir.name,
   })
-  spawnSafeSync("git", ["rm", "-rf", "*"], {
-    cwd: tmpDir.name,
-  })
+  if (Object.keys(testCase.cleanFiles).length > 0) {
+    spawnSafeSync("git", ["rm", "-rf", "*"], {
+      cwd: tmpDir.name,
+    })
+  }
 
   writeFiles(tmpDir.name, testCase.modifiedFiles)
   spawnSafeSync("git", ["add", "-A"], { cwd: tmpDir.name })
@@ -113,8 +120,8 @@ export function executeTestCase(testCase: TestCase) {
 
   it("looks the same whether parsed with blank lines or not", () => {
     reportingFailures(() => {
-      expect(parsePatch(patchFileContents)).toEqual(
-        parsePatch(patchFileContentsWithBlankLines),
+      expect(parsePatchFile(patchFileContents)).toEqual(
+        parsePatchFile(patchFileContentsWithBlankLines),
       )
     })
   })
@@ -124,7 +131,7 @@ export function executeTestCase(testCase: TestCase) {
   it("works forwards", () => {
     fs.setWorkingFiles({ ...testCase.cleanFiles })
     reportingFailures(() => {
-      const effects = parsePatch(patchFileContents)
+      const effects = parsePatchFile(patchFileContents)
       executeEffects(effects, { dryRun: false })
       expect(fs.getWorkingFiles()).toEqual(testCase.modifiedFiles)
     })
@@ -133,7 +140,7 @@ export function executeTestCase(testCase: TestCase) {
   it("works backwards", () => {
     fs.setWorkingFiles({ ...testCase.modifiedFiles })
     reportingFailures(() => {
-      const effects = reversePatch(parsePatch(patchFileContents))
+      const effects = reversePatch(parsePatchFile(patchFileContents))
       executeEffects(effects, { dryRun: false })
       expect(fs.getWorkingFiles()).toEqual(testCase.cleanFiles)
     })

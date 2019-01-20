@@ -3,14 +3,211 @@
 exports[`the patch parser can handle files with CRLF line breaks 1`] = `
 Array [
   Object {
-    "lines": Array [
-      "this is a new file
+    "hash": "3e1267f",
+    "hunk": Object {
+      "header": Object {
+        "original": Object {
+          "length": 0,
+          "start": 1,
+        },
+        "patched": Object {
+          "length": 1,
+          "start": 1,
+        },
+      },
+      "parts": Array [
+        Object {
+          "lines": Array [
+            "this is a new file
 ",
-    ],
+          ],
+          "noNewlineAtEndOfFile": false,
+          "type": "insertion",
+        },
+      ],
+    },
     "mode": 420,
-    "noNewlineAtEndOfFile": false,
     "path": "banana.ts",
     "type": "file creation",
+  },
+]
+`;
+
+exports[`the patch parser works 1`] = `
+Array [
+  Object {
+    "fromPath": "numbers.txt",
+    "toPath": "banana.txt",
+    "type": "rename",
+  },
+  Object {
+    "newMode": 493,
+    "oldMode": 420,
+    "path": "banana.txt",
+    "type": "mode change",
+  },
+  Object {
+    "afterHash": "92d2c5f",
+    "beforeHash": "fbf1785",
+    "hunks": Array [
+      Object {
+        "header": Object {
+          "original": Object {
+            "length": 4,
+            "start": 1,
+          },
+          "patched": Object {
+            "length": 4,
+            "start": 1,
+          },
+        },
+        "parts": Array [
+          Object {
+            "lines": Array [
+              "one",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "deletion",
+          },
+          Object {
+            "lines": Array [
+              "ne",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "insertion",
+          },
+          Object {
+            "lines": Array [
+              "",
+              "two",
+              "",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+        ],
+      },
+    ],
+    "path": "banana.txt",
+    "type": "patch",
+  },
+]
+`;
+
+exports[`the patch parser works 2`] = `
+Array [
+  Object {
+    "afterHash": "842652c",
+    "beforeHash": "2de83dd",
+    "hunks": Array [
+      Object {
+        "header": Object {
+          "original": Object {
+            "length": 5,
+            "start": 1,
+          },
+          "patched": Object {
+            "length": 5,
+            "start": 1,
+          },
+        },
+        "parts": Array [
+          Object {
+            "lines": Array [
+              "this",
+              "is",
+              "",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+          Object {
+            "lines": Array [
+              "a",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "deletion",
+          },
+          Object {
+            "lines": Array [
+              "",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "insertion",
+          },
+          Object {
+            "lines": Array [
+              "file",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+        ],
+      },
+    ],
+    "path": "banana.ts",
+    "type": "patch",
+  },
+]
+`;
+
+exports[`the patch parser works 3`] = `
+Array [
+  Object {
+    "fromPath": "numbers.txt",
+    "toPath": "banana.txt",
+    "type": "rename",
+  },
+  Object {
+    "newMode": 493,
+    "oldMode": 420,
+    "path": "banana.txt",
+    "type": "mode change",
+  },
+  Object {
+    "afterHash": "92d2c5f",
+    "beforeHash": "fbf1785",
+    "hunks": Array [
+      Object {
+        "header": Object {
+          "original": Object {
+            "length": 4,
+            "start": 1,
+          },
+          "patched": Object {
+            "length": 4,
+            "start": 1,
+          },
+        },
+        "parts": Array [
+          Object {
+            "lines": Array [
+              "one",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "deletion",
+          },
+          Object {
+            "lines": Array [
+              "ne",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "insertion",
+          },
+          Object {
+            "lines": Array [
+              "",
+              "two",
+              "",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+        ],
+      },
+    ],
+    "path": "banana.txt",
+    "type": "patch",
   },
 ]
 `;
@@ -18,47 +215,52 @@ Array [
 exports[`the patch parser works for a simple case 1`] = `
 Array [
   Object {
-    "parts": Array [
+    "afterHash": "842652c",
+    "beforeHash": "2de83dd",
+    "hunks": Array [
       Object {
-        "original": Object {
-          "length": 5,
-          "start": 1,
+        "header": Object {
+          "original": Object {
+            "length": 5,
+            "start": 1,
+          },
+          "patched": Object {
+            "length": 5,
+            "start": 1,
+          },
         },
-        "patched": Object {
-          "length": 5,
-          "start": 1,
-        },
-        "type": "hunk header",
-      },
-      Object {
-        "lines": Array [
-          "this",
-          "is",
-          "",
+        "parts": Array [
+          Object {
+            "lines": Array [
+              "this",
+              "is",
+              "",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
+          Object {
+            "lines": Array [
+              "a",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "deletion",
+          },
+          Object {
+            "lines": Array [
+              "",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "insertion",
+          },
+          Object {
+            "lines": Array [
+              "file",
+            ],
+            "noNewlineAtEndOfFile": false,
+            "type": "context",
+          },
         ],
-        "noNewlineAtEndOfFile": false,
-        "type": "context",
-      },
-      Object {
-        "lines": Array [
-          "a",
-        ],
-        "noNewlineAtEndOfFile": false,
-        "type": "deletion",
-      },
-      Object {
-        "lines": Array [
-          "",
-        ],
-        "noNewlineAtEndOfFile": false,
-        "type": "insertion",
-      },
-      Object {
-        "lines": Array [
-          "file",
-        ],
-        "noNewlineAtEndOfFile": false,
-        "type": "context",
       },
     ],
     "path": "banana.ts",

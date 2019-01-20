@@ -1,4 +1,9 @@
 import { generate } from "randomstring"
+import {
+  NON_EXECUTABLE_FILE_MODE,
+  EXECUTABLE_FILE_MODE,
+} from "../src/patch/parse"
+import { assertNever } from "../src/assertNever"
 
 export interface File {
   contents: string
@@ -31,7 +36,7 @@ function makeFileContents(): File {
         length: Math.floor(Math.random() * 1000),
         charset: fileCharSet,
       }) || "",
-    mode: 0o644,
+    mode: Math.random() > 0.5 ? 0o644 : 0o755,
   }
 }
 
@@ -69,11 +74,13 @@ type MutationKind =
   | "deleteLine"
   | "insertLine"
   | "renameFile"
+  | "changeFileMode"
 
 const mutationKindLikelihoods: Array<[MutationKind, number]> = [
   ["deleteFile", 1],
   ["createFile", 1],
   ["renameFile", 1],
+  ["changeFileMode", 1],
   ["deleteLine", 10],
   ["insertLine", 10],
 ]
@@ -126,7 +133,8 @@ function mutateFiles(files: Files): Files {
   const numMutations = Math.ceil(Math.random() * 1000)
 
   for (let i = 0; i < numMutations; i++) {
-    switch (getNextMutationKind()) {
+    const mutationKind = getNextMutationKind()
+    switch (mutationKind) {
       case "deleteFile": {
         if (Object.keys(mutatedFiles).length === 1) {
           break
@@ -160,6 +168,19 @@ function mutateFiles(files: Files): Files {
           mutatedFiles[pathToRename]
         delete mutatedFiles[pathToRename]
         break
+      case "changeFileMode":
+        const pathToChange = selectRandomElement(Object.keys(mutatedFiles))
+        const { mode, contents } = mutatedFiles[pathToChange]
+        mutatedFiles[pathToChange] = {
+          contents,
+          mode:
+            mode === NON_EXECUTABLE_FILE_MODE
+              ? EXECUTABLE_FILE_MODE
+              : NON_EXECUTABLE_FILE_MODE,
+        }
+        break
+      default:
+        assertNever(mutationKind)
     }
   }
 

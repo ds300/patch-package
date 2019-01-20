@@ -1,84 +1,105 @@
-import { ParsedPatchFile, PatchFilePart, PatchHunk } from "./parse"
+import {
+  ParsedPatchFile,
+  PatchFilePart,
+  Hunk,
+  HunkHeader,
+  verifyHunkIntegrity,
+} from "./parse"
+import { assertNever } from "../assertNever"
 
-function reverseHunks(hunks: PatchHunk[]): PatchHunk[] {
-  const result: PatchHunk[] = []
+function reverseHunk(hunk: Hunk): Hunk {
+  const header: HunkHeader = {
+    original: hunk.header.patched,
+    patched: hunk.header.original,
+  }
+  const parts: Hunk["parts"] = []
 
-  for (let i = 0; i < hunks.length; i++) {
-    const hunk = hunks[i]
-    switch (hunk.type) {
-      case "hunk header":
-        result.push({
-          type: "hunk header",
-          original: hunk.patched,
-          patched: hunk.original,
-        })
+  for (const part of hunk.parts) {
+    switch (part.type) {
+      case "context":
+        parts.push(part)
         break
       case "deletion":
-        result.push({
-          ...hunk,
+        parts.push({
           type: "insertion",
+          lines: part.lines,
+          noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
         })
         break
       case "insertion":
-        result.push({
-          ...hunk,
+        parts.push({
           type: "deletion",
+          lines: part.lines,
+          noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
         })
         break
-      case "context":
-        result.push(hunk)
-        break
+      default:
+        assertNever(part.type)
     }
   }
-  for (let i = 0; i < result.length - 1; i++) {
-    if (result[i].type === "insertion" && result[i + 1].type === "deletion") {
-      const tmp = result[i]
-      result[i] = result[i + 1]
-      result[i + 1] = tmp
+
+  // swap insertions and deletions over so deletions always come first
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (parts[i].type === "insertion" && parts[i + 1].type === "deletion") {
+      const tmp = parts[i]
+      parts[i] = parts[i + 1]
+      parts[i + 1] = tmp
       i += 1
     }
   }
 
+  const result: Hunk = {
+    header,
+    parts,
+  }
+
+  verifyHunkIntegrity(result)
+
   return result
 }
 
+function reversePatchPart(part: PatchFilePart): PatchFilePart {
+  switch (part.type) {
+    case "file creation":
+      return {
+        type: "file deletion",
+        path: part.path,
+        hash: part.hash,
+        hunk: part.hunk && reverseHunk(part.hunk),
+        mode: part.mode,
+      }
+    case "file deletion":
+      return {
+        type: "file creation",
+        path: part.path,
+        hunk: part.hunk && reverseHunk(part.hunk),
+        mode: part.mode,
+        hash: part.hash,
+      }
+    case "rename":
+      return {
+        type: "rename",
+        fromPath: part.toPath,
+        toPath: part.fromPath,
+      }
+    case "patch":
+      return {
+        type: "patch",
+        path: part.path,
+        hunks: part.hunks.map(reverseHunk),
+        beforeHash: part.afterHash,
+        afterHash: part.beforeHash,
+      }
+    case "mode change":
+      return {
+        type: "mode change",
+        path: part.path,
+        newMode: part.oldMode,
+        oldMode: part.newMode,
+      }
+  }
+}
+
 export const reversePatch = (patch: ParsedPatchFile): ParsedPatchFile => {
-  return patch
-    .map(
-      (part: PatchFilePart): PatchFilePart => {
-        switch (part.type) {
-          case "file creation":
-            return {
-              type: "file deletion",
-              path: part.path,
-              lines: part.lines,
-              mode: part.mode,
-              noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
-            }
-          case "file deletion":
-            return {
-              type: "file creation",
-              path: part.path,
-              lines: part.lines,
-              mode: part.mode,
-              noNewlineAtEndOfFile: part.noNewlineAtEndOfFile,
-            }
-          case "rename":
-            return {
-              type: "rename",
-              fromPath: part.toPath,
-              toPath: part.fromPath,
-            }
-          case "patch":
-            return {
-              type: "patch",
-              path: part.path,
-              parts: reverseHunks(part.parts),
-            }
-          default:
-            throw new Error()
-        }
-      },
-    )
-    .reverse()
+  return patch.map(reversePatchPart).reverse()
 }

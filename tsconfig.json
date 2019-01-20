@@ -12,6 +12,6 @@
     "noEmitOnError": false,
     "inlineSources": true
   },
-  "include": ["typings/**/*.d.ts", "src/**/*.ts"],
+  "include": ["typings/**/*.d.ts", "src/**/*.ts", "property-based-tests/**/*"],
   "compileOnSave": true
 }

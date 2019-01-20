@@ -1,6 +1,6 @@
 // tslint:disable
 
-import { parsePatch } from "../patch/parse"
+import { parsePatchFile } from "../patch/parse"
 
 const patch = `diff --git a/banana.ts b/banana.ts
 index 2de83dd..842652c 100644
@@ -100,21 +100,46 @@ index 0000000..3e1267f
 +this is a new file
 `.replace(/\n/g, "\r\n")
 
+const modeChangeAndModifyAndRename = `
+diff --git a/numbers.txt b/banana.txt
+old mode 100644
+new mode 100755
+similarity index 96%
+rename from numbers.txt
+rename to banana.txt
+index fbf1785..92d2c5f
+--- a/numbers.txt
++++ b/banana.txt
+@@ -1,4 +1,4 @@
+-one
++ne
+ 
+ two
+ 
+`
+
 describe("the patch parser", () => {
   it("works for a simple case", () => {
-    expect(parsePatch(patch)).toMatchSnapshot()
+    expect(parsePatchFile(patch)).toMatchSnapshot()
   })
   it("fails when the patch file has invalid headers", () => {
-    expect(() => parsePatch(invalidHeaders1)).toThrow()
-    expect(() => parsePatch(invalidHeaders2)).toThrow()
-    expect(() => parsePatch(invalidHeaders3)).toThrow()
-    expect(() => parsePatch(invalidHeaders4)).toThrow()
-    expect(() => parsePatch(invalidHeaders5)).toThrow()
+    expect(() => parsePatchFile(invalidHeaders1)).toThrow()
+    expect(() => parsePatchFile(invalidHeaders2)).toThrow()
+    expect(() => parsePatchFile(invalidHeaders3)).toThrow()
+    expect(() => parsePatchFile(invalidHeaders4)).toThrow()
+    expect(() => parsePatchFile(invalidHeaders5)).toThrow()
   })
   it("is OK when blank lines are accidentally created", () => {
-    expect(parsePatch(accidentalBlankLine)).toEqual(parsePatch(patch))
+    expect(parsePatchFile(accidentalBlankLine)).toEqual(parsePatchFile(patch))
   })
   it(`can handle files with CRLF line breaks`, () => {
-    expect(parsePatch(crlfLineBreaks)).toMatchSnapshot()
+    expect(parsePatchFile(crlfLineBreaks)).toMatchSnapshot()
+  })
+
+  it("works", () => {
+    expect(parsePatchFile(modeChangeAndModifyAndRename)).toMatchSnapshot()
+
+    expect(parsePatchFile(accidentalBlankLine)).toMatchSnapshot()
+    expect(parsePatchFile(modeChangeAndModifyAndRename)).toMatchSnapshot()
   })
 })

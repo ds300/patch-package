@@ -1,6 +1,7 @@
 import fs from "fs-extra"
 import { dirname } from "path"
 import { ParsedPatchFile, FilePatch } from "./parse"
+import { assertNever } from "../assertNever"
 
 export const executeEffects = (
   effects: ParsedPatchFile,
@@ -16,6 +17,7 @@ export const executeEffects = (
             )
           }
         } else {
+          // TODO: integrity checks
           fs.unlinkSync(eff.path)
         }
         break
@@ -38,20 +40,38 @@ export const executeEffects = (
               "Trying to create file that already exists: " + eff.path,
             )
           }
+          // todo: check file contents matches
         } else {
+          const fileContents = eff.hunk
+            ? eff.hunk.parts[0].lines.join("\n") +
+              (eff.hunk.parts[0].noNewlineAtEndOfFile ? "" : "\n")
+            : ""
           fs.ensureDirSync(dirname(eff.path))
-          fs.writeFileSync(
-            eff.path,
-            eff.lines.join("\n") + (eff.noNewlineAtEndOfFile ? "" : "\n"),
-            { mode: eff.mode },
-          )
+          fs.writeFileSync(eff.path, fileContents, { mode: eff.mode })
         }
         break
       case "patch":
         applyPatch(eff, { dryRun })
         break
+      case "mode change":
+        const currentMode = fs.statSync(eff.path).mode
+        if (
+          (isExecutable(eff.newMode) && isExecutable(currentMode)) ||
+          (!isExecutable(eff.newMode) && !isExecutable(currentMode))
+        ) {
+          throw new Error("Mode change is not required")
+        }
+        fs.chmodSync(eff.path, eff.newMode)
+        break
+      default:
+        assertNever(eff)
     }
   })
+}
+
+function isExecutable(fileMode: number) {
+  // tslint:disable-next-line:no-bitwise
+  return (fileMode & 0b001_000_000) > 0
 }
 
 const trimRight = (s: string) => s.replace(/\s+$/, "")
@@ -91,11 +111,12 @@ function assertLineEquality(onDisk: string, expected: string) {
  */
 
 function applyPatch(
-  { parts, path }: FilePatch,
+  { hunks, path }: FilePatch,
   { dryRun }: { dryRun: boolean },
 ): void {
   // modifying the file in place
   const fileContents = fs.readFileSync(path).toString()
+  const mode = fs.statSync(path).mode
 
   const fileLines: string[] = fileContents.split(/\n/)
 
@@ -105,20 +126,13 @@ function applyPatch(
   // of the patching process
   let contextIndexOffset = 0
 
-  let i = 0
-  while (i < parts.length) {
-    const hunkHeader = parts[i++]
-    if (hunkHeader.type !== "hunk header") {
-      throw new Error("expecting hunk header but got " + hunkHeader.type)
-    }
-
+  for (const { parts, header } of hunks) {
     // contextIndex is the offest from the hunk header start but in the original file
-    let contextIndex = hunkHeader.original.start - 1 + contextIndexOffset
+    let contextIndex = header.original.start - 1 + contextIndexOffset
 
-    contextIndexOffset += hunkHeader.patched.length - hunkHeader.original.length
+    contextIndexOffset += header.patched.length - header.original.length
 
-    while (i < parts.length && parts[i].type !== "hunk header") {
-      const part = parts[i++]
+    for (const part of parts) {
       switch (part.type) {
         case "deletion":
         case "context":
@@ -150,11 +164,13 @@ function applyPatch(
             fileLines.pop()
           }
           break
+        default:
+          assertNever(part.type)
       }
     }
   }
 
   if (!dryRun) {
-    fs.writeFileSync(path, fileLines.join("\n"))
+    fs.writeFileSync(path, fileLines.join("\n"), { mode })
   }
 }

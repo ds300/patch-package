@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { dirname } from "path"
-import { ParsedPatchFile, FilePatch } from "./parse"
+import { ParsedPatchFile, FilePatch, Hunk } from "./parse"
 import { assertNever } from "../assertNever"
 
 export const executeEffects = (
@@ -75,17 +75,8 @@ function isExecutable(fileMode: number) {
 }
 
 const trimRight = (s: string) => s.replace(/\s+$/, "")
-function assertLineEquality(onDisk: string, expected: string) {
-  if (trimRight(onDisk) !== trimRight(expected)) {
-    throw new Error(
-      `Line mismatch
-
-  Expected:  ${JSON.stringify(expected)}
-  Observed:  ${JSON.stringify(onDisk)}
-
-`,
-    )
-  }
+function linesAreEqual(a: string, b: string) {
+  return trimRight(a) === trimRight(b)
 }
 
 /**
@@ -120,57 +111,135 @@ function applyPatch(
 
   const fileLines: string[] = fileContents.split(/\n/)
 
-  // when adding or removing lines from a file, gotta
-  // make sure that the original lines in hunk headers match up
-  // this effectively measures the total +/- in line count during the course
-  // of the patching process
-  let contextIndexOffset = 0
+  const result: Modificaiton[][] = []
 
-  for (const { parts, header } of hunks) {
-    // contextIndex is the offest from the hunk header start but in the original file
-    let contextIndex = header.original.start - 1 + contextIndexOffset
+  for (const hunk of hunks) {
+    let fuzzingOffset = 0
+    while (true) {
+      const modifications = evaluateHunk(hunk, fileLines, fuzzingOffset)
+      if (modifications) {
+        result.push(modifications)
+        break
+      }
 
-    contextIndexOffset += header.patched.length - header.original.length
+      fuzzingOffset =
+        fuzzingOffset < 0 ? fuzzingOffset * -1 : fuzzingOffset * -1 - 1
 
-    for (const part of parts) {
-      switch (part.type) {
-        case "deletion":
-        case "context":
-          for (const line of part.lines) {
-            const originalLine = fileLines[contextIndex]
-            assertLineEquality(originalLine, line)
-            contextIndex++
-          }
-
-          if (part.type === "deletion") {
-            fileLines.splice(
-              contextIndex - part.lines.length,
-              part.lines.length,
-            )
-            contextIndex -= part.lines.length
-
-            if (part.noNewlineAtEndOfFile) {
-              fileLines.push("")
-            }
-          }
-          break
-        case "insertion":
-          fileLines.splice(contextIndex, 0, ...part.lines)
-          contextIndex += part.lines.length
-          if (part.noNewlineAtEndOfFile) {
-            if (contextIndex !== fileLines.length - 1) {
-              throw new Error("Invalid patch application state.")
-            }
-            fileLines.pop()
-          }
-          break
-        default:
-          assertNever(part.type)
+      if (Math.abs(fuzzingOffset) > 20) {
+        throw new Error(
+          `Cant apply hunk ${hunks.indexOf(hunk)} for file ${path}`,
+        )
       }
     }
   }
 
-  if (!dryRun) {
-    fs.writeFileSync(path, fileLines.join("\n"), { mode })
+  if (dryRun) {
+    return
   }
+
+  let diffOffset = 0
+
+  for (const modifications of result) {
+    for (const modification of modifications) {
+      switch (modification.type) {
+        case "splice":
+          fileLines.splice(
+            modification.index + diffOffset,
+            modification.numToDelete,
+            ...modification.linesToInsert,
+          )
+          diffOffset +=
+            modification.linesToInsert.length - modification.numToDelete
+          break
+        case "pop":
+          fileLines.pop()
+          break
+        case "push":
+          fileLines.push(modification.line)
+          break
+        default:
+          assertNever(modification)
+      }
+    }
+  }
+
+  fs.writeFileSync(path, fileLines.join("\n"), { mode })
+}
+
+interface Push {
+  type: "push"
+  line: string
+}
+interface Pop {
+  type: "pop"
+}
+interface Splice {
+  type: "splice"
+  index: number
+  numToDelete: number
+  linesToInsert: string[]
+}
+
+type Modificaiton = Push | Pop | Splice
+
+function evaluateHunk(
+  hunk: Hunk,
+  fileLines: string[],
+  fuzzingOffset: number,
+): Modificaiton[] | null {
+  const result: Modificaiton[] = []
+  let contextIndex = hunk.header.original.start - 1 + fuzzingOffset
+  // do bounds checks for index
+  if (contextIndex < 0) {
+    return null
+  }
+  if (fileLines.length - contextIndex < hunk.header.original.length) {
+    return null
+  }
+
+  for (const part of hunk.parts) {
+    switch (part.type) {
+      case "deletion":
+      case "context":
+        for (const line of part.lines) {
+          const originalLine = fileLines[contextIndex]
+          if (!linesAreEqual(originalLine, line)) {
+            return null
+          }
+          contextIndex++
+        }
+
+        if (part.type === "deletion") {
+          result.push({
+            type: "splice",
+            index: contextIndex - part.lines.length,
+            numToDelete: part.lines.length,
+            linesToInsert: [],
+          })
+
+          if (part.noNewlineAtEndOfFile) {
+            result.push({
+              type: "push",
+              line: "",
+            })
+          }
+        }
+        break
+      case "insertion":
+        result.push({
+          type: "splice",
+          index: contextIndex,
+          numToDelete: 0,
+          linesToInsert: part.lines,
+        })
+        if (part.noNewlineAtEndOfFile) {
+          result.push({ type: "pop" })
+        }
+        break
+      default:
+        assertNever(part.type)
+    }
+  }
+
+  return result
 }

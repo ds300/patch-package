@@ -108,7 +108,9 @@ export const makePatch = (
         green("✔"),
         `Installing ${packageDetails.name}@${packageVersion} with yarn`,
       )
-      spawnSafeSync(`yarn`, [], { cwd: tmpRepoNpmRoot })
+      spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
+        cwd: tmpRepoNpmRoot,
+      })
     } else {
       console.info(
         green("✔"),

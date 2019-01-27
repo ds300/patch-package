@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.0.0-18
+
+- Allow fuzzy patch hunk application.
+- Minor UI tweaks
+- Ignore global git config to prevent issues like #109 & #115
+- Add --ignore-engines to yarn invocation
+
 ## 6.0.0-17
 
 - Fix the removal of old patch files when creating new ones.

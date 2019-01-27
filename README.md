@@ -35,11 +35,11 @@ Then
 
 ### npm
 
-    npm i patch-package --save-dev
+    npm i patch-package
 
 ### yarn
 
-    yarn add --dev patch-package postinstall-postinstall
+    yarn add patch-package postinstall-postinstall
 
 To understand why yarn needs the `postinstall-postinstall` package see: [Why use postinstall-postinstall](#why-use-postinstall-postinstall-with-yarn)
 

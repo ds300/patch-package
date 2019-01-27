@@ -2,6 +2,7 @@ import fs from "fs-extra"
 import { join } from "./path"
 import chalk from "chalk"
 import process from "process"
+import findUp = require("find-up")
 
 export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
 
@@ -46,7 +47,8 @@ export const detectPackageManager = (
   const shrinkWrapExists = fs.existsSync(
     join(appRootPath, "npm-shrinkwrap.json"),
   )
-  const yarnLockExists = fs.existsSync(join(appRootPath, "yarn.lock"))
+  const yarnLockExists = findUp.sync("yarn.lock", { cwd: appRootPath })
+
   if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
     if (overridePackageManager) {
       return overridePackageManager

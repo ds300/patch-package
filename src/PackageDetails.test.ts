@@ -1,6 +1,7 @@
 import {
   getPackageDetailsFromPatchFilename,
   getPatchDetailsFromCliString,
+  resolveNpmRoot,
 } from "./PackageDetails"
 
 describe("getPackageDetailsFromPatchFilename", () => {
@@ -124,8 +125,8 @@ Object {
 
 describe("getPatchDetailsFromCliString", () => {
   it("handles a minimal package name", () => {
-    expect(getPatchDetailsFromCliString("patch-package")).toMatchInlineSnapshot(
-      `
+    expect(getPatchDetailsFromCliString("patch-package"))
+      .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "patch-package",
   "isNested": false,
@@ -136,15 +137,12 @@ Object {
   "path": "node_modules/patch-package",
   "pathSpecifier": "patch-package",
 }
-`,
-    )
+`)
   })
 
   it("handles a scoped package name", () => {
-    expect(
-      getPatchDetailsFromCliString("@david/patch-package"),
-    ).toMatchInlineSnapshot(
-      `
+    expect(getPatchDetailsFromCliString("@david/patch-package"))
+      .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "@david/patch-package",
   "isNested": false,
@@ -155,15 +153,12 @@ Object {
   "path": "node_modules/@david/patch-package",
   "pathSpecifier": "@david/patch-package",
 }
-`,
-    )
+`)
   })
 
   it("handles a nested package name", () => {
-    expect(
-      getPatchDetailsFromCliString("david/patch-package"),
-    ).toMatchInlineSnapshot(
-      `
+    expect(getPatchDetailsFromCliString("david/patch-package"))
+      .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "david => patch-package",
   "isNested": true,
@@ -175,15 +170,12 @@ Object {
   "path": "node_modules/david/node_modules/patch-package",
   "pathSpecifier": "david/patch-package",
 }
-`,
-    )
+`)
   })
 
   it("handles a nested package name with scopes", () => {
-    expect(
-      getPatchDetailsFromCliString("@david/patch-package/banana"),
-    ).toMatchInlineSnapshot(
-      `
+    expect(getPatchDetailsFromCliString("@david/patch-package/banana"))
+      .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "@david/patch-package => banana",
   "isNested": true,
@@ -195,13 +187,10 @@ Object {
   "path": "node_modules/@david/patch-package/node_modules/banana",
   "pathSpecifier": "@david/patch-package/banana",
 }
-`,
-    )
+`)
 
-    expect(
-      getPatchDetailsFromCliString("@david/patch-package/@david/banana"),
-    ).toMatchInlineSnapshot(
-      `
+    expect(getPatchDetailsFromCliString("@david/patch-package/@david/banana"))
+      .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "@david/patch-package => @david/banana",
   "isNested": true,
@@ -213,13 +202,10 @@ Object {
   "path": "node_modules/@david/patch-package/node_modules/@david/banana",
   "pathSpecifier": "@david/patch-package/@david/banana",
 }
-`,
-    )
+`)
 
-    expect(
-      getPatchDetailsFromCliString("david/patch-package/@david/banana"),
-    ).toMatchInlineSnapshot(
-      `
+    expect(getPatchDetailsFromCliString("david/patch-package/@david/banana"))
+      .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "david => patch-package => @david/banana",
   "isNested": true,
@@ -232,7 +218,43 @@ Object {
   "path": "node_modules/david/node_modules/patch-package/node_modules/@david/banana",
   "pathSpecifier": "david/patch-package/@david/banana",
 }
-`,
+`)
+  })
+})
+
+describe("getAbsolutePackagePath", () => {
+  const resolve = require.resolve
+  require.resolve = jest.fn(packageName => {
+    switch (packageName) {
+      case "chalk":
+        return "/Users/davidsheldrick/code/patch-package/node_modules/chalk/index.js"
+      case "typescript":
+        return "/Users/davidsheldrick/code/patch-package/node_modules/typescript/lib/typescript.js"
+    }
+  })
+
+  it("returns the absolute path for a given package", () => {
+    expect(resolveNpmRoot(getPatchDetailsFromCliString("chalk")!)).toBe(
+      "/Users/davidsheldrick/code/patch-package",
     )
+    expect(resolveNpmRoot(getPatchDetailsFromCliString("typescript")!)).toBe(
+      "/Users/davidsheldrick/code/patch-package",
+    )
+    expect(
+      resolveNpmRoot(getPatchDetailsFromCliString("typescript/banana")!),
+    ).toBe("/Users/davidsheldrick/code/patch-package")
+    expect(
+      resolveNpmRoot(getPatchDetailsFromCliString("chalk/@types/banana")!),
+    ).toBe("/Users/davidsheldrick/code/patch-package")
+
+    expect(
+      resolveNpmRoot(
+        getPackageDetailsFromPatchFilename("chalk++@types/banana+4.4.4.patch")!,
+      ),
+    ).toBe("/Users/davidsheldrick/code/patch-package")
+  })
+
+  afterAll(() => {
+    require.resolve = resolve
   })
 })

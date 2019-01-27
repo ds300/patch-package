@@ -5,15 +5,19 @@ import { existsSync, readFileSync } from "fs-extra"
 import { join, resolve } from "./path"
 import { posix } from "path"
 import { getPackageDetailsFromPatchFilename } from "./PackageDetails"
-import { parsePatchFile } from "./patch/parse"
+import { parsePatchFile, ParsedPatchFile } from "./patch/parse"
 import { reversePatch } from "./patch/reverse"
 import isCi from "is-ci"
+import { assertNever } from "./assertNever"
+
+// @ts-ignore
+import getYarnWorkspaces from "get-yarn-workspaces"
 
 // don't want to exit(1) on postinsall locally.
 // see https://github.com/ds300/patch-package/issues/86
 const shouldExitPostinstallWithError = isCi || process.env.NODE_ENV === "test"
 
-function findPatchFiles(patchesDirectory: string): string[] {
+function findAllPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
     return []
   }
@@ -47,10 +51,10 @@ function getInstalledPackageVersion({
 export const applyPatchesForApp = (
   appPath: string,
   reverse: boolean,
-  patchDir: string = "patches",
+  patchDirName: string = "patches",
 ): void => {
-  const patchesDirectory = join(appPath, patchDir)
-  const files = findPatchFiles(patchesDirectory)
+  const patchesDirectory = join(appPath, patchDirName)
+  const files = findAllPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
     console.error(red("No patch files found"))
@@ -116,12 +120,16 @@ export const applyPatchesForApp = (
   })
 }
 
-export const applyPatch = (
+const applyPatch = (
   patchFilePath: string,
   reverse: boolean,
+  npmRoot?: string,
 ): boolean => {
   const patchFileContents = readFileSync(patchFilePath).toString()
-  const patch = parsePatchFile(patchFileContents)
+  let patch = parsePatchFile(patchFileContents)
+  if (npmRoot) {
+    patch = qualifyPathsInPatch(npmRoot, patch)
+  }
   try {
     executeEffects(reverse ? reversePatch(patch) : patch, { dryRun: false })
   } catch (e) {
@@ -256,4 +264,27 @@ ${red.bold("**ERROR**")} ${red(
     Patch was made for version: ${green.bold(originalVersion)}
     Installed version: ${red.bold(actualVersion)}
 `)
+}
+
+function qualifyPathsInPatch(
+  path: string,
+  patch: ParsedPatchFile,
+): ParsedPatchFile {
+  return patch.map(eff => {
+    switch (eff.type) {
+      case "file creation":
+      case "file deletion":
+      case "mode change":
+      case "patch":
+        return { ...eff, path: join(path, eff.path) }
+      case "rename":
+        return {
+          ...eff,
+          fromPath: join(path, eff.fromPath),
+          toPath: join(path, eff.toPath),
+        }
+      default:
+        return assertNever(eff)
+    }
+  })
 }

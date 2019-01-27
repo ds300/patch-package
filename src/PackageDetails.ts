@@ -1,4 +1,5 @@
-import { join } from "path"
+import { join } from "./path"
+import { spawnSafeSync } from "./spawnSafe"
 
 interface PackageDetails {
   humanReadablePathSpecifier: string
@@ -132,4 +133,20 @@ export function getPatchDetailsFromCliString(
     isNested: packageNames.length > 1,
     pathSpecifier: specifier,
   }
+}
+
+export function resolveNpmRoot(packageDetails: PackageDetails): string {
+  const rootPackageName = packageDetails.packageNames[0]
+  const rootPackageEntryPath = spawnSafeSync("node", [
+    "-e",
+    `console.log(require.resolve(${JSON.stringify(rootPackageName)}))`,
+  ]).stdout.toString().trim()
+  const searchString = `/node_modules/${rootPackageName}/`
+  if (!rootPackageEntryPath.includes(searchString)) {
+    throw new Error(`Can't find root npm path from '${searchString}'`)
+  }
+  return rootPackageEntryPath.slice(
+    0,
+    rootPackageEntryPath.lastIndexOf(searchString),
+  )
 }

@@ -1,5 +1,5 @@
-import { green, grey } from "chalk"
-import { join, dirname, resolve } from "./path"
+import { green, grey, cyan } from "chalk"
+import { join, dirname, resolve, relative } from "./path"
 import { spawnSafeSync } from "./spawnSafe"
 import { PackageManager } from "./detectPackageManager"
 import { removeIgnoredFiles } from "./filterFiles"
@@ -17,6 +17,7 @@ import { getPatchFiles } from "./patchFs"
 import {
   getPatchDetailsFromCliString,
   getPackageDetailsFromPatchFilename,
+  resolveNpmRoot,
 } from "./PackageDetails"
 
 function printNoPackageFoundError(
@@ -36,7 +37,7 @@ export const makePatch = (
   packageManager: PackageManager,
   includePaths: RegExp,
   excludePaths: RegExp,
-  patchDir: string = "patches",
+  patchDirName: string = "patches",
 ) => {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
@@ -45,8 +46,12 @@ export const makePatch = (
     return
   }
   const appPackageJson = require(join(appPath, "package.json"))
-  const packagePath = join(appPath, packageDetails.path)
+  const npmRoot = resolveNpmRoot(packageDetails)
+  const packagePath = join(npmRoot, packageDetails.path)
   const packageJsonPath = join(packagePath, "package.json")
+
+  console.log("Patching chalk at", cyan(relative(process.cwd(), packagePath)))
+  console.log("app path", appPath)
 
   if (!existsSync(packageJsonPath)) {
     printNoPackageFoundError(packagePathSpecifier, packageJsonPath)
@@ -87,7 +92,7 @@ export const makePatch = (
   const tmpRepoPackageJsonPath = join(tmpRepoNpmRoot, "package.json")
 
   try {
-    const patchesDir = join(appPath, patchDir)
+    const patchesDir = join(npmRoot, patchDirName)
 
     console.info(grey("•"), "Creating temporary folder")
 
@@ -179,10 +184,10 @@ export const makePatch = (
         .join("++")
 
       // maybe delete existing
-      getPatchFiles(patchDir).forEach(filename => {
+      getPatchFiles(patchesDir).forEach(filename => {
         const deets = getPackageDetailsFromPatchFilename(filename)
         if (deets && deets.path === packageDetails.path) {
-          unlinkSync(join(patchDir, filename))
+          unlinkSync(join(patchesDir, filename))
         }
       })
 
@@ -194,7 +199,12 @@ export const makePatch = (
         mkdirSync(dirname(patchPath))
       }
       writeFileSync(patchPath, diffResult.stdout)
-      console.log(`${green("✔")} Created file ${patchDir}/${patchFileName}`)
+      console.log(
+        `${green("✔")} Created file ${relative(
+          process.cwd(),
+          patchesDir,
+        )}/${patchFileName}`,
+      )
     }
   } catch (e) {
     console.error(e)

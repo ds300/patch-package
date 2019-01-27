@@ -87,6 +87,10 @@ which is a diff between normal old `package-name` and your fixed version. Commit
 
   Make regexps used in --include or --exclude filters case-sensitive.
 
+- `--patch-dir`
+
+  Specify the name for the directory in which to put the patch files.
+
 #### Nested packages
 
 If you are trying to patch a package at, e.g. `node_modules/package/node_modules/another-package` you can just put a `/` between the package names:
@@ -114,6 +118,10 @@ Run `patch-package` without arguments to apply all patches in your project.
   Note that this will fail if the patched files have changed since being patched. In that case, you'll probably need to re-install `node_modules`.
 
   This option was added to help people using CircleCI avoid [an issue around caching and patch file updates](https://github.com/ds300/patch-package/issues/37) but might be useful in other contexts too.
+
+- `--patch-dir`
+
+  Specify the name for the directory in which the patch files are located
 
 #### Notes
 

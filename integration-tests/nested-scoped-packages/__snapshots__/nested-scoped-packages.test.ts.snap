@@ -3,10 +3,9 @@
 exports[`Test nested-scoped-packages: create the patch 1`] = `
 "SNAPSHOT: create the patch
 patch-package 0.0.0
-✔ Creating temporary folder
-✔ Making tmp package.json
-✔ Installing @types/angular@1.6.53 with yarn
-✔ Diffing your files with clean files
+• Creating temporary folder
+• Installing @types/angular@1.6.53 with yarn
+• Diffing your files with clean files
 ✔ Created file patches/@microsoft+mezzurite-core++@types+angular+1.6.53.patch
 END SNAPSHOT"
 `;

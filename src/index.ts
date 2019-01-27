@@ -11,7 +11,13 @@ import { join } from "./path"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
-  boolean: ["use-yarn", "case-sensitive-path-filtering", "reverse"],
+  boolean: [
+    "use-yarn",
+    "case-sensitive-path-filtering",
+    "reverse",
+    "help",
+    "version",
+  ],
   string: ["patch-dir"],
 })
 const packageNames = argv._
@@ -22,7 +28,9 @@ console.log(
   require(join(__dirname, "../package.json")).version,
 )
 
-if (argv.help || argv.h) {
+if (argv.version || argv.v) {
+  // noop
+} else if (argv.help || argv.h) {
   printHelp()
 } else {
   if (packageNames.length) {

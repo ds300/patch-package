@@ -3,10 +3,9 @@
 exports[`Test nested-packages: create the patch 1`] = `
 "SNAPSHOT: create the patch
 patch-package 0.0.0
-✔ Creating temporary folder
-✔ Making tmp package.json
-✔ Installing string-width@2.1.1 with yarn
-✔ Diffing your files with clean files
+• Creating temporary folder
+• Installing string-width@2.1.1 with yarn
+• Diffing your files with clean files
 ✔ Created file patches/wrap-ansi++string-width+2.1.1.patch
 END SNAPSHOT"
 `;

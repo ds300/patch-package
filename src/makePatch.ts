@@ -1,4 +1,4 @@
-import { green } from "chalk"
+import { green, grey } from "chalk"
 import { join, dirname, resolve } from "./path"
 import { spawnSafeSync } from "./spawnSafe"
 import { PackageManager } from "./detectPackageManager"
@@ -89,10 +89,9 @@ export const makePatch = (
   try {
     const patchesDir = join(appPath, patchDir)
 
-    console.info(green("✔"), "Creating temporary folder")
+    console.info(grey("•"), "Creating temporary folder")
 
     // make a blank package.json
-    console.info(green("✔"), "Making tmp package.json")
     mkdirpSync(tmpRepoNpmRoot)
     writeFileSync(
       tmpRepoPackageJsonPath,
@@ -105,7 +104,7 @@ export const makePatch = (
 
     if (packageManager === "yarn") {
       console.info(
-        green("✔"),
+        grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with yarn`,
       )
       spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
@@ -113,7 +112,7 @@ export const makePatch = (
       })
     } else {
       console.info(
-        green("✔"),
+        grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with npm`,
       )
       spawnSafeSync(`npm`, ["i"], { cwd: tmpRepoNpmRoot })
@@ -131,7 +130,7 @@ export const makePatch = (
     rimraf(join(tmpRepoPackagePath, "node_modules"))
 
     // commit the package
-    console.info(green("✔"), "Diffing your files with clean files")
+    console.info(grey("•"), "Diffing your files with clean files")
     writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
     git("init")
     git("config", "--local", "user.name", "patch-package")

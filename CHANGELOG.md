@@ -1,5 +1,20 @@
 # Changelog
 
+## 6.0.1
+
+- Document --patch-dir option in readme
+
+## 6.0.0
+
+### Highlights!
+
+- No longer dependent on Git to apply patches
+- Patch files are created much much much faster 🏃🏽‍♀️💨
+- Fixed lots of small bugs
+- Explicit support for nested packages
+
+For full details see the prerelease notes.
+
 ## 6.0.0-18
 
 - Allow fuzzy patch hunk application.

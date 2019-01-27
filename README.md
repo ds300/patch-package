@@ -63,29 +63,39 @@ which is a diff between normal old `package-name` and your fixed version. Commit
 
 #### Options
 
-* `--use-yarn`
+- `--use-yarn`
 
   By default, patch-package checks whether you use npm or yarn based on
   which lockfile you have. If you have both, it uses npm by default.
   Set this option to override that default and always use yarn.
 
-* `--exclude <regexp>`
+- `--exclude <regexp>`
 
   Ignore paths matching the regexp when creating patch files.
   Paths are relative to the root dir of the package to be patched.
 
   Default value: `package\\.json$`
 
-* `--include <regexp>`
+- `--include <regexp>`
 
   Only consider paths matching the regexp when creating patch files.
   Paths are relative to the root dir of the package to be patched.
 
   Default value: `.*`
 
-* `--case-sensitive-path-filtering`
+- `--case-sensitive-path-filtering`
 
   Make regexps used in --include or --exclude filters case-sensitive.
+
+#### Nested packages
+
+If you are trying to patch a package at, e.g. `node_modules/package/node_modules/another-package` you can just put a `/` between the package names:
+
+    npx patch-package package/another-package
+
+It works with scoped packages too
+
+    npx patch-package @my/package/@my/other-package
 
 ### Updating patches
 
@@ -97,7 +107,7 @@ Run `patch-package` without arguments to apply all patches in your project.
 
 #### Options
 
-* `--reverse`
+- `--reverse`
 
   Un-applies all patches.
 
@@ -117,25 +127,25 @@ or `patch` in unixy environments:
 
 ## Benefits of patching over forking
 
-* Sometimes forks need extra build steps, e.g. with react-native for Android. Forget that noise.
-* Get told in big red letters when the dependency changed and you need to check that your fix is still valid.
-* Keep your patches colocated with the code that depends on them.
-* Patches can be reviewed as part of your normal review process, forks probably can't
+- Sometimes forks need extra build steps, e.g. with react-native for Android. Forget that noise.
+- Get told in big red letters when the dependency changed and you need to check that your fix is still valid.
+- Keep your patches colocated with the code that depends on them.
+- Patches can be reviewed as part of your normal review process, forks probably can't
 
 ## When to fork instead
 
-* The change is too consequential to be developed in situ.
-* The change would be useful to other people as-is.
-* You can afford to make a proper PR to upstream.
+- The change is too consequential to be developed in situ.
+- The change would be useful to other people as-is.
+- You can afford to make a proper PR to upstream.
 
 ## Isn't this dangerous?
 
 Nope. The technique is quite robust. Here are some things to keep in mind though:
 
-* It's easy to forget to run `yarn` or `npm` when switching between branches that do and don't have patch files.
-* Long lived patches can be costly to maintain if they affect an area of code that is updated regularly and you want to update the package regularly too.
-* Big semantic changes can be hard to review. Keep them small and obvious or add plenty of comments.
-* Changes can also impact the behaviour of other untouched packages. It's normally obvious when this will happen, and often desired, but be careful nonetheless.
+- It's easy to forget to run `yarn` or `npm` when switching between branches that do and don't have patch files.
+- Long lived patches can be costly to maintain if they affect an area of code that is updated regularly and you want to update the package regularly too.
+- Big semantic changes can be hard to review. Keep them small and obvious or add plenty of comments.
+- Changes can also impact the behaviour of other untouched packages. It's normally obvious when this will happen, and often desired, but be careful nonetheless.
 
 ## Why use postinstall-postinstall with Yarn?
 

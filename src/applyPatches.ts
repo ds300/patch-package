@@ -54,7 +54,7 @@ export const applyPatchesForApp = (
 
   if (files.length === 0) {
     console.error(red("No patch files found"))
-    process.exit(shouldExitPostinstallWithError ? 1 : 0)
+    return
   }
 
   files.forEach(filename => {

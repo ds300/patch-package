@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.2
+
+- Revert failure exit code when no patches are found.
+
 ## 6.0.1
 
 - Document --patch-dir option in readme

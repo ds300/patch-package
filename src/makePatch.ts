@@ -87,7 +87,7 @@ export const makePatch = (
   const tmpRepoPackageJsonPath = join(tmpRepoNpmRoot, "package.json")
 
   try {
-    const patchesDir = join(appPath, patchDir)
+    const patchesDir = path.resolve(join(appPath, patchDir))
 
     console.info(grey("•"), "Creating temporary folder")
 

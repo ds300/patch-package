@@ -51,6 +51,7 @@
     "@types/minimist": "^1.2.0",
     "@types/node": "^7.0.18",
     "@types/rimraf": "^0.0.28",
+    "@types/semver": "^5.5.0",
     "@types/tmp": "^0.0.33",
     "husky": "^0.13.3",
     "jest": "^23.6.0",
@@ -72,6 +73,7 @@
     "klaw-sync": "^4.0.0",
     "minimist": "^1.2.0",
     "rimraf": "^2.6.2",
+    "semver": "^5.6.0",
     "slash": "^1.0.0",
     "tmp": "^0.0.31",
     "update-notifier": "^2.4.0"

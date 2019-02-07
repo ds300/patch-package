@@ -8,6 +8,7 @@ import { getPackageDetailsFromPatchFilename } from "./PackageDetails"
 import { parsePatchFile } from "./patch/parse"
 import { reversePatch } from "./patch/reverse"
 import isCi from "is-ci"
+import semver from "semver"
 
 // don't want to exit(1) on postinsall locally.
 // see https://github.com/ds300/patch-package/issues/86
@@ -41,7 +42,9 @@ function getInstalledPackageVersion({
     return null
   }
 
-  return require(join(packageDir, "package.json")).version
+  const { version } = require(join(packageDir, "package.json"))
+  // normalize version for `npm ci`
+  return semver.valid(version)
 }
 
 export const applyPatchesForApp = (

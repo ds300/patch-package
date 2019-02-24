@@ -10,3 +10,4 @@ coverage/
 test/
 patch-package*.tgz
 .travis.yml
+*.test.js

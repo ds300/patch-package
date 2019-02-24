@@ -19,6 +19,7 @@
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
+    "prepack": "rimraf dist/**/*.test.js",
     "test": "./run-tests.sh --runInBand"
   },
   "lint-staged": {
@@ -77,5 +78,13 @@
     "slash": "^1.0.0",
     "tmp": "^0.0.31",
     "update-notifier": "^2.4.0"
-  }
+  },
+  "files": [
+    "./index.js",
+    "dist/**/*.js",
+    "CHANGELOG.md",
+    "LICENSE",
+    "patch-package-banner.png",
+    "README.md"
+  ]
 }

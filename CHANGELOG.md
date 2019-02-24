@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.4
+
+- Fix patch parsing issue affecting windows (#124)
+
 ## 6.0.3
 
 - Allow relative file paths for --patch-dir (Contribution from @lots0logs in #119)

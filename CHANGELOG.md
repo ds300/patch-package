@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.0.3
+
+- Allow relative file paths for --patch-dir (Contribution from @lots0logs in #119)
+- Fix version string handling (Contribution from @teppeis in #122)
+- Add support for custom resolutions field in app's package.json (#125)
+- Fix property access bug (#123)
+- Move @types/is-ci from dependencies to devDependencies (#121)
+
 ## 6.0.2
 
 - Revert failure exit code when no patches are found.

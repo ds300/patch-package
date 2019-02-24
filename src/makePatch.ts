@@ -18,6 +18,7 @@ import {
   getPatchDetailsFromCliString,
   getPackageDetailsFromPatchFilename,
 } from "./PackageDetails"
+import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -102,6 +103,10 @@ export const makePatch = (
         dependencies: {
           [packageDetails.name]: packageVersionSpecifier || packageVersion,
         },
+        resolutions: resolveRelativeFileDependencies(
+          appPath,
+          appPackageJson.resolutions || {},
+        ),
       }),
     )
 

@@ -1,0 +1,14 @@
+{
+  "name": "custom-resolutions",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dependency": "file:./dependency"
+  },
+  "resolutions": {
+    "blahblahblah-definitely-not-a-real-package-name": "file:./blahblahblah-definitely-not-a-real-package-name"
+  }
+}

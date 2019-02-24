@@ -1,0 +1,9 @@
+{
+  "name": "dependency",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "blahblahblah-definitely-not-a-real-package-name": "0.34.2"
+  }
+}

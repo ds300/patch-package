@@ -60,11 +60,14 @@ export const makePatch = (
   // We need it only for patching deps specified with file:./
   // which I think only happens in tests
   // but might happen in real life too.
-  let packageVersionSpecifier: null | string = packageDetails.isNested
-    ? null
-    : appPackageJson.dependencies[packageDetails.name] ||
-      appPackageJson.devDependencies[packageDetails.name] ||
+  let packageVersionSpecifier: null | string = null
+  if (!packageDetails.isNested) {
+    const { devDependencies = {}, dependencies = {} } = appPackageJson
+    packageVersionSpecifier =
+      dependencies[packageDetails.name] ||
+      devDependencies[packageDetails.name] ||
       null
+  }
 
   if (
     packageVersionSpecifier &&

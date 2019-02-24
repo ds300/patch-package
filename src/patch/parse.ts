@@ -190,19 +190,21 @@ function parsePatchLines(
         currentFilePatch.diffLineFromPath = match[1]
         currentFilePatch.diffLineToPath = match[2]
       } else if (line.startsWith("old mode ")) {
-        currentFilePatch.oldMode = line.slice("old mode ".length)
+        currentFilePatch.oldMode = line.slice("old mode ".length).trim()
       } else if (line.startsWith("new mode ")) {
-        currentFilePatch.newMode = line.slice("new mode ".length)
+        currentFilePatch.newMode = line.slice("new mode ".length).trim()
       } else if (line.startsWith("deleted file mode ")) {
-        currentFilePatch.deletedFileMode = line.slice(
-          "deleted file mode ".length,
-        )
+        currentFilePatch.deletedFileMode = line
+          .slice("deleted file mode ".length)
+          .trim()
       } else if (line.startsWith("new file mode ")) {
-        currentFilePatch.newFileMode = line.slice("new file mode ".length)
+        currentFilePatch.newFileMode = line
+          .slice("new file mode ".length)
+          .trim()
       } else if (line.startsWith("rename from ")) {
-        currentFilePatch.renameFrom = line.slice("rename from ".length)
+        currentFilePatch.renameFrom = line.slice("rename from ".length).trim()
       } else if (line.startsWith("rename to ")) {
-        currentFilePatch.renameTo = line.slice("rename to ".length)
+        currentFilePatch.renameTo = line.slice("rename to ".length).trim()
       } else if (line.startsWith("index ")) {
         const match = line.match(/(\w+)\.\.(\w+)/)
         if (!match) {
@@ -211,9 +213,9 @@ function parsePatchLines(
         currentFilePatch.beforeHash = match[1]
         currentFilePatch.afterHash = match[2]
       } else if (line.startsWith("--- ")) {
-        currentFilePatch.fromPath = line.slice("--- a/".length)
+        currentFilePatch.fromPath = line.slice("--- a/".length).trim()
       } else if (line.startsWith("+++ ")) {
-        currentFilePatch.toPath = line.slice("+++ b/".length)
+        currentFilePatch.toPath = line.slice("+++ b/".length).trim()
       }
     } else {
       if (supportLegacyDiffs && line.startsWith("--- a/")) {

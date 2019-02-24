@@ -80,7 +80,7 @@
     "update-notifier": "^2.4.0"
   },
   "files": [
-    "./index.js",
+    "index.js",
     "dist/**/*.js",
     "CHANGELOG.md",
     "LICENSE",

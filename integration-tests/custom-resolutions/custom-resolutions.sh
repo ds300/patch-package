@@ -5,7 +5,7 @@ echo "add patch-package"
 yarn add $1
 
 echo "the index.js"
-cat patch-package node_modules/dependency/index.js
+cat node_modules/dependency/index.js
 
 echo "make changes to dependency/index.js"
 npx replace dependency patch-package node_modules/dependency/index.js

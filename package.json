@@ -20,7 +20,7 @@
     "clean": "rimraf dist patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
     "prepack": "rimraf dist/**/*.test.js",
-    "test": "./run-tests.sh --runInBand"
+    "test": "./run-tests.sh --runInBand custom-resolutions"
   },
   "lint-staged": {
     "*.ts": [

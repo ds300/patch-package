@@ -2,6 +2,7 @@ import * as fs from "fs-extra"
 import { join, resolve } from "../src/path"
 import * as tmp from "tmp"
 import { spawnSafeSync } from "../src/spawnSafe"
+import { resolveRelativeFileDependencies } from "../src/resolveRelativeFileDependencies"
 
 export const patchPackageTarballPath = resolve(
   fs
@@ -18,6 +19,17 @@ export function runIntegrationTest(
     fs.copySync(join(__dirname, projectName), tmpDir.name, {
       recursive: true,
     })
+
+    const packageJson = require(join(tmpDir.name, "package.json"))
+    packageJson.dependencies = resolveRelativeFileDependencies(
+      join(__dirname, projectName),
+      packageJson.dependencies,
+    )
+
+    fs.writeFileSync(
+      join(tmpDir.name, "package.json"),
+      JSON.stringify(packageJson),
+    )
 
     const result = spawnSafeSync(
       `./${projectName}.sh`,

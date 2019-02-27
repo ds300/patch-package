@@ -19,6 +19,7 @@ import {
   getPackageDetailsFromPatchFilename,
 } from "./PackageDetails"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
+import { getPackageResolution } from "./getPackageResolution"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -54,33 +55,6 @@ export const makePatch = (
     process.exit(1)
   }
 
-  const packageVersion = require(packageJsonPath).version as string
-
-  // packageVersionSpecifier is the version string used by the app package.json
-  // it won't be present for nested deps.
-  // We need it only for patching deps specified with file:./
-  // which I think only happens in tests
-  // but might happen in real life too.
-  let packageVersionSpecifier: null | string = null
-  if (!packageDetails.isNested) {
-    const { devDependencies = {}, dependencies = {} } = appPackageJson
-    packageVersionSpecifier =
-      dependencies[packageDetails.name] ||
-      devDependencies[packageDetails.name] ||
-      null
-  }
-
-  if (
-    packageVersionSpecifier &&
-    packageVersionSpecifier.startsWith("file:") &&
-    packageVersionSpecifier[5] !== "/"
-  ) {
-    packageVersionSpecifier =
-      "file:" + resolve(appPath, packageVersionSpecifier.slice(5))
-  } else {
-    packageVersionSpecifier = null
-  }
-
   const tmpRepo = dirSync({ unsafeCleanup: true })
   const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
   const tmpRepoNpmRoot = tmpRepoPackagePath.slice(
@@ -101,7 +75,11 @@ export const makePatch = (
       tmpRepoPackageJsonPath,
       JSON.stringify({
         dependencies: {
-          [packageDetails.name]: packageVersionSpecifier || packageVersion,
+          [packageDetails.name]: getPackageResolution({
+            packageDetails,
+            packageManager,
+            appPath,
+          }),
         },
         resolutions: resolveRelativeFileDependencies(
           appPath,
@@ -109,6 +87,11 @@ export const makePatch = (
         ),
       }),
     )
+
+    const packageVersion = require(join(
+      resolve(packageDetails.path),
+      "package.json",
+    )).version as string
 
     if (packageManager === "yarn") {
       console.info(

@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.5
+
+- Use lockfiles to get package resolutions.
+
 ## 6.0.4
 
 - Fix patch parsing issue affecting windows (#124)

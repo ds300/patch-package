@@ -1,6 +1,6 @@
 import { join } from "path"
 
-interface PackageDetails {
+export interface PackageDetails {
   humanReadablePathSpecifier: string
   pathSpecifier: string
   path: string

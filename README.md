@@ -1,6 +1,6 @@
-<center>
+<p align="center">
   <img src="./patch-package.svg" width="80%" alt="patch-package" />
-</center>
+</p>
 
 `patch-package` lets app authors instantly make and keep fixes to npm
 dependencies. It's a vital band-aid for those of us living on the bleeding edge.

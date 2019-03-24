@@ -1,14 +1,17 @@
-import { bold, green, red, yellow } from "chalk"
+import chalk from "chalk"
 import { getPatchFiles } from "./patchFs"
 import { executeEffects } from "./patch/apply"
-import { existsSync, readFileSync } from "fs-extra"
+import { existsSync } from "fs-extra"
 import { join, resolve } from "./path"
 import { posix } from "path"
-import { getPackageDetailsFromPatchFilename } from "./PackageDetails"
-import { parsePatchFile } from "./patch/parse"
+import {
+  getPackageDetailsFromPatchFilename,
+  PackageDetails,
+} from "./PackageDetails"
 import { reversePatch } from "./patch/reverse"
 import isCi from "is-ci"
 import semver from "semver"
+import { readPatch } from "./patch/read"
 
 // don't want to exit(1) on postinsall locally.
 // see https://github.com/ds300/patch-package/issues/86
@@ -34,9 +37,10 @@ function getInstalledPackageVersion({
   const packageDir = join(appPath, path)
   if (!existsSync(packageDir)) {
     console.log(
-      `${yellow("Warning:")} Patch file found for package ${posix.basename(
-        pathSpecifier,
-      )}` + ` which is not present at ${packageDir}`,
+      `${chalk.yellow(
+        "Warning:",
+      )} Patch file found for package ${posix.basename(pathSpecifier)}` +
+        ` which is not present at ${packageDir}`,
     )
 
     return null
@@ -47,28 +51,28 @@ function getInstalledPackageVersion({
   return semver.valid(version)
 }
 
-export const applyPatchesForApp = (
+export function applyPatchesForApp(
   appPath: string,
   reverse: boolean,
-  patchDir: string = "patches",
-): void => {
+  patchDir: string,
+): void {
   const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
-    console.error(red("No patch files found"))
+    console.error(chalk.red("No patch files found"))
     return
   }
 
   files.forEach(filename => {
-    const details = getPackageDetailsFromPatchFilename(filename)
+    const packageDetails = getPackageDetailsFromPatchFilename(filename)
 
-    if (!details) {
+    if (!packageDetails) {
       console.warn(`Unrecognized patch file in patches directory ${filename}`)
       return
     }
 
-    const { name, version, path, pathSpecifier } = details
+    const { name, version, path, pathSpecifier } = packageDetails
 
     const installedPackageVersion = getInstalledPackageVersion({
       appPath,
@@ -80,7 +84,14 @@ export const applyPatchesForApp = (
       return
     }
 
-    if (applyPatch(resolve(patchesDirectory, filename) as string, reverse)) {
+    if (
+      applyPatch({
+        patchFilePath: resolve(patchesDirectory, filename) as string,
+        reverse,
+        packageDetails,
+        patchDir,
+      })
+    ) {
       // yay patch was applied successfully
       // print warning if version mismatch
       if (installedPackageVersion !== version) {
@@ -92,7 +103,9 @@ export const applyPatchesForApp = (
           path,
         })
       } else {
-        console.log(`${bold(pathSpecifier)}@${version} ${green("✔")}`)
+        console.log(
+          `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
+        )
       }
     } else {
       // completely failed to apply patch
@@ -119,12 +132,18 @@ export const applyPatchesForApp = (
   })
 }
 
-export const applyPatch = (
-  patchFilePath: string,
-  reverse: boolean,
-): boolean => {
-  const patchFileContents = readFileSync(patchFilePath).toString()
-  const patch = parsePatchFile(patchFileContents)
+export function applyPatch({
+  patchFilePath,
+  reverse,
+  packageDetails,
+  patchDir,
+}: {
+  patchFilePath: string
+  reverse: boolean
+  packageDetails: PackageDetails
+  patchDir: string
+}): boolean {
+  const patch = readPatch({ patchFilePath, packageDetails, patchDir })
   try {
     executeEffects(reverse ? reversePatch(patch) : patch, { dryRun: false })
   } catch (e) {
@@ -152,18 +171,18 @@ function printVersionMismatchWarning({
   path: string
 }) {
   console.warn(`
-${red("Warning:")} patch-package detected a patch file version mismatch
+${chalk.red("Warning:")} patch-package detected a patch file version mismatch
 
   Don't worry! This is probably fine. The patch was still applied
   successfully. Here's the deets:
 
   Patch file created for
 
-    ${packageName}@${bold(originalVersion)}
+    ${packageName}@${chalk.bold(originalVersion)}
 
   applied to
 
-    ${packageName}@${bold(actualVersion)}
+    ${packageName}@${chalk.bold(actualVersion)}
   
   At path
   
@@ -173,7 +192,7 @@ ${red("Warning:")} patch-package detected a patch file version mismatch
   breakage even though the patch was applied successfully. Make sure the package
   still behaves like you expect (you wrote tests, right?) and then run
 
-    ${bold(`patch-package ${pathSpecifier}`)}
+    ${chalk.bold(`patch-package ${pathSpecifier}`)}
 
   to update the version in the patch file name and make this warning go away.
 `)
@@ -191,8 +210,8 @@ function printBrokenPatchFileError({
   pathSpecifier: string
 }) {
   console.error(`
-${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)} at path`,
+${chalk.red.bold("**ERROR**")} ${chalk.red(
+    `Failed to apply patch for package ${chalk.bold(packageName)} at path`,
   )}
   
     ${path}
@@ -231,13 +250,13 @@ function printPatchApplictionFailureError({
   pathSpecifier: string
 }) {
   console.error(`
-${red.bold("**ERROR**")} ${red(
-    `Failed to apply patch for package ${bold(packageName)} at path`,
+${chalk.red.bold("**ERROR**")} ${chalk.red(
+    `Failed to apply patch for package ${chalk.bold(packageName)} at path`,
   )}
   
     ${path}
 
-  This error was caused because ${bold(packageName)} has changed since you
+  This error was caused because ${chalk.bold(packageName)} has changed since you
   made the patch file for it. This introduced conflicts with your patch,
   just like a merge conflict in Git when separate incompatible changes are
   made to the same piece of code.
@@ -256,7 +275,7 @@ ${red.bold("**ERROR**")} ${red(
 
   Info:
     Patch file: patches/${patchFileName}
-    Patch was made for version: ${green.bold(originalVersion)}
-    Installed version: ${red.bold(actualVersion)}
+    Patch was made for version: ${chalk.green.bold(originalVersion)}
+    Installed version: ${chalk.red.bold(actualVersion)}
 `)
 }

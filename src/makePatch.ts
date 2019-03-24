@@ -1,4 +1,4 @@
-import { green, grey } from "chalk"
+import chalk from "chalk"
 import { join, dirname, resolve } from "./path"
 import { spawnSafeSync } from "./spawnSafe"
 import { PackageManager } from "./detectPackageManager"
@@ -32,14 +32,21 @@ function printNoPackageFoundError(
   )
 }
 
-export const makePatch = (
-  packagePathSpecifier: string,
-  appPath: string,
-  packageManager: PackageManager,
-  includePaths: RegExp,
-  excludePaths: RegExp,
-  patchDir: string = "patches",
-) => {
+export function makePatch({
+  packagePathSpecifier,
+  appPath,
+  packageManager,
+  includePaths,
+  excludePaths,
+  patchDir,
+}: {
+  packagePathSpecifier: string
+  appPath: string
+  packageManager: PackageManager
+  includePaths: RegExp
+  excludePaths: RegExp
+  patchDir: string
+}) {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
   if (!packageDetails) {
@@ -67,7 +74,7 @@ export const makePatch = (
   try {
     const patchesDir = resolve(join(appPath, patchDir))
 
-    console.info(grey("•"), "Creating temporary folder")
+    console.info(chalk.grey("•"), "Creating temporary folder")
 
     // make a blank package.json
     mkdirpSync(tmpRepoNpmRoot)
@@ -95,7 +102,7 @@ export const makePatch = (
 
     if (packageManager === "yarn") {
       console.info(
-        grey("•"),
+        chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with yarn`,
       )
       spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
@@ -103,7 +110,7 @@ export const makePatch = (
       })
     } else {
       console.info(
-        grey("•"),
+        chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with npm`,
       )
       spawnSafeSync(`npm`, ["i"], { cwd: tmpRepoNpmRoot })
@@ -121,7 +128,7 @@ export const makePatch = (
     rimraf(join(tmpRepoPackagePath, "node_modules"))
 
     // commit the package
-    console.info(grey("•"), "Diffing your files with clean files")
+    console.info(chalk.grey("•"), "Diffing your files with clean files")
     writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
     git("init")
     git("config", "--local", "user.name", "patch-package")
@@ -185,7 +192,9 @@ export const makePatch = (
         mkdirSync(dirname(patchPath))
       }
       writeFileSync(patchPath, diffResult.stdout)
-      console.log(`${green("✔")} Created file ${patchDir}/${patchFileName}`)
+      console.log(
+        `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}`,
+      )
     }
   } catch (e) {
     console.error(e)

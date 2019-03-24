@@ -1,4 +1,4 @@
-import { red } from "chalk"
+import chalk from "chalk"
 
 export const makeRegExp = (
   reString: string,
@@ -12,7 +12,7 @@ export const makeRegExp = (
     try {
       return new RegExp(reString, caseSensitive ? "" : "i")
     } catch (_) {
-      console.error(`${red.bold("***ERROR***")}
+      console.error(`${chalk.red.bold("***ERROR***")}
 Invalid format for option --${name}
 
   Unable to convert the string ${JSON.stringify(

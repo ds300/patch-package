@@ -1,4 +1,4 @@
-import { bold, italic } from "chalk"
+import chalk from "chalk"
 import process from "process"
 import minimist from "minimist"
 
@@ -8,6 +8,8 @@ import { makePatch } from "./makePatch"
 import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
 import { join } from "./path"
+import { normalize, sep } from "path"
+import slash = require("slash")
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -23,7 +25,7 @@ const argv = minimist(process.argv.slice(2), {
 const packageNames = argv._
 
 console.log(
-  bold("patch-package"),
+  chalk.bold("patch-package"),
   // tslint:disable-next-line:no-var-requires
   require(join(__dirname, "../package.json")).version,
 )
@@ -33,32 +35,42 @@ if (argv.version || argv.v) {
 } else if (argv.help || argv.h) {
   printHelp()
 } else {
+  const packageManager = detectPackageManager(
+    appPath,
+    argv["use-yarn"] ? "yarn" : null,
+  )
+  const patchDir = slash(normalize((argv["patch-dir"] || "patches") + sep))
+  if (patchDir.startsWith("/")) {
+    throw new Error("--patch-dir must be a relative path")
+  }
   if (packageNames.length) {
-    const include = makeRegExp(
+    const includePaths = makeRegExp(
       argv.include,
       "include",
       /.*/,
       argv["case-sensitive-path-filtering"],
     )
-    const exclude = makeRegExp(
+    const excludePaths = makeRegExp(
       argv.exclude,
       "exclude",
       /package\.json$/,
       argv["case-sensitive-path-filtering"],
     )
-    packageNames.forEach((packageName: string) => {
-      makePatch(
-        packageName,
+
+    packageNames.forEach((packagePathSpecifier: string) => {
+      makePatch({
+        packagePathSpecifier,
         appPath,
-        detectPackageManager(appPath, argv["use-yarn"] ? "yarn" : null),
-        include,
-        exclude,
-        argv["patch-dir"],
-      )
+        packageManager,
+        includePaths,
+        excludePaths,
+        patchDir,
+      })
     })
   } else {
     console.log("Applying patches...")
-    applyPatchesForApp(appPath, !!argv["reverse"], argv["patch-dir"])
+    const reverse = !!argv["reverse"]
+    applyPatchesForApp(appPath, reverse, patchDir)
   }
 }
 
@@ -69,9 +81,9 @@ Usage:
   1. Patching packages
   ====================
 
-    ${bold("patch-package")}
+    ${chalk.bold("patch-package")}
 
-  Without arguments, the ${bold(
+  Without arguments, the ${chalk.bold(
     "patch-package",
   )} command will attempt to find and apply
   patch files to your project. It looks for files named like
@@ -81,34 +93,36 @@ Usage:
   2. Creating patch files
   =======================
 
-    ${bold("patch-package")} <package-name>${italic("[ <package-name>]")}
+    ${chalk.bold("patch-package")} <package-name>${chalk.italic(
+    "[ <package-name>]",
+  )}
 
   When given package names as arguments, patch-package will create patch files
   based on any changes you've made to the versions installed by yarn/npm.
 
   Options:
 
-     ${bold("--use-yarn")}
+     ${chalk.bold("--use-yarn")}
 
          By default, patch-package checks whether you use npm or yarn based on
          which lockfile you have. If you have both, it uses npm by default.
          Set this option to override that default and always use yarn.
 
-     ${bold("--exclude <regexp>")}
+     ${chalk.bold("--exclude <regexp>")}
 
          Ignore paths matching the regexp when creating patch files.
          Paths are relative to the root dir of the package to be patched.
 
          Default: 'package\\.json$'
 
-     ${bold("--include <regexp>")}
+     ${chalk.bold("--include <regexp>")}
 
          Only consider paths matching the regexp when creating patch files.
          Paths are relative to the root dir of the package to be patched.
 
          Default '.*'
 
-     ${bold("--case-sensitive-path-filtering")}
+     ${chalk.bold("--case-sensitive-path-filtering")}
 
          Make regexps used in --include or --exclude filters case-sensitive.
 `)

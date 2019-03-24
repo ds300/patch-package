@@ -1,10 +1,9 @@
 import { sync as spawnSync } from "cross-spawn"
+import { SpawnOptions } from "child_process"
 
-export interface SpawnSafeOptions {
+export interface SpawnSafeOptions extends SpawnOptions {
   throwOnError?: boolean
   logStdErrOnError?: boolean
-  cwd?: string
-  env?: object
 }
 
 const defaultOptions: SpawnSafeOptions = {

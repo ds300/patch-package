@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.7
+
+- Don't try to detect package manager on patch application (#133)
+
 ## 6.0.6
 
 - Better error messages for patch parse failures (#131)

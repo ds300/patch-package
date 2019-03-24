@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test patch-parse-failure: patch parse failure message 1`] = `
+"SNAPSHOT: patch parse failure message
+
+**ERROR** Failed to apply patch for package left-pad
+    
+  This happened because the patch file patches/left-pad+1.3.0.patch could not be parsed.
+   
+  If you just upgraded patch-package, you can try running:
+  
+    patch -p1 -i patches/left-pad+1.3.0.patch
+    npx patch-package left-pad
+    
+  Otherwise, try manually creating the patch file again.
+  
+  If the problem persists, please submit a bug report:
+  
+    https://github.com/ds300/patch-package/issues/new?title=Patch+file+parse+error&body=%3CPlease+attach+the+patch+file+in+question%3E
+
+
+error Command failed with exit code 1.
+END SNAPSHOT"
+`;

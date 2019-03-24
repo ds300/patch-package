@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("custom-resolutions", false)
+runIntegrationTest({
+  projectName: "custom-resolutions",
+  shouldProduceSnapshots: false,
+})

@@ -10,10 +10,13 @@ export const patchPackageTarballPath = resolve(
     .filter(nm => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
 )
 
-export function runIntegrationTest(
-  projectName: string,
-  shouldProduceSnapshots: boolean = true,
-) {
+export function runIntegrationTest({
+  projectName,
+  shouldProduceSnapshots,
+}: {
+  projectName: string
+  shouldProduceSnapshots: boolean
+}) {
   describe(`Test ${projectName}:`, () => {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
     fs.copySync(join(__dirname, projectName), tmpDir.name, {

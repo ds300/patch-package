@@ -1,3 +1,6 @@
 import { runIntegrationTest } from "../runIntegrationTest"
 
-runIntegrationTest("reverse-option", false)
+runIntegrationTest({
+  projectName: "reverse-option",
+  shouldProduceSnapshots: false,
+})

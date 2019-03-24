@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("include-exclude-regex-relativity", false)
+runIntegrationTest({
+  projectName: "include-exclude-regex-relativity",
+  shouldProduceSnapshots: false,
+})

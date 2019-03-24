@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("package-gets-updated", true)
+runIntegrationTest({
+  projectName: "package-gets-updated",
+  shouldProduceSnapshots: true,
+})

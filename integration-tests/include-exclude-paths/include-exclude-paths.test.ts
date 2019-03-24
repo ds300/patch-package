@@ -1,3 +1,6 @@
 import { runIntegrationTest } from "../runIntegrationTest"
 
-runIntegrationTest("include-exclude-paths")
+runIntegrationTest({
+  projectName: "include-exclude-paths",
+  shouldProduceSnapshots: true,
+})

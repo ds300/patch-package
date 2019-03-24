@@ -1,3 +1,6 @@
 import { runIntegrationTest } from "../runIntegrationTest"
 
-runIntegrationTest("delete-scripts")
+runIntegrationTest({
+  projectName: "delete-scripts",
+  shouldProduceSnapshots: true,
+})

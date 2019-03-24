@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("nested-scoped-packages", true)
+runIntegrationTest({
+  projectName: "nested-scoped-packages",
+  shouldProduceSnapshots: true,
+})

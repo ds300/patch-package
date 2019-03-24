@@ -48,6 +48,6 @@ yarn add $1
 fs.writeFileSync(
   path.join(testDir, `${testName}.test.ts`),
   `import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("${testName}", false)
+runIntegrationTest({projectName: "${testName}", shouldProduceSnapshots: false})
 `,
 )

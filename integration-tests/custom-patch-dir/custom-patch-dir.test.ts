@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("custom-patch-dir", false)
+runIntegrationTest({
+  projectName: "custom-patch-dir",
+  shouldProduceSnapshots: false,
+})

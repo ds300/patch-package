@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("happy-path-npm")
+runIntegrationTest({
+  projectName: "happy-path-npm",
+  shouldProduceSnapshots: true,
+})

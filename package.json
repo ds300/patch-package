@@ -18,7 +18,7 @@
     "build": "tsc --project tsconfig.build.json",
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
-    "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts",
+    "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts integration-tests{/**,}/*.ts property-based-tests{/**,}/*.ts",
     "prepack": "rimraf dist/**/*.test.js",
     "test": "./run-tests.sh --runInBand"
   },

@@ -1,0 +1,11 @@
+diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
+index e90aec3..bfca6c5 100644
+--- a/node_modules/left-pad/index.js
++++ b/node_modules/left-pad/index.js
+@@ -33,7 +33,6 @@ function leftPad (str, len, ch) {
+   // cache common use cases
+   if (ch === ' ' && len < 10) return cache[len] + str;
+   // `pad` starts with an empty string
+-  var pad = '';
+   while (true) {
+     // add `ch` to `pad` if `len` is odd

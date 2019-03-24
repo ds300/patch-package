@@ -1,5 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
 runIntegrationTest({
-  projectName: "delete-old-patch-files",
-  shouldProduceSnapshots: false,
+  projectName: "patch-parse-failure",
+  shouldProduceSnapshots: true,
 })

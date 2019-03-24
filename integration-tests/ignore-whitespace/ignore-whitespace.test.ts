@@ -1,3 +1,6 @@
 import { runIntegrationTest } from "../runIntegrationTest"
 
-runIntegrationTest("ignore-whitespace")
+runIntegrationTest({
+  projectName: "ignore-whitespace",
+  shouldProduceSnapshots: true,
+})

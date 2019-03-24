@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("happy-path-yarn")
+runIntegrationTest({
+  projectName: "happy-path-yarn",
+  shouldProduceSnapshots: true,
+})

@@ -1,2 +1,5 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("file-mode-changes", true)
+runIntegrationTest({
+  projectName: "file-mode-changes",
+  shouldProduceSnapshots: true,
+})

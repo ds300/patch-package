@@ -1,2 +1,2 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest("shrinkwrap", true)
+runIntegrationTest({ projectName: "shrinkwrap", shouldProduceSnapshots: true })

@@ -1,3 +1,6 @@
 import { runIntegrationTest } from "../runIntegrationTest"
 
-runIntegrationTest("adding-and-deleting-files", false)
+runIntegrationTest({
+  projectName: "adding-and-deleting-files",
+  shouldProduceSnapshots: false,
+})

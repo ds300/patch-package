@@ -51,11 +51,15 @@ function getInstalledPackageVersion({
   return semver.valid(version)
 }
 
-export function applyPatchesForApp(
-  appPath: string,
-  reverse: boolean,
-  patchDir: string,
-): void {
+export function applyPatchesForApp({
+  appPath,
+  reverse,
+  patchDir,
+}: {
+  appPath: string
+  reverse: boolean
+  patchDir: string
+}): void {
   const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
 

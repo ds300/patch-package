@@ -35,10 +35,6 @@ if (argv.version || argv.v) {
 } else if (argv.help || argv.h) {
   printHelp()
 } else {
-  const packageManager = detectPackageManager(
-    appPath,
-    argv["use-yarn"] ? "yarn" : null,
-  )
   const patchDir = slash(normalize((argv["patch-dir"] || "patches") + sep))
   if (patchDir.startsWith("/")) {
     throw new Error("--patch-dir must be a relative path")
@@ -56,7 +52,10 @@ if (argv.version || argv.v) {
       /package\.json$/,
       argv["case-sensitive-path-filtering"],
     )
-
+    const packageManager = detectPackageManager(
+      appPath,
+      argv["use-yarn"] ? "yarn" : null,
+    )
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({
         packagePathSpecifier,
@@ -70,7 +69,7 @@ if (argv.version || argv.v) {
   } else {
     console.log("Applying patches...")
     const reverse = !!argv["reverse"]
-    applyPatchesForApp(appPath, reverse, patchDir)
+    applyPatchesForApp({ appPath, reverse, patchDir })
   }
 }
 

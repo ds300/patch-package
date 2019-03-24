@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.6
+
+- Better error messages for patch parse failures (#131)
+
 ## 6.0.5
 
 - Use lockfiles to get package resolutions.

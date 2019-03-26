@@ -2,6 +2,7 @@ import fs from "fs-extra"
 import { join } from "./path"
 import chalk from "chalk"
 import process from "process"
+import findWorkspaceRoot from "find-yarn-workspace-root"
 
 export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
 
@@ -61,7 +62,7 @@ export const detectPackageManager = (
     } else {
       return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
     }
-  } else if (yarnLockExists) {
+  } else if (yarnLockExists || findWorkspaceRoot()) {
     return "yarn"
   } else {
     printNoLockfilesError()

@@ -56,10 +56,11 @@ export const executeEffects = (
       case "mode change":
         const currentMode = fs.statSync(eff.path).mode
         if (
-          (isExecutable(eff.newMode) && isExecutable(currentMode)) ||
-          (!isExecutable(eff.newMode) && !isExecutable(currentMode))
+          ((isExecutable(eff.newMode) && isExecutable(currentMode)) ||
+            (!isExecutable(eff.newMode) && !isExecutable(currentMode))) &&
+          dryRun
         ) {
-          throw new Error("Mode change is not required")
+          console.warn(`Mode change is not required for file ${eff.path}`)
         }
         fs.chmodSync(eff.path, eff.newMode)
         break

@@ -1,0 +1,13 @@
+{
+  "name": "a",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "patch-package": "../../node_modules/.bin/patch-package" 
+  },
+  "dependencies": {
+    "left-pad": "^1.3.0",
+    "postinstall-postinstall": "^2.0.0"
+  }
+}

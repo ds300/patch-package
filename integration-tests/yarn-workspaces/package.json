@@ -1,0 +1,19 @@
+{
+  "name": "yarn-workspaces",
+  "version": "1.0.0",
+  "private": true,
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "dependencies": {
+    "postinstall-postinstall": "^2.0.0",
+    "replace": "^1.1.0",
+    "rimraf": "^2.6.3"
+  }
+}

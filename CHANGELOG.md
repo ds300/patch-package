@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.0
+
+- Add support for yarn workspaces
+- Degrade 'file mode change not required' error to warning
+
 ## 6.0.7
 
 - Don't try to detect package manager on patch application (#133)

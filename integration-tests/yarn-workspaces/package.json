@@ -12,6 +12,7 @@
     ]
   },
   "dependencies": {
+    "left-pad": "1.2.0",
     "postinstall-postinstall": "^2.0.0",
     "replace": "^1.1.0",
     "rimraf": "^2.6.3"

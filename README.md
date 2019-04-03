@@ -39,9 +39,13 @@ Then
 
     npm i patch-package
 
+You can use `--save-dev` if you don't need to run npm in production, e.g. if you're making a web frontend.
+
 ### yarn
 
     yarn add patch-package postinstall-postinstall
+
+You can use `--dev` if you don't need to run yarn in production, e.g. if you're making a web frontend.
 
 To understand why yarn needs the `postinstall-postinstall` package see: [Why use postinstall-postinstall](#why-use-postinstall-postinstall-with-yarn)
 

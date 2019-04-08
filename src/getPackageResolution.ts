@@ -91,7 +91,10 @@ export function getPackageResolution({
     const relevantStackEntry = lockFileStack.find(
       entry => entry.dependencies && packageDetails.name in entry.dependencies,
     )
-    return relevantStackEntry.dependencies[packageDetails.name].resolved
+    return (
+      relevantStackEntry.dependencies[packageDetails.name].resolved ||
+      relevantStackEntry.dependencies[packageDetails.name].from
+    )
   }
 }
 

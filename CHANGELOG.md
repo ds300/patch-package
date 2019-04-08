@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.1
+
+- Fix npm edge case of package installed from url (#134)
+
 ## 6.1.0
 
 - Add support for yarn workspaces

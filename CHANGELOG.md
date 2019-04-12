@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.2
+
+- Explicitly handle failure edge case where symlinks are modified/created (#118)
+
 ## 6.1.1
 
 - Fix npm edge case of package installed from url (#134)

@@ -29,6 +29,5 @@ ls ./patch-package-error.json.gz
 echo "and it can be unzipped"
 gzip -d ./patch-package-error.json.gz
 
-echo "SNAPSHOT: the json file"
-cat ./patch-package-error.json
-echo "END SNAPSHOT"
+echo "the json file is valid json"
+node -e 'JSON.parse(fs.readFileSync("./patch-package-error.json").toString())'

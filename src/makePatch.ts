@@ -194,7 +194,7 @@ export function makePatch({
   this was unintentional.
 `)
       } else {
-        const outPath = join(process.cwd(), "patch-package-error.tar.gz")
+        const outPath = join(process.cwd(), "patch-package-error.json.gz")
         writeFileSync(
           outPath,
           gzipSync(

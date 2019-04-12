@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test no-symbolic-links: patch-package fails to create a patch when there are symbolic links 1`] = `
+"SNAPSHOT: patch-package fails to create a patch when there are symbolic links
+
+⛔️ ERROR
+
+  Your changes involve creating symlinks. patch-package does not yet support
+  symlinks.
+  
+  ️Please use --include and/or --exclude to narrow the scope of your patch if
+  this was unintentional.
+
+error Command failed with exit code 1.
+END SNAPSHOT"
+`;

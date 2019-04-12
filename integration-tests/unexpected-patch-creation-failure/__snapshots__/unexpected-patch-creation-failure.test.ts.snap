@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test unexpected-patch-creation-failure: patch-package fails to parse a patch it created 1`] = `
+"SNAPSHOT: patch-package fails to parse a patch it created
+
+⛔️ ERROR
+        
+  patch-package was unable to read the patch-file made by git. This should not
+  happen.
+  
+  A diagnostic file was written to
+  
+    /private/var/folders/kp/4q6sxzl17jq2p_d8pccptx7w0000gq/T/tmp-7498Qc45vBM0jh11/patch-package-error.json.gz
+  
+  Please attach it to a github issue
+  
+    https://github.com/ds300/patch-package/issues/new?title=New+patch+parse+failed&body=Please+attach+the+diagnostic+file+by+dragging+it+into+here+🙏
+  
+  Note that this diagnostic file will contain code from the package you were
+  attempting to patch.
+
+
+error Command failed with exit code 1.
+END SNAPSHOT"
+`;
+
+exports[`Test unexpected-patch-creation-failure: the json file 1`] = `
+"SNAPSHOT: the json file
+{\\"error\\":{\\"message\\":\\"parse_1.blarseBlatchBlile is not a function\\",\\"stack\\":\\"TypeError: parse_1.blarseBlatchBlile is not a function\\\\n    at Object.makePatch (/private/var/folders/kp/4q6sxzl17jq2p_d8pccptx7w0000gq/T/tmp-7498Qc45vBM0jh11/node_modules/patch-package/dist/makePatch.js:112:21)\\\\n    at /private/var/folders/kp/4q6sxzl17jq2p_d8pccptx7w0000gq/T/tmp-7498Qc45vBM0jh11/node_modules/patch-package/dist/index.js:48:25\\\\n    at Array.forEach (<anonymous>)\\\\n    at Object.<anonymous> (/private/var/folders/kp/4q6sxzl17jq2p_d8pccptx7w0000gq/T/tmp-7498Qc45vBM0jh11/node_modules/patch-package/dist/index.js:47:22)\\\\n    at Module._compile (internal/modules/cjs/loader.js:689:30)\\\\n    at Object.Module._extensions..js (internal/modules/cjs/loader.js:700:10)\\\\n    at Module.load (internal/modules/cjs/loader.js:599:32)\\\\n    at tryModuleLoad (internal/modules/cjs/loader.js:538:12)\\\\n    at Function.Module._load (internal/modules/cjs/loader.js:530:3)\\\\n    at Module.require (internal/modules/cjs/loader.js:637:17)\\"},\\"patch\\":\\"diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js\\\\nindex e90aec3..f2b8b0a 100644\\\\n--- a/node_modules/left-pad/index.js\\\\n+++ b/node_modules/left-pad/index.js\\\\n@@ -4,7 +4,7 @@\\\\n      * To Public License, Version 2, as published by Sam Hocevar. See\\\\n      * http://www.wtfpl.net/ for more details. */\\\\n 'use strict';\\\\n-module.exports = leftPad;\\\\n+module.exports = patchPackage;\\\\n \\\\n var cache = [\\\\n   '',\\\\n@@ -19,7 +19,7 @@ var cache = [\\\\n   '         '\\\\n ];\\\\n \\\\n-function leftPad (str, len, ch) {\\\\n+function patchPackage (str, len, ch) {\\\\n   // convert \`str\` to a \`string\`\\\\n   str = str + '';\\\\n   // \`len\` is the \`pad\`'s length now\\\\n\\"}END SNAPSHOT"
+`;

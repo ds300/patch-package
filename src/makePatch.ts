@@ -20,6 +20,8 @@ import {
 } from "./PackageDetails"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { getPackageResolution } from "./getPackageResolution"
+import { parsePatchFile } from "./patch/parse"
+import { gzipSync } from "zlib"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -171,31 +173,83 @@ export function makePatch({
       )
       console.warn(`⁉️  There don't appear to be any changes.`)
       process.exit(1)
-    } else {
-      const packageNames = packageDetails.packageNames
-        .map(name => name.replace(/\//g, "+"))
-        .join("++")
-
-      // maybe delete existing
-      getPatchFiles(patchDir).forEach(filename => {
-        const deets = getPackageDetailsFromPatchFilename(filename)
-        if (deets && deets.path === packageDetails.path) {
-          unlinkSync(join(patchDir, filename))
-        }
-      })
-
-      const patchFileName = `${packageNames}+${packageVersion}.patch`
-
-      const patchPath = join(patchesDir, patchFileName)
-      if (!existsSync(dirname(patchPath))) {
-        // scoped package
-        mkdirSync(dirname(patchPath))
-      }
-      writeFileSync(patchPath, diffResult.stdout)
-      console.log(
-        `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}`,
-      )
+      return
     }
+
+    try {
+      parsePatchFile(diffResult.stdout.toString())
+    } catch (e) {
+      if (
+        (e as Error).message.includes("Unexpected file mode string: 120000")
+      ) {
+        console.error(`
+⛔️ ${chalk.red.bold("ERROR")}
+
+  Your changes involve creating symlinks. patch-package does not yet support
+  symlinks.
+  
+  ️Please use ${chalk.bold("--include")} and/or ${chalk.bold(
+          "--exclude",
+        )} to narrow the scope of your patch if
+  this was unintentional.
+`)
+      } else {
+        const outPath = join(process.cwd(), "patch-package-error.tar.gz")
+        writeFileSync(
+          outPath,
+          gzipSync(
+            JSON.stringify({
+              error: { message: e.message, stack: e.stack },
+              patch: diffResult.stdout.toString(),
+            }),
+          ),
+        )
+        console.error(`
+⛔️ ${chalk.red.bold("ERROR")}
+        
+  patch-package was unable to read the patch-file made by git. This should not
+  happen.
+  
+  A diagnostic file was written to
+  
+    ${outPath}
+  
+  Please attach it to a github issue
+  
+    https://github.com/ds300/patch-package/issues/new?title=New+patch+parse+failed&body=Please+attach+the+diagnostic+file+by+dragging+it+into+here+🙏
+  
+  Note that this diagnostic file will contain code from the package you were
+  attempting to patch.
+
+`)
+      }
+      process.exit(1)
+      return
+    }
+
+    const packageNames = packageDetails.packageNames
+      .map(name => name.replace(/\//g, "+"))
+      .join("++")
+
+    // maybe delete existing
+    getPatchFiles(patchDir).forEach(filename => {
+      const deets = getPackageDetailsFromPatchFilename(filename)
+      if (deets && deets.path === packageDetails.path) {
+        unlinkSync(join(patchDir, filename))
+      }
+    })
+
+    const patchFileName = `${packageNames}+${packageVersion}.patch`
+
+    const patchPath = join(patchesDir, patchFileName)
+    if (!existsSync(dirname(patchPath))) {
+      // scoped package
+      mkdirSync(dirname(patchPath))
+    }
+    writeFileSync(patchPath, diffResult.stdout)
+    console.log(
+      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}`,
+    )
   } catch (e) {
     console.error(e)
     throw e

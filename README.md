@@ -49,6 +49,10 @@ You can use `--dev` if you don't need to run yarn in production, e.g. if you're 
 
 To understand why yarn needs the `postinstall-postinstall` package see: [Why use postinstall-postinstall](#why-use-postinstall-postinstall-with-yarn)
 
+## yarn workspaces
+
+Same as for yarn ☝️ Note that if you want to patch un-hoisted packages you'll need to repeat the setup process for the child package. Also make sure you're in that directory when you run `patch-package` to generate the patch files.
+
 ## Usage
 
 ### Making patches

@@ -51,7 +51,7 @@ To understand why yarn needs the `postinstall-postinstall` package see: [Why use
 
 ### yarn workspaces
 
-Same as for yarn ☝️ Note that if you want to patch un-hoisted packages you'll need to repeat the setup process for the child package. Also make sure you're in that directory when you run `patch-package` to generate the patch files.
+Same as for yarn ☝️ Note that if you want to patch un-hoisted packages you'll need to repeat the setup process for the child package. Also make sure you're in the child package directory when you run `patch-package` to generate the patch files.
 
 ## Usage
 

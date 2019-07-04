@@ -102,6 +102,12 @@ export function makePatch({
       "package.json",
     )).version as string
 
+    // copy .npmrc in case if packages are hosted in private registry
+    const npmrcPath = join(appPath, ".npmrc")
+    if (existsSync(npmrcPath)) {
+      copySync(npmrcPath, join(tmpRepo.name, ".npmrc"))
+    }
+
     if (packageManager === "yarn") {
       console.info(
         chalk.grey("•"),

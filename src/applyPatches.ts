@@ -268,7 +268,7 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
   Maybe this means your patch file is no longer necessary, in which case
   hooray! Just delete it!
 
-  Otherwise, you need generate a new patch file.
+  Otherwise, you need to generate a new patch file.
 
   To generate a new one, just repeat the steps you made to generate the first
   one.

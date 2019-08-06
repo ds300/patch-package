@@ -2,6 +2,7 @@
 
 exports[`Test package-gets-updated: fail when the patch was not applied 1`] = `
 "SNAPSHOT: fail when the patch was not applied
+warning left-pad@1.1.3: use String.prototype.padStart()
 
 **ERROR** Failed to apply patch for package left-pad at path
   

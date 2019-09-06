@@ -1,0 +1,12 @@
+{
+  "name": "ignores-scripts-when-making-patch",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "naughty-package": "file:./naughty-package",
+    "replace": "^1.1.1"
+  }
+}

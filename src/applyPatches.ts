@@ -2,7 +2,7 @@ import chalk from "chalk"
 import { getPatchFiles } from "./patchFs"
 import { executeEffects } from "./patch/apply"
 import { existsSync } from "fs-extra"
-import { join, resolve } from "./path"
+import { join, resolve, relative } from "./path"
 import { posix } from "path"
 import {
   getPackageDetailsFromPatchFilename,
@@ -16,6 +16,8 @@ import { readPatch } from "./patch/read"
 // don't want to exit(1) on postinsall locally.
 // see https://github.com/ds300/patch-package/issues/86
 const shouldExitPostinstallWithError = isCi || process.env.NODE_ENV === "test"
+
+const exit = () => process.exit(shouldExitPostinstallWithError ? 1 : 0)
 
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
@@ -33,22 +35,35 @@ function getInstalledPackageVersion({
   appPath: string
   path: string
   pathSpecifier: string
-}): string | null {
+}): string {
   const packageDir = join(appPath, path)
   if (!existsSync(packageDir)) {
-    console.log(
-      `${chalk.yellow(
-        "Warning:",
-      )} Patch file found for package ${posix.basename(pathSpecifier)}` +
-        ` which is not present at ${packageDir}`,
+    console.error(
+      `${chalk.red("Error:")} Patch file found for package ${posix.basename(
+        pathSpecifier,
+      )}` + ` which is not present at ${relative(".", packageDir)}`,
     )
 
-    return null
+    exit()
   }
 
   const { version } = require(join(packageDir, "package.json"))
   // normalize version for `npm ci`
-  return semver.valid(version)
+  const result = semver.valid(version)
+  if (result === null) {
+    console.error(
+      `${chalk.red(
+        "Error:",
+      )} Version string '${version}' cannot be parsed from ${join(
+        packageDir,
+        "package.json",
+      )}`,
+    )
+
+    exit()
+  }
+
+  return result as string
 }
 
 export function applyPatchesForApp({
@@ -83,10 +98,6 @@ export function applyPatchesForApp({
       path,
       pathSpecifier,
     })
-
-    if (!installedPackageVersion) {
-      return
-    }
 
     if (
       applyPatch({
@@ -131,7 +142,8 @@ export function applyPatchesForApp({
           pathSpecifier,
         })
       }
-      process.exit(shouldExitPostinstallWithError ? 1 : 0)
+
+      exit()
     }
   })
 }

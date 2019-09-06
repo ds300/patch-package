@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.3
+
+- Fail when patches are found for uninstalled packages (#159)
+
 ## 6.1.2
 
 - Explicitly handle failure edge case where symlinks are modified/created (#118)

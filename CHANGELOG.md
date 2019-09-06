@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.4
+
+- Use --ignore-scripts when making patches if it fails without (#151)
+
 ## 6.1.3
 
 - Fail when patches are found for uninstalled packages (#159)

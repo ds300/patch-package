@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test ignores-scripts-when-making-patch: a patch file got produced 1`] = `
+"SNAPSHOT: a patch file got produced
+diff --git a/node_modules/naughty-package/postinstall.sh b/node_modules/naughty-package/postinstall.sh
+index 3784520..c4af29c 100755
+--- a/node_modules/naughty-package/postinstall.sh
++++ b/node_modules/naughty-package/postinstall.sh
+@@ -1,4 +1,4 @@
+-# postinstall
++# lol
+ 
+ # if we're running in the main repo is ok
+ if ls ../patch-package ;
+END SNAPSHOT"
+`;
+
+exports[`Test ignores-scripts-when-making-patch: the patch creation output should look normal 1`] = `
+"SNAPSHOT: the patch creation output should look normal
+patch-package 0.0.0
+• Creating temporary folder
+• Installing naughty-package@1.0.0 with yarn
+• Diffing your files with clean files
+✔ Created file patches/naughty-package+1.0.0.patch
+END SNAPSHOT"
+`;
+
+exports[`Test ignores-scripts-when-making-patch: there should be no stderr 1`] = `
+"SNAPSHOT: there should be no stderr
+END SNAPSHOT"
+`;

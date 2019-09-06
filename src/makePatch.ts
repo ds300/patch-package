@@ -113,15 +113,43 @@ export function makePatch({
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with yarn`,
       )
-      spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
-        cwd: tmpRepoNpmRoot,
-      })
+      try {
+        // try first without ignoring scripts in case they are required
+        // this works in 99.99% of cases
+        spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
+          cwd: tmpRepoNpmRoot,
+          logStdErrOnError: false,
+        })
+      } catch (e) {
+        // try again while ignoring scripts in case the script depends on
+        // an implicit context which we havn't reproduced
+        spawnSafeSync(
+          `yarn`,
+          ["install", "--ignore-engines", "--ignore-scripts"],
+          {
+            cwd: tmpRepoNpmRoot,
+          },
+        )
+      }
     } else {
       console.info(
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with npm`,
       )
-      spawnSafeSync(`npm`, ["i"], { cwd: tmpRepoNpmRoot })
+      try {
+        // try first without ignoring scripts in case they are required
+        // this works in 99.99% of cases
+        spawnSafeSync(`npm`, ["i"], {
+          cwd: tmpRepoNpmRoot,
+          logStdErrOnError: false,
+        })
+      } catch (e) {
+        // try again while ignoring scripts in case the script depends on
+        // an implicit context which we havn't reproduced
+        spawnSafeSync(`npm`, ["i", "--ignore-scripts"], {
+          cwd: tmpRepoNpmRoot,
+        })
+      }
     }
 
     const git = (...args: string[]) =>

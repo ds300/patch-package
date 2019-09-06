@@ -3,6 +3,7 @@
 ## 6.1.3
 
 - Fail when patches are found for uninstalled packages (#159)
+- Support private registries declared in .npmrc (Contribution from @cherniavskii in #152)
 
 ## 6.1.2
 

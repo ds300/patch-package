@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.2.0
+
+- Add support for dev-only patches (#159 again)
+
 ## 6.1.4
 
 - Use --ignore-scripts when making patches if it fails without (#151)
@@ -7,7 +11,8 @@
 ## 6.1.3
 
 - Fail when patches are found for uninstalled packages (#159)
-- Support private registries declared in .npmrc (Contribution from @cherniavskii in #152)
+- Support private registries declared in .npmrc (Contribution from @cherniavskii
+  in #152)
 
 ## 6.1.2
 
@@ -40,7 +45,8 @@
 
 ## 6.0.3
 
-- Allow relative file paths for --patch-dir (Contribution from @lots0logs in #119)
+- Allow relative file paths for --patch-dir (Contribution from @lots0logs in
+  #119)
 - Fix version string handling (Contribution from @teppeis in #122)
 - Add support for custom resolutions field in app's package.json (#125)
 - Fix property access bug (#123)
@@ -110,7 +116,8 @@ For full details see the prerelease notes.
 
 ## 6.0.0-9
 
-- Fix patch application bug when creating new files (Contribution from @stmarkidis)
+- Fix patch application bug when creating new files (Contribution from
+  @stmarkidis)
 
 ## 6.0.0-8
 
@@ -169,15 +176,18 @@ For full details see the prerelease notes.
 
 ## 3.6.1
 
-- Fix bug where patch-package was complaining about failing when it had, in fact, succeeded. See #31
+- Fix bug where patch-package was complaining about failing when it had, in
+  fact, succeeded. See #31
 
 ## 3.6.0
 
-- Remove git headers from patch files to prevent git from thinking files are part of the index
+- Remove git headers from patch files to prevent git from thinking files are
+  part of the index
 
 ## 3.5.3
 
-- Change the way patch files are re-written when the project root dir is not the same as the git root dir.
+- Change the way patch files are re-written when the project root dir is not the
+  same as the git root dir.
 - Remove redundant windows warning about whitespace
 
 ## 3.5.2
@@ -226,14 +236,14 @@ For full details see the prerelease notes.
 
 ## 3.3.5
 
-- Resolve paths in patch files for situations where the git root is not
-  the same as the app root.
+- Resolve paths in patch files for situations where the git root is not the same
+  as the app root.
 
 ## 3.3.4
 
-- Pass --unsafe-paths option to `git apply` to let it work on arbitrary
-  file paths (i.e. files which are not in a git repo or files which are
-  outside of the working directory)
+- Pass --unsafe-paths option to `git apply` to let it work on arbitrary file
+  paths (i.e. files which are not in a git repo or files which are outside of
+  the working directory)
 
 ## 3.3.3
 
@@ -288,12 +298,11 @@ Reduce yarn error to a warning
 - Require yarn as a peer dependency
 - Remove support for NPM
 
-Moving fast and breaking things. It turns out yarn doesn't run the
-prepare hook after removing a package, so we use patch-package to
-patch a local version of yarn. I'm not proud of this. Probably
-wouldn't have released this in the first place if I had known that
-yarn didn't have all the right hooks. Oh well. Now I have a reason
-to contribute to Yarn I guess.
+Moving fast and breaking things. It turns out yarn doesn't run the prepare hook
+after removing a package, so we use patch-package to patch a local version of
+yarn. I'm not proud of this. Probably wouldn't have released this in the first
+place if I had known that yarn didn't have all the right hooks. Oh well. Now I
+have a reason to contribute to Yarn I guess.
 
 ## 1.2.1
 

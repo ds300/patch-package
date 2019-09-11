@@ -9,9 +9,10 @@ export interface PackageDetails {
   packageNames: string[]
 }
 
-interface PatchedPackageDetails extends PackageDetails {
+export interface PatchedPackageDetails extends PackageDetails {
   version: string
   patchFilename: string
+  isDevOnly: boolean
 }
 
 function parseNameAndVersion(
@@ -47,7 +48,7 @@ export function getPackageDetailsFromPatchFilename(
   patchFilename: string,
 ): PatchedPackageDetails | null {
   const legacyMatch = patchFilename.match(
-    /^([^+=]+?)(:|\+)(\d+\.\d+\.\d+.*)\.patch$/,
+    /^([^+=]+?)(:|\+)(\d+\.\d+\.\d+.*)(\.dev)?\.patch$/,
   )
 
   if (legacyMatch) {
@@ -63,11 +64,12 @@ export function getPackageDetailsFromPatchFilename(
       version,
       isNested: false,
       patchFilename,
+      isDevOnly: patchFilename.endsWith(".dev.patch"),
     }
   }
 
   const parts = patchFilename
-    .replace(/\.patch$/, "")
+    .replace(/(\.dev)?\.patch$/, "")
     .split("++")
     .map(parseNameAndVersion)
     .filter((x): x is NonNullable<typeof x> => x !== null)
@@ -94,6 +96,7 @@ export function getPackageDetailsFromPatchFilename(
     humanReadablePathSpecifier: parts.map(({ name }) => name).join(" => "),
     isNested: parts.length > 1,
     packageNames: parts.map(({ name }) => name),
+    isDevOnly: patchFilename.endsWith(".dev.patch"),
   }
 }
 

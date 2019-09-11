@@ -10,6 +10,7 @@ describe("getPackageDetailsFromPatchFilename", () => {
     ).toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "@types/banana",
+  "isDevOnly": false,
   "isNested": false,
   "name": "@types/banana",
   "packageNames": Array [
@@ -26,6 +27,7 @@ Object {
       .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "banana",
+  "isDevOnly": false,
   "isNested": false,
   "name": "banana",
   "packageNames": Array [
@@ -42,6 +44,7 @@ Object {
       .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "banana",
+  "isDevOnly": false,
   "isNested": false,
   "name": "banana",
   "packageNames": Array [
@@ -59,6 +62,23 @@ Object {
     expect(
       getPackageDetailsFromPatchFilename("@types+banana-0.4.2.patch"),
     ).toBe(null)
+
+    expect(getPackageDetailsFromPatchFilename("banana+0.4.2.dev.patch"))
+      .toMatchInlineSnapshot(`
+Object {
+  "humanReadablePathSpecifier": "banana",
+  "isDevOnly": true,
+  "isNested": false,
+  "name": "banana",
+  "packageNames": Array [
+    "banana",
+  ],
+  "patchFilename": "banana+0.4.2.dev.patch",
+  "path": "node_modules/banana",
+  "pathSpecifier": "banana",
+  "version": "0.4.2.dev",
+}
+`)
   })
 
   it("parses new-style patch filenames", () => {
@@ -66,6 +86,7 @@ Object {
       .toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "banana => apple",
+  "isDevOnly": false,
   "isNested": true,
   "name": "apple",
   "packageNames": Array [
@@ -86,6 +107,7 @@ Object {
     ).toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "@types/banana => @types/apple => @mollusc/man",
+  "isDevOnly": false,
   "isNested": true,
   "name": "@mollusc/man",
   "packageNames": Array [
@@ -107,6 +129,7 @@ Object {
     ).toMatchInlineSnapshot(`
 Object {
   "humanReadablePathSpecifier": "@types/banana.patch => hello",
+  "isDevOnly": false,
   "isNested": true,
   "name": "hello",
   "packageNames": Array [
@@ -114,6 +137,27 @@ Object {
     "hello",
   ],
   "patchFilename": "@types+banana.patch++hello+0.4.2-banana-tree.patch",
+  "path": "node_modules/@types/banana.patch/node_modules/hello",
+  "pathSpecifier": "@types/banana.patch/hello",
+  "version": "0.4.2-banana-tree",
+}
+`)
+
+    expect(
+      getPackageDetailsFromPatchFilename(
+        "@types+banana.patch++hello+0.4.2-banana-tree.dev.patch",
+      ),
+    ).toMatchInlineSnapshot(`
+Object {
+  "humanReadablePathSpecifier": "@types/banana.patch => hello",
+  "isDevOnly": true,
+  "isNested": true,
+  "name": "hello",
+  "packageNames": Array [
+    "@types/banana.patch",
+    "hello",
+  ],
+  "patchFilename": "@types+banana.patch++hello+0.4.2-banana-tree.dev.patch",
   "path": "node_modules/@types/banana.patch/node_modules/hello",
   "pathSpecifier": "@types/banana.patch/hello",
   "version": "0.4.2-banana-tree",

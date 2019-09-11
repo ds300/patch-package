@@ -1,0 +1,15 @@
+{
+  "name": "dev-only-patches",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "left-pad": "1.3.0",
+    "rimraf": "3.0.0"
+  },
+  "devDependencies": {
+    "slash": "3.0.0"
+  }
+}

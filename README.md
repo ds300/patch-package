@@ -143,6 +143,18 @@ or `patch` in unixy environments:
 
     patch -p1 -i patches/package-name+0.44.2.patch
 
+### Dev-only patches
+
+If you deploy your package to production (e.g. your package is a server) then any patched `devDependencies` will not be present when patch-package runs in production. It will happily ignore those patch files if the package to be patched is listed directly in the `devDependencies` of your package.json. If it's a transitive dependency patch-package can't detect that it is safe to ignore and will throw an error. To fix this, mark patches for transitive dev dependencies as dev-only by renaming from, e.g.
+
+    package-name+0.44.0.patch
+
+to
+
+    package-name+0.44.0.dev.patch
+
+This will allow those patch files to be safely ignored when `NODE_ENV=production`.
+
 ## Benefits of patching over forking
 
 - Sometimes forks need extra build steps, e.g. with react-native for Android. Forget that noise.

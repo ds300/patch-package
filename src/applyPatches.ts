@@ -12,6 +12,7 @@ import { reversePatch } from "./patch/reverse"
 import isCi from "is-ci"
 import semver from "semver"
 import { readPatch } from "./patch/read"
+import { packageIsDevDependency } from "./packageIsDevDependency"
 
 // don't want to exit(1) on postinsall locally.
 // see https://github.com/ds300/patch-package/issues/86
@@ -31,18 +32,35 @@ function getInstalledPackageVersion({
   appPath,
   path,
   pathSpecifier,
+  isDevOnly,
+  patchFilename,
 }: {
   appPath: string
   path: string
   pathSpecifier: string
-}): string {
+  isDevOnly: boolean
+  patchFilename: string
+}): null | string {
   const packageDir = join(appPath, path)
   if (!existsSync(packageDir)) {
+    if (process.env.NODE_ENV === "production" && isDevOnly) {
+      return null
+    }
     console.error(
       `${chalk.red("Error:")} Patch file found for package ${posix.basename(
         pathSpecifier,
       )}` + ` which is not present at ${relative(".", packageDir)}`,
     )
+
+    if (!isDevOnly && process.env.NODE_ENV === "production") {
+      console.error(
+        `
+  If this package is a dev dependency, rename the patch file to
+  
+    ${chalk.bold(patchFilename.replace(".patch", ".dev.patch"))}
+`,
+      )
+    }
 
     exit()
   }
@@ -91,13 +109,35 @@ export function applyPatchesForApp({
       return
     }
 
-    const { name, version, path, pathSpecifier } = packageDetails
+    const {
+      name,
+      version,
+      path,
+      pathSpecifier,
+      isDevOnly,
+      patchFilename,
+    } = packageDetails
 
     const installedPackageVersion = getInstalledPackageVersion({
       appPath,
       path,
       pathSpecifier,
+      isDevOnly:
+        isDevOnly ||
+        // check for direct-dependents in prod
+        (process.env.NODE_ENV === "production" &&
+          packageIsDevDependency({ appPath, packageDetails })),
+      patchFilename,
     })
+    if (!installedPackageVersion) {
+      // it's ok we're in production mode and this is a dev only package
+      console.log(
+        `Skipping dev-only ${chalk.bold(pathSpecifier)}@${version} ${chalk.blue(
+          "✔",
+        )}`,
+      )
+      return
+    }
 
     if (
       applyPatch({

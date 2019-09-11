@@ -1,0 +1,11 @@
+diff --git a/node_modules/slash/index.js b/node_modules/slash/index.js
+index 103fbea..e3c36f8 100644
+--- a/node_modules/slash/index.js
++++ b/node_modules/slash/index.js
+@@ -1,5 +1,5 @@
+ 'use strict';
+-module.exports = path => {
++module.patchPackage = path => {
+ 	const isExtendedLengthPath = /^\\\\\?\\/.test(path);
+ 	const hasNonAscii = /[^\u0000-\u0080]+/.test(path); // eslint-disable-line no-control-regex
+ 

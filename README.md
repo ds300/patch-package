@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ds300/patch-package/master/patch-package.svg" width="80%" alt="patch-package" />
+  <img src="https://ds300.github.com/patch-package/patch-package.svg" width="80%" alt="patch-package" />
 </p>
 
 `patch-package` lets app authors instantly make and keep fixes to npm

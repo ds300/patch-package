@@ -1,4 +1,5 @@
 {
   "semi": false,
-  "trailingComma": "all"
+  "trailingComma": "all",
+  "proseWrap": "always"
 }

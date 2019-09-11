@@ -1,0 +1,18 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "editor.trimAutoWhitespace": false,
+  "files.trimTrailingWhitespace": false,
+  "files.insertFinalNewline": false,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "dist": true
+  },
+  "editor.formatOnPaste": true,
+  "prettier.semi": false,
+  "prettier.trailingComma": "all",
+  "editor.formatOnSave": true,
+  "tslint.enable": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "debug.node.autoAttach": "on"
+}

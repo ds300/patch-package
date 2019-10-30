@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: [push]
 name: Test
 jobs:
   test:
@@ -17,3 +17,7 @@ jobs:
     - run: yarn install
     - run: git config --global user.email "patch-package@test.com" && git config --global user.name "patch-package"
     - run: yarn run test
+# Enable the following when ready to publish automatically.
+#     - run: yarn publish
+#       env:
+#         NODE_AUTH_TOKEN: ${{ secrets.YARN_TOKEN }}

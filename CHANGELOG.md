@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.2.1
+
+- Avoid infinite loop when invoked without package.json
+
 ## 6.2.0
 
 - Add support for dev-only patches (#159 again)

@@ -6,13 +6,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest,ubuntu-latest,macos-latest]
-        node: [10,12,13]
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        node: [10, 12, 13]
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node }}
-    - run: yarn install
-    - run: git config --global user.email "patch-package@test.com" && git config --global user.name "patch-package"
-    - run: yarn run test
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - run: yarn install
+      - run: git config --global user.email "patch-package@test.com"
+      - run: git config --global user.name "patch-package"
+      - run: yarn run test

@@ -1,0 +1,18 @@
+on: [push]
+name: Test
+jobs:
+  test:
+    name: ${{ matrix.os }} on node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest,ubuntu-latest,macos-latest]
+        node: [10,12,13]
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+    - run: yarn install
+    - run: git config --global user.email "patch-package@test.com" && git config --global user.name "patch-package"
+    - run: yarn run test

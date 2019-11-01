@@ -2,22 +2,17 @@ on: [push]
 name: Test
 jobs:
   test:
-    name: Ubuntu on node ${{ matrix.node }}
-    runs-on: ubuntu-18.04
+    name: ${{ matrix.os }} on node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04]
-        node: [13]
+        os: [windows-latest,ubuntu-latest,macos-latest]
+        node: [10,12,13]
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node }}
-    - run: yarn global add lerna
     - run: yarn install
     - run: git config --global user.email "patch-package@test.com" && git config --global user.name "patch-package"
     - run: yarn run test
-# Enable the following when ready to publish automatically.
-#     - run: yarn publish
-#       env:
-#         NODE_AUTH_TOKEN: ${{ secrets.YARN_TOKEN }}

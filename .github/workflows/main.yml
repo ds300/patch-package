@@ -1,4 +1,4 @@
-on: [push]
+on: [push, pull_request]
 name: Test
 jobs:
   test:
@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         node: [10, 12, 13]
     steps:
       - uses: actions/checkout@v1

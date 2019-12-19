@@ -59,6 +59,18 @@ need to repeat the setup process for the child package. Also make sure you're in
 the child package directory when you run `patch-package` to generate the patch
 files.
 
+### CI
+
+- Gitlab Docker builds, see
+  [#185](https://github.com/ds300/patch-package/issues/185)
+- If you cache `node_modules` rather than running `yarn install` every time,
+  make sure that the `patches` dir is included in your cache key somehow.
+  Otherwise if you update a patch then the change may not be reflected on
+  subsequent CI runs.
+  
+  e.g. for cirlce ci before loading/saving you cache run `cat patches/* | md5 > patches.hash` and then update your hash key to include a checksum of that file, `{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}`
+  
+
 ## Usage
 
 ### Making patches

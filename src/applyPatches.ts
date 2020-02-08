@@ -149,7 +149,7 @@ export function applyPatchesForApp({
     ) {
       // yay patch was applied successfully
       // print warning if version mismatch
-      if (installedPackageVersion !== version) {
+      if (installedPackageVersion !== version.replace(/\.dev$/, "")) {
         printVersionMismatchWarning({
           packageName: name,
           actualVersion: installedPackageVersion,

@@ -54,9 +54,7 @@ export function getPackageResolution({
 
     if (new Set(resolutions).size !== 1) {
       console.warn(
-        `Ambigious lockfile entries for ${
-          packageDetails.pathSpecifier
-        }. Using version ${installedVersion}`,
+        `Ambigious lockfile entries for ${packageDetails.pathSpecifier}. Using version ${installedVersion}`,
       )
       return installedVersion
     }
@@ -91,10 +89,8 @@ export function getPackageResolution({
     const relevantStackEntry = lockFileStack.find(
       entry => entry.dependencies && packageDetails.name in entry.dependencies,
     )
-    return (
-      relevantStackEntry.dependencies[packageDetails.name].resolved ||
-      relevantStackEntry.dependencies[packageDetails.name].from
-    )
+    const pkg = relevantStackEntry.dependencies[packageDetails.name]
+    return pkg.resolved || pkg.from || pkg.version
   }
 }
 

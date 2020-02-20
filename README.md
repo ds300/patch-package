@@ -65,7 +65,7 @@ files.
   building in Docker, you might need to adjust configuration in `.npmrc`. See
   [#185](https://github.com/ds300/patch-package/issues/185).
 - In your `Dockerfile`, remember to copy over the patch files *before* running
-  `npm install`
+  `[npm|yarn] install`
 - If you cache `node_modules` rather than running `yarn install` every time,
   make sure that the `patches` dir is included in your cache key somehow.
   Otherwise if you update a patch then the change may not be reflected on

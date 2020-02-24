@@ -59,6 +59,10 @@ need to repeat the setup process for the child package. Also make sure you're in
 the child package directory when you run `patch-package` to generate the patch
 files.
 
+### Heroku
+
+For `patch-package` to work on Heroku applications, you must specify [`NPM_CONFIG_PRODUCTION=false` or `YARN_PRODUCTION=false`](https://devcenter.heroku.com/articles/nodejs-support#package-installation). See [this issue](https://github.com/ds300/patch-package/issues/130) for more details.
+
 ### Docker and CI
 
 - If having errors about working directory ("cannot run in wd [...]") when

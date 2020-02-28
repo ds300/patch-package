@@ -59,16 +59,25 @@ need to repeat the setup process for the child package. Also make sure you're in
 the child package directory when you run `patch-package` to generate the patch
 files.
 
-### CI
+### Heroku
 
-- Gitlab Docker builds, see
-  [#185](https://github.com/ds300/patch-package/issues/185)
+For `patch-package` to work on Heroku applications, you must specify [`NPM_CONFIG_PRODUCTION=false` or `YARN_PRODUCTION=false`](https://devcenter.heroku.com/articles/nodejs-support#package-installation). See [this issue](https://github.com/ds300/patch-package/issues/130) for more details.
+
+### Docker and CI
+
+- If having errors about working directory ("cannot run in wd [...]") when
+  building in Docker, you might need to adjust configuration in `.npmrc`. See
+  [#185](https://github.com/ds300/patch-package/issues/185).
+- In your `Dockerfile`, remember to copy over the patch files *before* running
+  `[npm|yarn] install`
 - If you cache `node_modules` rather than running `yarn install` every time,
   make sure that the `patches` dir is included in your cache key somehow.
   Otherwise if you update a patch then the change may not be reflected on
   subsequent CI runs.
   
-  e.g. for cirlce ci before loading/saving you cache run `cat patches/* | md5 > patches.hash` and then update your hash key to include a checksum of that file, `{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}`
+  E.g., for CircleCI: before loading/saving your cache run `cat patches/* | md5 > patches.hash`
+  and then update your hash key to include a checksum of that file, 
+  `{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}`.
   
 
 ## Usage

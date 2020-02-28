@@ -11,65 +11,75 @@ import { join } from "./path"
 import { normalize, sep } from "path"
 import slash = require("slash")
 
-const appPath = getAppRootPath()
-const argv = minimist(process.argv.slice(2), {
-  boolean: [
-    "use-yarn",
-    "case-sensitive-path-filtering",
-    "reverse",
-    "help",
-    "version",
-  ],
-  string: ["patch-dir"],
-})
-const packageNames = argv._
+async function main() {
+  const appPath = getAppRootPath()
+  const argv = minimist(process.argv.slice(2), {
+    boolean: [
+      "use-yarn",
+      "case-sensitive-path-filtering",
+      "reverse",
+      "help",
+      "version",
+    ],
+    string: ["patch-dir"],
+  })
+  const packageNames = argv._
 
-console.log(
-  chalk.bold("patch-package"),
-  // tslint:disable-next-line:no-var-requires
-  require(join(__dirname, "../package.json")).version,
-)
+  console.log(
+    chalk.bold("patch-package"),
+    // tslint:disable-next-line:no-var-requires
+    require(join(__dirname, "../package.json")).version,
+  )
 
-if (argv.version || argv.v) {
-  // noop
-} else if (argv.help || argv.h) {
-  printHelp()
-} else {
-  const patchDir = slash(normalize((argv["patch-dir"] || "patches") + sep))
-  if (patchDir.startsWith("/")) {
-    throw new Error("--patch-dir must be a relative path")
-  }
-  if (packageNames.length) {
-    const includePaths = makeRegExp(
-      argv.include,
-      "include",
-      /.*/,
-      argv["case-sensitive-path-filtering"],
-    )
-    const excludePaths = makeRegExp(
-      argv.exclude,
-      "exclude",
-      /package\.json$/,
-      argv["case-sensitive-path-filtering"],
-    )
-    const packageManager = detectPackageManager(
-      appPath,
-      argv["use-yarn"] ? "yarn" : null,
-    )
-    packageNames.forEach((packagePathSpecifier: string) => {
-      makePatch({
-        packagePathSpecifier,
-        appPath,
-        packageManager,
-        includePaths,
-        excludePaths,
-        patchDir,
-      })
-    })
+  const packageManager = detectPackageManager(
+    appPath,
+    argv["use-yarn"] ? "yarn" : null,
+  )
+
+  if (argv.version || argv.v) {
+    // noop
+  } else if (argv.help || argv.h) {
+    printHelp()
   } else {
-    console.log("Applying patches...")
-    const reverse = !!argv["reverse"]
-    applyPatchesForApp({ appPath, reverse, patchDir })
+    const patchDir = slash(normalize((argv["patch-dir"] || "patches") + sep))
+    if (patchDir.startsWith("/")) {
+      throw new Error("--patch-dir must be a relative path")
+    }
+    if (packageNames.length) {
+      const includePaths = makeRegExp(
+        argv.include,
+        "include",
+        /.*/,
+        argv["case-sensitive-path-filtering"],
+      )
+      const excludePaths = makeRegExp(
+        argv.exclude,
+        "exclude",
+        /package\.json$/,
+        argv["case-sensitive-path-filtering"],
+      )
+
+      for (const packagePathSpecifier of packageNames) {
+        await makePatch({
+          packagePathSpecifier,
+          appPath,
+          packageManager,
+          includePaths,
+          excludePaths,
+          patchDir,
+        })
+      }
+    } else {
+      if (packageManager === "berry") {
+        console.log(
+          "You're using yarn 2, so running `patch-package` without arguments has no effect! Instead your patches will be applied by yarn itself :)",
+        )
+        process.exit(0)
+      }
+      console.log("Applying patches...")
+      const reverse = !!argv["reverse"]
+      applyPatchesForApp({ appPath, reverse, patchDir })
+    }
   }
 }
 
@@ -126,3 +136,5 @@ Usage:
          Make regexps used in --include or --exclude filters case-sensitive.
 `)
 }
+
+main()

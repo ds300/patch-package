@@ -3,8 +3,10 @@ import { join } from "./path"
 import chalk from "chalk"
 import process from "process"
 import findWorkspaceRoot from "find-yarn-workspace-root"
+import { spawnSafeSync } from "./spawnSafe"
+import { parse } from "semver"
 
-export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
+export type PackageManager = "yarn" | "berry" | "npm" | "npm-shrinkwrap"
 
 function printNoYarnLockfileError() {
   console.error(`
@@ -63,7 +65,31 @@ export const detectPackageManager = (
       return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
     }
   } else if (yarnLockExists || findWorkspaceRoot()) {
-    return "yarn"
+    try {
+      const version = spawnSafeSync("yarn", ["--version"], {
+        cwd: appRootPath,
+      })
+        .stdout.toString()
+        .trim()
+      const majorVersion = parse(version)?.major ?? null
+      if (majorVersion === null) {
+        console.error(`
+${chalk.red.bold("**ERROR**")} ${chalk.red(
+          `Unable to parse the result of 'yarn --version': "${version}" `,
+        )}
+`)
+        process.exit(1)
+      }
+
+      return majorVersion === 1 ? "yarn" : "berry"
+    } catch (e) {
+      console.error(`
+${chalk.red.bold("**ERROR**")} ${chalk.red(
+        `Unable to execute 'yarn --version'`,
+      )}
+`)
+      process.exit(1)
+    }
   } else {
     printNoLockfilesError()
     process.exit(1)

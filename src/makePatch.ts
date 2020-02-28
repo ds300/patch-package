@@ -9,19 +9,22 @@ import {
   mkdirSync,
   unlinkSync,
   mkdirpSync,
+  readdirSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
-import { dirSync } from "tmp"
 import { getPatchFiles } from "./patchFs"
 import {
   getPatchDetailsFromCliString,
   getPackageDetailsFromPatchFilename,
+  PackageDetails,
 } from "./PackageDetails"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { getPackageResolution } from "./getPackageResolution"
 import { parsePatchFile } from "./patch/parse"
 import { gzipSync } from "zlib"
+import readline from "readline"
+import { dirSync } from "tmp"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -32,9 +35,105 @@ function printNoPackageFoundError(
 
   File not found: ${packageJsonPath}`,
   )
+  process.exit(1)
 }
 
-export function makePatch({
+function printNoUnpluggedPackageFound({
+  packageName,
+  unpluggedDir,
+}: {
+  packageName: string
+  unpluggedDir: string
+}) {
+  console.error(
+    `Could not find an unnplugged version of ${packageName} in ${unpluggedDir}`,
+  )
+  process.exit(1)
+}
+
+async function findRelativePackagePath({
+  appPath,
+  packageDetails,
+  packageManager,
+}: {
+  appPath: string
+  packageDetails: PackageDetails
+  packageManager: PackageManager
+}): Promise<string> {
+  if (packageManager === "berry") {
+    const unpluggedDir = join(appPath, ".yarn/unplugged")
+    if (!existsSync(unpluggedDir)) {
+      printNoUnpluggedPackageFound({
+        packageName: packageDetails.name,
+        unpluggedDir,
+      })
+    }
+    const dirs = readdirSync(unpluggedDir).filter(
+      name =>
+        name.startsWith(packageDetails.name) &&
+        name
+          .slice(packageDetails.name.length)
+          // optional protocol (e.g. npm) - optional version - hash
+          .match(/^(-\w+)?(-\d+\.\d+\.\d+.*?)?-[0-9a-f]+$/),
+    )
+    if (dirs.length === 0) {
+      printNoUnpluggedPackageFound({
+        packageName: packageDetails.name,
+        unpluggedDir,
+      })
+    }
+    if (dirs.length > 1) {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      })
+
+      return new Promise<string>(resolvePromise => {
+        rl.question(
+          `There are mulitple unplugged versions of ${chalk.bold(
+            packageDetails.name,
+          )}\n\n` +
+            dirs
+              .map(
+                (dir, index) =>
+                  `${chalk.cyan.bold(index.toString())}${chalk.gray(
+                    ")",
+                  )} ${dir}`,
+              )
+              .join("\n") +
+            "\n\n" +
+            `Please select a ${chalk.cyan.bold("version")} ` +
+            chalk.yellow.bold(">> "),
+          answer => {
+            const index = Number(answer.trim())
+            if (index != null && index >= 0 && index < dirs.length) {
+              resolvePromise(
+                join(
+                  ".yarn/unplugged",
+                  dirs[index],
+                  "node_modules",
+                  packageDetails.name,
+                ),
+              )
+            } else {
+              console.error(chalk.red.bold("That didn't work."))
+              console.error(
+                `Please try again and provide a number in the range 0-${dirs.length -
+                  1}`,
+              )
+              process.exit(1)
+            }
+          },
+        )
+      })
+    }
+    return join(".yarn/unplugged", dirs[0], "node_modules", packageDetails.name)
+  }
+
+  return packageDetails.path
+}
+
+export async function makePatch({
   packagePathSpecifier,
   appPath,
   packageManager,
@@ -55,17 +154,22 @@ export function makePatch({
     console.error("No such package", packagePathSpecifier)
     return
   }
-  const appPackageJson = require(join(appPath, "package.json"))
-  const packagePath = join(appPath, packageDetails.path)
-  const packageJsonPath = join(packagePath, "package.json")
+  const appJson = require(join(appPath, "package.json"))
+  const relativePackagePath = await findRelativePackagePath({
+    appPath,
+    packageDetails,
+    packageManager,
+  })
 
-  if (!existsSync(packageJsonPath)) {
-    printNoPackageFoundError(packagePathSpecifier, packageJsonPath)
-    process.exit(1)
+  const appPackageJsonPath = join(appPath, relativePackagePath, "package.json")
+
+  if (!existsSync(appPackageJsonPath)) {
+    // won't happen with berry
+    printNoPackageFoundError(packagePathSpecifier, appPackageJsonPath)
   }
 
   const tmpRepo = dirSync({ unsafeCleanup: true })
-  const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
+  const tmpRepoPackagePath = join(tmpRepo.name, relativePackagePath)
   const tmpRepoNpmRoot = tmpRepoPackagePath.slice(
     0,
     -`/node_modules/${packageDetails.name}`.length,
@@ -92,7 +196,7 @@ export function makePatch({
         },
         resolutions: resolveRelativeFileDependencies(
           appPath,
-          appPackageJson.resolutions || {},
+          appJson.resolutions || {},
         ),
       }),
     )

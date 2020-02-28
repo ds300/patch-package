@@ -3,6 +3,12 @@
 ## 6.2.1
 
 - Avoid infinite loop when invoked without package.json
+- Fall back to version in package-lock (contribution from @bschlenk in #206)
+- Add tips about Docker and CI to README (contribution from @harriha in #208)
+- Remove update notifier (contribution from @christianbundy in #196)
+- Add github actions checks (contribution from @asadm in #186 and @DanielRuf in #188, #187)
+- Fix url in README (contribution from @DanielRuf in #184)
+- Upgrade node in CI to 12 (contribution from @DanielRuf in #183)
 
 ## 6.2.0
 

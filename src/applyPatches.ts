@@ -97,7 +97,7 @@ export function applyPatchesForApp({
   const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
-    console.error(chalk.red("No patch files found"))
+    console.error(chalk.blueBright("No patch files found"))
     return
   }
 

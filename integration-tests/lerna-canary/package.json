@@ -1,0 +1,9 @@
+{
+  "name": "lerna-canary",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}

@@ -35,7 +35,8 @@ export function getPackageResolution({
       resolve(appPath, packageDetails.path),
       "package.json",
     )).version as string
-    const installedVersion = installedVersionLong.substring(0, installedVersionLong.indexOf('+'))
+    const indexOfPlus = installedVersionLong.indexOf('+');
+    const installedVersion = indexOfPlus === 0 ? installedVersionLong : installedVersionLong.substring(0, indexOfPlus)
 
     const entries = Object.entries(appLockFile.object).filter(
       ([k, v]) =>

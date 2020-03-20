@@ -62,7 +62,7 @@ function getInstalledPackageVersion({
       )
     }
 
-    exit()
+    throw new Error("applyPatches")
   }
 
   const { version } = require(join(packageDir, "package.json"))
@@ -78,7 +78,7 @@ function getInstalledPackageVersion({
       )}`,
     )
 
-    exit()
+    throw new Error("applyPatches")
   }
 
   return result as string
@@ -87,10 +87,12 @@ function getInstalledPackageVersion({
 export function applyPatchesForApp({
   appPath,
   reverse,
+  ignoreErrors,
   patchDir,
 }: {
   appPath: string
   reverse: boolean
+  ignoreErrors: boolean
   patchDir: string
 }): void {
   const patchesDirectory = join(appPath, patchDir)
@@ -101,91 +103,112 @@ export function applyPatchesForApp({
     return
   }
 
-  files.forEach(filename => {
-    const packageDetails = getPackageDetailsFromPatchFilename(filename)
+  let hasFailed = false
+  files.forEach((filename, idx) => {
+    try {
+      const packageDetails = getPackageDetailsFromPatchFilename(filename)
 
-    if (!packageDetails) {
-      console.warn(`Unrecognized patch file in patches directory ${filename}`)
-      return
-    }
+      if (!packageDetails) {
+        console.warn(`Unrecognized patch file in patches directory ${filename}`)
+        return
+      }
 
-    const {
-      name,
-      version,
-      path,
-      pathSpecifier,
-      isDevOnly,
-      patchFilename,
-    } = packageDetails
+      const {
+        name,
+        version,
+        path,
+        pathSpecifier,
+        isDevOnly,
+        patchFilename,
+      } = packageDetails
 
-    const installedPackageVersion = getInstalledPackageVersion({
-      appPath,
-      path,
-      pathSpecifier,
-      isDevOnly:
-        isDevOnly ||
-        // check for direct-dependents in prod
-        (process.env.NODE_ENV === "production" &&
-          packageIsDevDependency({ appPath, packageDetails })),
-      patchFilename,
-    })
-    if (!installedPackageVersion) {
-      // it's ok we're in production mode and this is a dev only package
-      console.log(
-        `Skipping dev-only ${chalk.bold(pathSpecifier)}@${version} ${chalk.blue(
-          "✔",
-        )}`,
-      )
-      return
-    }
-
-    if (
-      applyPatch({
-        patchFilePath: resolve(patchesDirectory, filename) as string,
-        reverse,
-        packageDetails,
-        patchDir,
+      const installedPackageVersion = getInstalledPackageVersion({
+        appPath,
+        path,
+        pathSpecifier,
+        isDevOnly:
+          isDevOnly ||
+          // check for direct-dependents in prod
+          (process.env.NODE_ENV === "production" &&
+            packageIsDevDependency({ appPath, packageDetails })),
+        patchFilename,
       })
-    ) {
-      // yay patch was applied successfully
-      // print warning if version mismatch
-      if (installedPackageVersion !== version) {
-        printVersionMismatchWarning({
-          packageName: name,
-          actualVersion: installedPackageVersion,
-          originalVersion: version,
-          pathSpecifier,
-          path,
-        })
-      } else {
+      if (!installedPackageVersion) {
+        // it's ok we're in production mode and this is a dev only package
         console.log(
-          `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
+          `Skipping dev-only ${chalk.bold(
+            pathSpecifier,
+          )}@${version} ${chalk.blue("✔")}`,
+        )
+        return
+      }
+
+      if (
+        applyPatch({
+          patchFilePath: resolve(patchesDirectory, filename) as string,
+          reverse,
+          packageDetails,
+          patchDir,
+        })
+      ) {
+        // yay patch was applied successfully
+        // print warning if version mismatch
+        if (installedPackageVersion !== version) {
+          printVersionMismatchWarning({
+            packageName: name,
+            actualVersion: installedPackageVersion,
+            originalVersion: version,
+            pathSpecifier,
+            path,
+          })
+        } else {
+          console.log(
+            `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
+          )
+        }
+      } else {
+        // completely failed to apply patch
+        // TODO: propagate useful error messages from patch application
+        if (installedPackageVersion === version) {
+          printBrokenPatchFileError({
+            packageName: name,
+            patchFileName: filename,
+            pathSpecifier,
+            path,
+          })
+        } else {
+          printPatchApplictionFailureError({
+            packageName: name,
+            actualVersion: installedPackageVersion,
+            originalVersion: version,
+            patchFileName: filename,
+            path,
+            pathSpecifier,
+          })
+        }
+
+        throw new Error("applyPatches")
+      }
+    } catch (err) {
+      if (err.message !== "applyPatches") {
+        throw err
+      }
+      if (!ignoreErrors) {
+        exit()
+      }
+      hasFailed = true
+      if (idx < files.length - 1) {
+        console.warn(
+          `${chalk.yellow("Warning:")} Option ${chalk.bold(
+            "--ignore-errors",
+          )} was set, moving on to next patch.`,
         )
       }
-    } else {
-      // completely failed to apply patch
-      // TODO: propagate useful error messages from patch application
-      if (installedPackageVersion === version) {
-        printBrokenPatchFileError({
-          packageName: name,
-          patchFileName: filename,
-          pathSpecifier,
-          path,
-        })
-      } else {
-        printPatchApplictionFailureError({
-          packageName: name,
-          actualVersion: installedPackageVersion,
-          originalVersion: version,
-          patchFileName: filename,
-          path,
-          pathSpecifier,
-        })
-      }
-
-      exit()
     }
   })
+  if (hasFailed) {
+    exit()
+  }
 }
 
 export function applyPatch({

@@ -16,6 +16,7 @@ const argv = minimist(process.argv.slice(2), {
   boolean: [
     "use-yarn",
     "case-sensitive-path-filtering",
+    "ignore-errors",
     "reverse",
     "help",
     "version",
@@ -69,7 +70,8 @@ if (argv.version || argv.v) {
   } else {
     console.log("Applying patches...")
     const reverse = !!argv["reverse"]
-    applyPatchesForApp({ appPath, reverse, patchDir })
+    const ignoreErrors = !!argv["ignore-errors"]
+    applyPatchesForApp({ appPath, reverse, ignoreErrors, patchDir })
   }
 }
 

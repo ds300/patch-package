@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.2.2
+
+- Take config from .yarnrc when making patches (contribution from @NMinhNguyen in #222)
+
 ## 6.2.1
 
 - Avoid infinite loop when invoked without package.json

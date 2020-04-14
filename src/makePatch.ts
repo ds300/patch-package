@@ -157,7 +157,7 @@ export function makePatch({
     const git = (...args: string[]) =>
       spawnSafeSync("git", args, {
         cwd: tmpRepo.name,
-        env: { HOME: tmpRepo.name },
+        env: { ...process.env, HOME: tmpRepo.name },
       })
 
     // remove nested node_modules just to be safe

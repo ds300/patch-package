@@ -124,5 +124,9 @@ Usage:
      ${chalk.bold("--case-sensitive-path-filtering")}
 
          Make regexps used in --include or --exclude filters case-sensitive.
+
+     ${chalk.bold("--patch-dir")}
+
+         Specify the name for the directory in which to put the patch files.
 `)
 }

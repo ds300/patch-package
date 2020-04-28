@@ -3,6 +3,8 @@ import { join } from "./path"
 import chalk from "chalk"
 import process from "process"
 import findWorkspaceRoot from "find-yarn-workspace-root"
+import { spawnSafeSync } from "./spawnSafe"
+import { printPatchingProgress } from "./applyPatches"
 
 export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
 
@@ -69,4 +71,62 @@ export const detectPackageManager = (
     process.exit(1)
   }
   throw Error()
+}
+
+export function installPackage({
+  packageManager,
+  repoRoot,
+  packageName,
+  packageVersion,
+}: {
+  packageManager: PackageManager
+  repoRoot: string
+  packageName: string
+  packageVersion: string
+}) {
+  if (packageManager === "yarn") {
+    printPatchingProgress({
+      progress: "installing",
+      packageName,
+      packageVersion,
+    })
+
+    try {
+      // try first without ignoring scripts in case they are required
+      // this works in 99.99% of cases
+      spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
+        cwd: repoRoot,
+        logStdErrOnError: true,
+      })
+    } catch (e) {
+      // try again while ignoring scripts in case the script depends on
+      // an implicit context which we havn't reproduced
+      spawnSafeSync(
+        `yarn`,
+        ["install", "--ignore-engines", "--ignore-scripts"],
+        {
+          cwd: repoRoot,
+        },
+      )
+    }
+  } else {
+    console.info(
+      chalk.green("•"),
+      `Installing ${packageName}@${packageVersion} with npm`,
+    )
+    try {
+      // try first without ignoring scripts in case they are required
+      // this works in 99.99% of cases
+      spawnSafeSync(`npm`, ["i"], {
+        cwd: repoRoot,
+        logStdErrOnError: false,
+      })
+    } catch (e) {
+      // try again while ignoring scripts in case the script depends on
+      // an implicit context which we havn't reproduced
+      spawnSafeSync(`npm`, ["i", "--ignore-scripts"], {
+        cwd: repoRoot,
+      })
+    }
+  }
 }

@@ -20,6 +20,13 @@ const shouldExitPostinstallWithError = isCi || process.env.NODE_ENV === "test"
 
 const exit = () => process.exit(shouldExitPostinstallWithError ? 1 : 0)
 
+export type PatchingProgress =
+  | "creating_temp_folder"
+  | "installing"
+  | "copying"
+  | "patching"
+  | "complete"
+
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
     return []
@@ -219,6 +226,63 @@ export function applyPatch({
   }
 
   return true
+}
+
+export function printPatchingProgress({
+  progress,
+  packageName,
+  packageVersion,
+  packagePathSpecifier,
+  copySrcDir,
+  copyDstDir,
+}: {
+  progress: PatchingProgress
+  packageName?: string
+  packageVersion?: string
+  packagePathSpecifier?: string
+  copySrcDir?: string
+  copyDstDir?: string
+}) {
+  switch (progress) {
+    case "creating_temp_folder":
+      console.info(chalk.green("•"), "Creating temporary folder")
+      break
+
+    case "installing":
+      console.info(
+        chalk.green("•"),
+        `Installing ${packageName}@${packageVersion} with yarn`,
+      )
+      break
+
+    case "copying":
+      const srcDir = copySrcDir ? copySrcDir : "<no source dir>"
+      const dstDit = copyDstDir ? copyDstDir : "<no destination dir>"
+
+      console.info(
+        chalk.green("•"),
+        `Copying clean package to apply a patch from
+          ${chalk.yellow(srcDir)} 
+        to
+          ${chalk.yellow(dstDit)}`,
+      )
+      break
+
+    case "patching":
+      const name = packageName ? packageName : ""
+      console.info(chalk.green("•"), `Started patching the module ${name}`)
+      break
+
+    case "complete":
+      const pathSpecifier = packagePathSpecifier ? packagePathSpecifier : ""
+      console.info(
+        chalk.green("•"),
+        `${chalk.bold(
+          pathSpecifier,
+        )}@${packageVersion} patched .... ${chalk.green("✔")}`,
+      )
+      break
+  }
 }
 
 function printVersionMismatchWarning({

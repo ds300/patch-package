@@ -1,7 +1,7 @@
 import chalk from "chalk"
 import { join, dirname, resolve } from "./path"
 import { spawnSafeSync } from "./spawnSafe"
-import { PackageManager } from "./detectPackageManager"
+import { PackageManager, installPackage } from "./detectPackageManager"
 import { removeIgnoredFiles } from "./filterFiles"
 import {
   writeFileSync,
@@ -17,11 +17,13 @@ import { getPatchFiles } from "./patchFs"
 import {
   getPatchDetailsFromCliString,
   getPackageDetailsFromPatchFilename,
+  PackageDetails,
 } from "./PackageDetails"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { getPackageResolution } from "./getPackageResolution"
 import { parsePatchFile } from "./patch/parse"
 import { gzipSync } from "zlib"
+import { printPatchingProgress } from "./applyPatches"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -32,6 +34,77 @@ function printNoPackageFoundError(
 
   File not found: ${packageJsonPath}`,
   )
+}
+
+export function downloadModule({
+  tmpRepo,
+  appPath,
+  packageDetails,
+  packageManager,
+  appPackageJson,
+  reuseConfig,
+}: {
+  tmpRepo: any
+  appPath: string
+  packageDetails: PackageDetails
+  packageManager: PackageManager
+  appPackageJson: any
+  reuseConfig: boolean
+}): string {
+  const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
+  const tmpRepoNpmRoot = tmpRepoPackagePath.slice(
+    0,
+    -`/node_modules/${packageDetails.name}`.length,
+  )
+  const tmpRepoPackageJsonPath = join(tmpRepoNpmRoot, "package.json")
+
+  printPatchingProgress({ progress: "creating_temp_folder" })
+
+  // make a blank package.json
+  mkdirpSync(tmpRepoNpmRoot)
+
+  const packageResolution = getPackageResolution({
+    packageDetails,
+    packageManager,
+    appPath,
+  })
+
+  writeFileSync(
+    tmpRepoPackageJsonPath,
+    JSON.stringify({
+      dependencies: {
+        [packageDetails.name]: packageResolution,
+      },
+      resolutions: resolveRelativeFileDependencies(
+        appPath,
+        appPackageJson.resolutions || {},
+      ),
+    }),
+  )
+
+  const packageVersion = require(join(
+    resolve(packageDetails.path),
+    "package.json",
+  )).version as string
+
+  if (reuseConfig) {
+    // copy .npmrc/.yarnrc in case packages are hosted in private registry
+    ;[".npmrc", ".yarnrc"].forEach(rcFile => {
+      const rcPath = join(appPath, rcFile)
+      if (existsSync(rcPath)) {
+        copySync(rcPath, join(tmpRepo.name, rcFile))
+      }
+    })
+  }
+
+  installPackage({
+    packageManager,
+    repoRoot: tmpRepoNpmRoot,
+    packageName: packageDetails.name,
+    packageVersion,
+  })
+
+  return tmpRepoPackagePath
 }
 
 export function makePatch({
@@ -65,94 +138,18 @@ export function makePatch({
   }
 
   const tmpRepo = dirSync({ unsafeCleanup: true })
-  const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
-  const tmpRepoNpmRoot = tmpRepoPackagePath.slice(
-    0,
-    -`/node_modules/${packageDetails.name}`.length,
-  )
-
-  const tmpRepoPackageJsonPath = join(tmpRepoNpmRoot, "package.json")
 
   try {
     const patchesDir = resolve(join(appPath, patchDir))
 
-    console.info(chalk.grey("•"), "Creating temporary folder")
-
-    // make a blank package.json
-    mkdirpSync(tmpRepoNpmRoot)
-    writeFileSync(
-      tmpRepoPackageJsonPath,
-      JSON.stringify({
-        dependencies: {
-          [packageDetails.name]: getPackageResolution({
-            packageDetails,
-            packageManager,
-            appPath,
-          }),
-        },
-        resolutions: resolveRelativeFileDependencies(
-          appPath,
-          appPackageJson.resolutions || {},
-        ),
-      }),
-    )
-
-    const packageVersion = require(join(
-      resolve(packageDetails.path),
-      "package.json",
-    )).version as string
-
-    // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    [".npmrc", ".yarnrc"].forEach(rcFile => {
-      const rcPath = join(appPath, rcFile)
-      if (existsSync(rcPath)) {
-        copySync(rcPath, join(tmpRepo.name, rcFile))
-      }
+    const tmpRepoPackagePath = downloadModule({
+      tmpRepo,
+      appPath,
+      packageDetails,
+      packageManager,
+      appPackageJson,
+      reuseConfig: true,
     })
-
-    if (packageManager === "yarn") {
-      console.info(
-        chalk.grey("•"),
-        `Installing ${packageDetails.name}@${packageVersion} with yarn`,
-      )
-      try {
-        // try first without ignoring scripts in case they are required
-        // this works in 99.99% of cases
-        spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
-          cwd: tmpRepoNpmRoot,
-          logStdErrOnError: false,
-        })
-      } catch (e) {
-        // try again while ignoring scripts in case the script depends on
-        // an implicit context which we havn't reproduced
-        spawnSafeSync(
-          `yarn`,
-          ["install", "--ignore-engines", "--ignore-scripts"],
-          {
-            cwd: tmpRepoNpmRoot,
-          },
-        )
-      }
-    } else {
-      console.info(
-        chalk.grey("•"),
-        `Installing ${packageDetails.name}@${packageVersion} with npm`,
-      )
-      try {
-        // try first without ignoring scripts in case they are required
-        // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i"], {
-          cwd: tmpRepoNpmRoot,
-          logStdErrOnError: false,
-        })
-      } catch (e) {
-        // try again while ignoring scripts in case the script depends on
-        // an implicit context which we havn't reproduced
-        spawnSafeSync(`npm`, ["i", "--ignore-scripts"], {
-          cwd: tmpRepoNpmRoot,
-        })
-      }
-    }
 
     const git = (...args: string[]) =>
       spawnSafeSync("git", args, {
@@ -274,6 +271,11 @@ export function makePatch({
         unlinkSync(join(patchDir, filename))
       }
     })
+
+    const packageVersion = require(join(
+      resolve(packageDetails.path),
+      "package.json",
+    )).version as string
 
     const patchFileName = `${packageNames}+${packageVersion}.patch`
 

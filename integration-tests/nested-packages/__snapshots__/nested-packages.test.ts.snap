@@ -14,7 +14,8 @@ exports[`Test nested-packages: run patch-package 1`] = `
 "SNAPSHOT: run patch-package
 patch-package 0.0.0
 Applying patches...
-wrap-ansi/string-width@2.1.1 ✔
+• Started patching the module string-width
+• wrap-ansi/string-width@2.1.1 patched .... ✔
 END SNAPSHOT"
 `;
 

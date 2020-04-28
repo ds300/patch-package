@@ -420,7 +420,7 @@ function printTryingPatchOnClean({ packageName }: { packageName: string }) {
   console.warn(`${chalk.redBright("•")} ${chalk.redBright("**WARNING**")} 
     Patch could not be applied on package ${packageName}. 
     ${chalk.green("But good news:")} 
-    trying to re-apply the patch on a clean freshly downloaded package`)
+    Trying to re-apply the patch on a clean freshly downloaded package`)
 }
 
 function printVersionMismatchWarning({

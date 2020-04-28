@@ -124,5 +124,10 @@ Usage:
      ${chalk.bold("--case-sensitive-path-filtering")}
 
          Make regexps used in --include or --exclude filters case-sensitive.
+         
+     ${chalk.bold("--retry-on-clean")}
+     
+        If a patch fails to be applied even versions are correct. Then patch-package tries to 
+        apply the patch on the fresh new installed package.
 `)
 }

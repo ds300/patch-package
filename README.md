@@ -131,6 +131,11 @@ team.
 
   Specify the name for the directory in which to put the patch files.
 
+- `--retry-on-clean`
+
+  If a patch fails to be applied even versions are correct. Then patch-package tries to 
+  apply the patch on the fresh new installed package.
+
 #### Nested packages
 
 If you are trying to patch a package at, e.g.

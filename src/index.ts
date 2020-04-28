@@ -19,6 +19,7 @@ const argv = minimist(process.argv.slice(2), {
     "reverse",
     "help",
     "version",
+    "retry-on-clean",
   ],
   string: ["patch-dir"],
 })
@@ -69,7 +70,8 @@ if (argv.version || argv.v) {
   } else {
     console.log("Applying patches...")
     const reverse = !!argv["reverse"]
-    applyPatchesForApp({ appPath, reverse, patchDir })
+    const retryOnClean = !!argv["retry-on-clean"]
+    applyPatchesForApp({ appPath, reverse, patchDir, retryOnClean })
   }
 }
 

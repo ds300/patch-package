@@ -88,11 +88,19 @@ export function applyPatchesForApp({
   appPath,
   reverse,
   patchDir,
+  retryOnClean,
 }: {
   appPath: string
   reverse: boolean
   patchDir: string
+  retryOnClean: boolean
 }): void {
+  if (retryOnClean) {
+    console.log(
+      "Removing lint error. This log will be removed in the next commit",
+    )
+  }
+
   const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
 

@@ -1,18 +1,21 @@
 import chalk from "chalk"
 import { getPatchFiles } from "./patchFs"
 import { executeEffects } from "./patch/apply"
-import { existsSync } from "fs-extra"
+import { existsSync, moveSync } from "fs-extra"
 import { join, resolve, relative } from "./path"
 import { posix } from "path"
 import {
   getPackageDetailsFromPatchFilename,
   PackageDetails,
+  PatchedPackageDetails,
 } from "./PackageDetails"
 import { reversePatch } from "./patch/reverse"
 import isCi from "is-ci"
 import semver from "semver"
 import { readPatch } from "./patch/read"
 import { packageIsDevDependency } from "./packageIsDevDependency"
+import { downloadModule } from "./makePatch"
+import { dirSync } from "tmp"
 
 // don't want to exit(1) on postinsall locally.
 // see https://github.com/ds300/patch-package/issues/86
@@ -26,6 +29,15 @@ export type PatchingProgress =
   | "copying"
   | "patching"
   | "complete"
+
+interface PackageVersionParams {
+  appPath: string
+  path: string
+  pathSpecifier: string
+  isDevOnly: boolean
+  version: string
+  patchFilename: string
+}
 
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
@@ -91,6 +103,58 @@ function getInstalledPackageVersion({
   return result as string
 }
 
+function installPackageVersion(
+  params: PackageVersionParams,
+  details: PackageDetails,
+): null | string {
+  const appPackageJson = require(join(params.appPath, "package.json"))
+  const tmpRepo = dirSync({ unsafeCleanup: true })
+
+  try {
+    const packageDir = downloadModule({
+      tmpRepo,
+      appPath: params.appPath,
+      packageDetails: details,
+      packageManager: "yarn",
+      appPackageJson,
+      reuseConfig: false,
+    })
+
+    const { version } = require(join(packageDir, "package.json"))
+    // normalize version for `npm ci`
+    const result = semver.valid(version)
+    if (result === null) {
+      console.error(
+        `${chalk.red(
+          "Error:",
+        )} Version string '${version}' cannot be parsed from ${join(
+          packageDir,
+          "package.json",
+        )}`,
+      )
+
+      exit()
+    }
+
+    // copy package from temporary folder to working dir
+    const srcFolder = packageDir
+    const dstFolder = join(params.appPath, params.path)
+    printPatchingProgress({
+      progress: "copying",
+      copySrcDir: packageDir,
+      copyDstDir: dstFolder,
+    })
+    moveSync(srcFolder, dstFolder, { overwrite: true })
+
+    return result as string
+  } catch (e) {
+    console.error(e)
+    throw e
+  } finally {
+    tmpRepo.removeCallback()
+  }
+}
+
 export function applyPatchesForApp({
   appPath,
   reverse,
@@ -116,83 +180,150 @@ export function applyPatchesForApp({
     return
   }
 
-  files.forEach(filename => {
-    const packageDetails = getPackageDetailsFromPatchFilename(filename)
+  files.forEach(fileName => {
+    const packageDetails = getPackageDetailsFromPatchFilename(fileName)
 
     if (!packageDetails) {
-      console.warn(`Unrecognized patch file in patches directory ${filename}`)
+      console.warn(`Unrecognized patch file in patches directory ${fileName}`)
       return
     }
 
-    const {
-      name,
-      version,
-      path,
-      pathSpecifier,
-      isDevOnly,
-      patchFilename,
-    } = packageDetails
-
-    const installedPackageVersion = getInstalledPackageVersion({
-      appPath,
-      path,
-      pathSpecifier,
-      isDevOnly:
-        isDevOnly ||
-        // check for direct-dependents in prod
-        (process.env.NODE_ENV === "production" &&
-          packageIsDevDependency({ appPath, packageDetails })),
-      patchFilename,
-    })
-    if (!installedPackageVersion) {
-      // it's ok we're in production mode and this is a dev only package
-      console.log(
-        `Skipping dev-only ${chalk.bold(pathSpecifier)}@${version} ${chalk.blue(
-          "✔",
-        )}`,
-      )
-      return
-    }
-
-    if (
-      applyPatch({
-        patchFilePath: resolve(patchesDirectory, filename) as string,
-        reverse,
-        packageDetails,
+    try {
+      prepareAndApplyPatch({
+        appPath,
         patchDir,
+        fileName,
+        packageDetails,
+        reverse,
+        applyOnClean: false,
+        retryOnClean,
       })
-    ) {
-      // yay patch was applied successfully
-      // print warning if version mismatch
-      if (installedPackageVersion !== version) {
-        printVersionMismatchWarning({
-          packageName: name,
-          actualVersion: installedPackageVersion,
-          originalVersion: version,
-          pathSpecifier,
-          path,
-        })
-      } else {
+    } catch (e) {
+      if (e.message === "NoInstalledPackageVersion") {
+        // it's ok we're in production mode and this is a dev only package
         console.log(
-          `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
+          `Skipping dev-only ${chalk.bold(packageDetails.pathSpecifier)}@${
+            packageDetails.version
+          } ${chalk.blue("✔")}`,
         )
+
+        return
       }
+    }
+  })
+}
+
+function prepareAndApplyPatch({
+  appPath,
+  patchDir,
+  fileName,
+  packageDetails,
+  reverse,
+  applyOnClean,
+  retryOnClean,
+}: {
+  appPath: string
+  patchDir: string
+  fileName: string
+  packageDetails: PatchedPackageDetails
+  reverse: boolean
+  applyOnClean: boolean
+  retryOnClean: boolean
+}) {
+  const {
+    version,
+    path,
+    pathSpecifier,
+    isDevOnly,
+    patchFilename,
+  } = packageDetails
+
+  const packageParams: PackageVersionParams = {
+    appPath,
+    path,
+    pathSpecifier,
+    isDevOnly:
+      isDevOnly ||
+      // check for direct-dependents in prod
+      (process.env.NODE_ENV === "production" &&
+        packageIsDevDependency({ appPath, packageDetails })),
+    version: packageDetails.version,
+    patchFilename,
+  }
+
+  let installedPackageVersion: string | null
+  if (applyOnClean) {
+    installedPackageVersion = installPackageVersion(
+      packageParams,
+      packageDetails,
+    )
+  } else {
+    installedPackageVersion = getInstalledPackageVersion(packageParams)
+  }
+
+  if (!installedPackageVersion) {
+    throw Error("NoInstalledPackageVersion")
+  }
+
+  printPatchingProgress({
+    progress: "patching",
+    packageName: packageDetails.name,
+  })
+
+  const patchesDirectory = join(appPath, patchDir)
+  const patchApplied = applyPatch({
+    patchFilePath: resolve(patchesDirectory, fileName) as string,
+    reverse,
+    packageDetails,
+    patchDir,
+  })
+
+  if (patchApplied) {
+    // yay patch was applied successfully
+    // print warning if version mismatch
+    if (installedPackageVersion !== version) {
+      printVersionMismatchWarning({
+        packageName: packageDetails.name,
+        actualVersion: installedPackageVersion,
+        originalVersion: version,
+        pathSpecifier,
+        path,
+      })
+    } else {
+      printPatchingProgress({
+        progress: "complete",
+        packagePathSpecifier: packageDetails.pathSpecifier,
+        packageVersion: packageDetails.version,
+      })
+    }
+  } else {
+    if (retryOnClean) {
+      printTryingPatchOnClean({ packageName: packageDetails.name })
+      prepareAndApplyPatch({
+        appPath,
+        patchDir,
+        fileName,
+        packageDetails,
+        reverse,
+        applyOnClean: true,
+        retryOnClean: false,
+      })
     } else {
       // completely failed to apply patch
       // TODO: propagate useful error messages from patch application
       if (installedPackageVersion === version) {
         printBrokenPatchFileError({
-          packageName: name,
-          patchFileName: filename,
+          packageName: packageDetails.name,
+          patchFileName: fileName,
           pathSpecifier,
           path,
         })
       } else {
         printPatchApplictionFailureError({
-          packageName: name,
+          packageName: packageDetails.name,
           actualVersion: installedPackageVersion,
           originalVersion: version,
-          patchFileName: filename,
+          patchFileName: fileName,
           path,
           pathSpecifier,
         })
@@ -200,7 +331,7 @@ export function applyPatchesForApp({
 
       exit()
     }
-  })
+  }
 }
 
 export function applyPatch({
@@ -283,6 +414,13 @@ export function printPatchingProgress({
       )
       break
   }
+}
+
+function printTryingPatchOnClean({ packageName }: { packageName: string }) {
+  console.warn(`${chalk.redBright("•")} ${chalk.redBright("**WARNING**")} 
+    Patch could not be applied on package ${packageName}. 
+    ${chalk.green("But good news:")} 
+    trying to re-apply the patch on a clean freshly downloaded package`)
 }
 
 function printVersionMismatchWarning({

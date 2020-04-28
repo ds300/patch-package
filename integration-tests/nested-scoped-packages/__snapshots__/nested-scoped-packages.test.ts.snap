@@ -14,7 +14,6 @@ exports[`Test nested-scoped-packages: run patch-package 1`] = `
 "SNAPSHOT: run patch-package
 patch-package 0.0.0
 Applying patches...
-• Started patching the module @types/angular
-• @microsoft/mezzurite-core/@types/angular@1.6.53 patched .... ✔
+@microsoft/mezzurite-core/@types/angular@1.6.53 ✔
 END SNAPSHOT"
 `;

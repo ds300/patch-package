@@ -27,15 +27,5 @@ END SNAPSHOT"
 
 exports[`Test ignores-scripts-when-making-patch: there should be no stderr 1`] = `
 "SNAPSHOT: there should be no stderr
-warning package.json: No license field
-warning No license field
-error /private/var/folders/7p/d6qsgxp949vdkmv5trtclj_m0000gn/T/tmp-50009ckTOw9Yy8nRH/node_modules/naughty-package: Command failed.
-Exit code: 1
-Command: ./postinstall.sh
-Arguments: 
-Directory: /private/var/folders/7p/d6qsgxp949vdkmv5trtclj_m0000gn/T/tmp-50009ckTOw9Yy8nRH/node_modules/naughty-package
-Output:
-ls: ../patch-package: No such file or directory
-
 END SNAPSHOT"
 `;

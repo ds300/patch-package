@@ -163,7 +163,7 @@ export function makePatch({
     // remove nested node_modules just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))
     // remove .git just to be safe
-    rimraf(join(tmpRepoPackagePath, "node_modules"))
+    rimraf(join(tmpRepoPackagePath, ".git"))
 
     // commit the package
     console.info(chalk.grey("•"), "Diffing your files with clean files")

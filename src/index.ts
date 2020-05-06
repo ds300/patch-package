@@ -131,5 +131,9 @@ Usage:
      
         If a patch fails to be applied even versions are correct. Then patch-package tries to 
         apply the patch on the fresh new installed package.
+
+     ${chalk.bold("--patch-dir")}
+
+         Specify the name for the directory in which to put the patch files.
 `)
 }

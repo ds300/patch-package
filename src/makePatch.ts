@@ -102,11 +102,13 @@ export function makePatch({
       "package.json",
     )).version as string
 
-    // copy .npmrc in case if packages are hosted in private registry
-    const npmrcPath = join(appPath, ".npmrc")
-    if (existsSync(npmrcPath)) {
-      copySync(npmrcPath, join(tmpRepo.name, ".npmrc"))
-    }
+    // copy .npmrc/.yarnrc in case packages are hosted in private registry
+    [".npmrc", ".yarnrc"].forEach(rcFile => {
+      const rcPath = join(appPath, rcFile)
+      if (existsSync(rcPath)) {
+        copySync(rcPath, join(tmpRepo.name, rcFile))
+      }
+    })
 
     if (packageManager === "yarn") {
       console.info(
@@ -155,13 +157,13 @@ export function makePatch({
     const git = (...args: string[]) =>
       spawnSafeSync("git", args, {
         cwd: tmpRepo.name,
-        env: { HOME: tmpRepo.name },
+        env: { ...process.env, HOME: tmpRepo.name },
       })
 
     // remove nested node_modules just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))
     // remove .git just to be safe
-    rimraf(join(tmpRepoPackagePath, "node_modules"))
+    rimraf(join(tmpRepoPackagePath, ".git"))
 
     // commit the package
     console.info(chalk.grey("•"), "Diffing your files with clean files")

@@ -37,9 +37,14 @@ export function getPackageResolution({
     )).version as string
 
     const entries = Object.entries(appLockFile.object).filter(
-      ([k, v]) =>
-        k.startsWith(packageDetails.name + "@") &&
-        v.version === installedVersion,
+      ([pkgNameAndVersion, v]) => {
+        if (pkgNameAndVersion.startsWith(packageDetails.name + "@") && v.version === installedVersion) {
+            return true
+        }        
+        // Non-standard versioning. Yarn resolves "package@1.2.3+3d74b79d" as version "1.2.3"
+        // while installedVersion (from package.json) is "1.2.3+3d74b79d"
+        return pkgNameAndVersion === packageDetails.name + "@" + installedVersion;
+      }
     )
 
     const resolutions = entries.map(([_, v]) => {

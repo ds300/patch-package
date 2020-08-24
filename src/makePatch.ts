@@ -9,6 +9,7 @@ import {
   mkdirSync,
   unlinkSync,
   mkdirpSync,
+  realpathSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
@@ -181,7 +182,8 @@ export function makePatch({
     // replace package with user's version
     rimraf(tmpRepoPackagePath)
 
-    copySync(packagePath, tmpRepoPackagePath)
+    // pnpm installs packages as symlinks, copySync would copy only the symlink
+    copySync(realpathSync(packagePath), tmpRepoPackagePath)
 
     // remove nested node_modules just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))

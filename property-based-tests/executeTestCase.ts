@@ -1,5 +1,5 @@
 import * as tmp from "tmp"
-import * as path from "path"
+import { join, dirname } from "path"
 
 import { spawnSafeSync } from "../src/spawnSafe"
 import { executeEffects } from "../src/patch/apply"
@@ -48,11 +48,10 @@ jest.mock("fs-extra", () => {
 
 function writeFiles(cwd: string, files: Files): void {
   const mkdirpSync = require("fs-extra/lib/mkdirs/index.js").mkdirpSync
-  const writeFileSync = require("fs").writeFileSync
   Object.keys(files).forEach(filePath => {
     if (!filePath.startsWith(".git/")) {
-      mkdirpSync(path.join(cwd, path.dirname(filePath)))
-      writeFileSync(path.join(cwd, filePath), files[filePath].contents, {
+      mkdirpSync(join(cwd, dirname(filePath)))
+      writeFileSync(join(cwd, filePath), files[filePath].contents, {
         mode: files[filePath].mode,
       })
     }

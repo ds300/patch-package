@@ -101,7 +101,7 @@ export function applyPatchesForApp({
     return
   }
 
-  files.forEach(filename => {
+  files.forEach((filename) => {
     const packageDetails = getPackageDetailsFromPatchFilename(filename)
 
     if (!packageDetails) {

@@ -87,7 +87,8 @@ export function getPackageResolution({
     }
     lockFileStack.reverse()
     const relevantStackEntry = lockFileStack.find(
-      entry => entry.dependencies && packageDetails.name in entry.dependencies,
+      (entry) =>
+        entry.dependencies && packageDetails.name in entry.dependencies,
     )
     const pkg = relevantStackEntry.dependencies[packageDetails.name]
     return pkg.resolved || pkg.from || pkg.version

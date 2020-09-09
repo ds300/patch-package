@@ -24,7 +24,7 @@ jest.mock("fs-extra", () => {
     setWorkingFiles,
     getWorkingFiles,
     ensureDirSync: jest.fn(),
-    readFileSync: jest.fn(path => getWorkingFiles()[path].contents),
+    readFileSync: jest.fn((path) => getWorkingFiles()[path].contents),
     writeFileSync: jest.fn(
       (path: string, contents: string, opts?: { mode?: number }) => {
         getWorkingFiles()[path] = {
@@ -33,12 +33,12 @@ jest.mock("fs-extra", () => {
         }
       },
     ),
-    unlinkSync: jest.fn(path => delete getWorkingFiles()[path]),
+    unlinkSync: jest.fn((path) => delete getWorkingFiles()[path]),
     moveSync: jest.fn((from, to) => {
       getWorkingFiles()[to] = getWorkingFiles()[from]
       delete getWorkingFiles()[from]
     }),
-    statSync: jest.fn(path => getWorkingFiles()[path]),
+    statSync: jest.fn((path) => getWorkingFiles()[path]),
     chmodSync: jest.fn((path, mode) => {
       const { contents } = getWorkingFiles()[path]
       getWorkingFiles()[path] = { contents, mode }
@@ -48,7 +48,7 @@ jest.mock("fs-extra", () => {
 
 function writeFiles(cwd: string, files: Files): void {
   const mkdirpSync = require("fs-extra/lib/mkdirs/index.js").mkdirpSync
-  Object.keys(files).forEach(filePath => {
+  Object.keys(files).forEach((filePath) => {
     if (!filePath.startsWith(".git/")) {
       mkdirpSync(join(cwd, dirname(filePath)))
       writeFileSync(join(cwd, filePath), files[filePath].contents, {
@@ -61,7 +61,7 @@ function writeFiles(cwd: string, files: Files): void {
 function removeLeadingSpaceOnBlankLines(patchFileContents: string): string {
   return patchFileContents
     .split("\n")
-    .map(line => (line === " " ? "" : line))
+    .map((line) => (line === " " ? "" : line))
     .join("\n")
 }
 

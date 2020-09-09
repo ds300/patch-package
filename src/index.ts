@@ -26,7 +26,7 @@ const packageNames = argv._
 
 console.log(
   chalk.bold("patch-package"),
-  // tslint:disable-next-line:no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require(join(__dirname, "../package.json")).version,
 )
 

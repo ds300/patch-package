@@ -35,7 +35,7 @@ module.exports = {
     "rules": {
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": [
-            "error",
+            "warn",
             {
                 "default": "array"
             }
@@ -87,12 +87,20 @@ module.exports = {
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-parameter-properties": "off",
+        "@typescript-eslint/no-unnecessary-type-assertion": "warn",
         "@typescript-eslint/no-unused-expressions": "error",
+        "@typescript-eslint/no-unsafe-assignment": "warn",
+        "@typescript-eslint/no-unsafe-call": "warn",
+        "@typescript-eslint/no-unsafe-member-access": "warn",
+        "@typescript-eslint/no-unsafe-return": "warn",
         "@typescript-eslint/no-use-before-define": "off",
-        "@typescript-eslint/no-var-requires": "error",
+        "@typescript-eslint/no-var-requires": "warn",
         "@typescript-eslint/prefer-for-of": "off",
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/prefer-namespace-keyword": "error",
+        "@typescript-eslint/prefer-regexp-exec": "warn",
+        "@typescript-eslint/restrict-plus-operands": "warn",
+        "@typescript-eslint/restrict-template-expressions": "warn",
         "@typescript-eslint/semi": [
             "off",
             null
@@ -105,6 +113,7 @@ module.exports = {
                 "lib": "always"
             }
         ],
+        "@typescript-eslint/unbound-method": "warn",
         "@typescript-eslint/unified-signatures": "error",
         "arrow-parens": [
             "off",
@@ -128,17 +137,17 @@ module.exports = {
             "Number",
             "number",
             "String",
-            "string",
+            // "string",
             "Boolean",
-            "boolean",
+            // "boolean",
             "Undefined",
-            "undefined"
+            // "undefined"
         ],
         "id-match": "error",
         "import/no-default-export": "error",
         "import/order": "off",
         "jsdoc/check-alignment": "error",
-        "jsdoc/check-indentation": "error",
+        "jsdoc/check-indentation": "warn",
         "jsdoc/newline-after-description": "error",
         "max-classes-per-file": [
             "error",
@@ -157,7 +166,7 @@ module.exports = {
         "no-invalid-this": "off",
         "no-new-wrappers": "error",
         "no-shadow": [
-            "error",
+            "warn",
             {
                 "hoist": "all"
             }
@@ -174,7 +183,7 @@ module.exports = {
             "error",
             "never"
         ],
-        "prefer-arrow/prefer-arrow-functions": "error",
+        "prefer-arrow/prefer-arrow-functions": "warn",
         "prefer-const": "error",
         "quote-props": "off",
         "radix": "error",

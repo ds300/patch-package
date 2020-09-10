@@ -71,7 +71,7 @@ export const executeEffects = (
 }
 
 function isExecutable(fileMode: number) {
-  // tslint:disable-next-line:no-bitwise
+  // eslint-disable-next-line no-bitwise
   return (fileMode & 0b001_000_000) > 0
 }
 

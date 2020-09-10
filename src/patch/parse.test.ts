@@ -1,4 +1,4 @@
-// tslint:disable
+/* eslint-disable */
 
 import { parsePatchFile } from "../patch/parse"
 

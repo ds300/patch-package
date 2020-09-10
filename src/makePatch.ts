@@ -103,7 +103,7 @@ export function makePatch({
     )).version as string
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    [".npmrc", ".yarnrc"].forEach(rcFile => {
+    ;[".npmrc", ".yarnrc"].forEach(rcFile => {
       const rcPath = join(appPath, rcFile)
       if (existsSync(rcPath)) {
         copySync(rcPath, join(tmpRepo.name, rcFile))

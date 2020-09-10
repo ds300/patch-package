@@ -394,7 +394,7 @@ export function interpretParsedPatchFile(files: FileDeets[]): ParsedPatchFile {
 }
 
 function parseFileMode(mode: string): FileMode {
-  // tslint:disable-next-line:no-bitwise
+  // eslint-disable-next-line no-bitwise
   const parsedMode = parseInt(mode, 8) & 0o777
   if (
     parsedMode !== NON_EXECUTABLE_FILE_MODE &&

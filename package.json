@@ -12,20 +12,26 @@
   "bin": {
     "patch-package": "./index.js"
   },
+  "config": {
+    "allsrc": "src{/**,}/*.ts integration-tests{/**,}/*.ts property-based-tests{/**,}/*.ts",
+    "prettier_options": "--no-semi --trailing-comma=all --arrow-parens avoid"
+  },
   "scripts": {
     "precommit": "tsc --noEmit && lint-staged",
     "prepublishOnly": "yarn run clean && yarn run build",
     "build": "tsc --project tsconfig.build.json",
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
-    "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts integration-tests{/**,}/*.ts property-based-tests{/**,}/*.ts",
+    "format": "prettier $npm_package_config_prettier_options --write $npm_package_config_allsrc",
+    "format:verify": "prettier $npm_package_config_prettier_options --list-different",
+    "lint": "eslint $npm_package_config_allsrc",
     "prepack": "rimraf dist/**/*.test.js",
     "test": "./run-tests.sh --runInBand"
   },
   "lint-staged": {
     "*.ts": [
-      "tslint -c tslint.json -p tsconfig.json",
-      "prettier --no-semi --trailing-comma=all --list-different"
+      "eslint",
+      "yarn format:verify"
     ]
   },
   "jest": {
@@ -55,15 +61,22 @@
     "@types/rimraf": "^2.0.2",
     "@types/semver": "^5.5.0",
     "@types/tmp": "^0.0.34",
+    "@typescript-eslint/eslint-plugin": "^4.1.0",
+    "@typescript-eslint/parser": "^4.1.0",
+    "eslint": "^7.8.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jsdoc": "^30.4.0",
+    "eslint-plugin-prefer-arrow": "^1.2.2",
     "husky": "^1.3.1",
     "jest": "^24.5.0",
     "lint-staged": "^8.1.5",
     "np": "^6.2.0",
-    "prettier": "^1.18.2",
+    "prettier": "^2.1.1",
     "randomstring": "^1.1.5",
     "ts-jest": "^24.0.0",
     "ts-node": "8.0.3",
-    "tslint": "^5.14.0",
+    "tslint": "^6.1.3",
     "typescript": "^3.6.3"
   },
   "dependencies": {

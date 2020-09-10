@@ -9,6 +9,7 @@ import {
   mkdirSync,
   unlinkSync,
   mkdirpSync,
+  readFileSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
@@ -41,6 +42,7 @@ export function makePatch({
   includePaths,
   excludePaths,
   patchDir,
+  gitignore,
 }: {
   packagePathSpecifier: string
   appPath: string
@@ -48,6 +50,7 @@ export function makePatch({
   includePaths: RegExp
   excludePaths: RegExp
   patchDir: string
+  gitignore: boolean
 }) {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
@@ -167,15 +170,40 @@ export function makePatch({
 
     // commit the package
     console.info(chalk.grey("•"), "Diffing your files with clean files")
-    writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
     git("init")
     git("config", "--local", "user.name", "patch-package")
     git("config", "--local", "user.email", "patch@pack.age")
 
+    if (gitignore) {
+      // pertain project's .gitignore and .git/info/exclude
+      // but remove ignoring node_modules/
+      const removeIgnoreNodeModules = (str: string): string =>
+        str.replace(/^\/node_modules\/?$\n/gm, "")
+      const gitIgnorePath = join(appPath, ".gitignore")
+      const gitignoreContent: string = existsSync(gitIgnorePath)
+        ? readFileSync(gitIgnorePath, {
+            encoding: "utf-8",
+          })
+        : ""
+      const gitInfoExcludePath = join(appPath, ".git", "info", "exclude")
+      const gitInfoExcludeContent: string = existsSync(gitInfoExcludePath)
+        ? readFileSync(gitInfoExcludePath, { encoding: "utf-8" })
+        : ""
+      writeFileSync(
+        join(tmpRepo.name, ".gitignore"),
+        [gitInfoExcludeContent, gitignoreContent, "\n"]
+          .map(removeIgnoreNodeModules)
+          .join("\n"),
+      )
+    }
+
     // remove ignored files first
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
-    git("add", "-f", packageDetails.path)
+    const gitAdd = (...args: string[]) =>
+      git("add", ...[...(gitignore ? [] : ["-f"]), ...args])
+
+    gitAdd(packageDetails.path)
     git("commit", "--allow-empty", "-m", "init")
 
     // replace package with user's version
@@ -192,7 +220,7 @@ export function makePatch({
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
     // stage all files
-    git("add", "-f", packageDetails.path)
+    gitAdd(packageDetails.path)
 
     // get diff of changes
     const diffResult = git(

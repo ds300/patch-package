@@ -19,6 +19,7 @@ const argv = minimist(process.argv.slice(2), {
     "reverse",
     "help",
     "version",
+    "git-ignore",
   ],
   string: ["patch-dir"],
 })
@@ -56,6 +57,7 @@ if (argv.version || argv.v) {
       appPath,
       argv["use-yarn"] ? "yarn" : null,
     )
+    const gitignore = argv["git-ignore"]
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({
         packagePathSpecifier,
@@ -64,6 +66,7 @@ if (argv.version || argv.v) {
         includePaths,
         excludePaths,
         patchDir,
+        gitignore,
       })
     })
   } else {
@@ -128,5 +131,11 @@ Usage:
      ${chalk.bold("--patch-dir")}
 
          Specify the name for the directory in which to put the patch files.
+
+     ${chalk.bold("--git-ignore")}
+
+         By default, patch-package creates patches disregarding your git-ignore
+         settings. Set this option to exclude git-ignored files from patches.
+
 `)
 }

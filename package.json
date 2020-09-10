@@ -13,7 +13,8 @@
     "patch-package": "./index.js"
   },
   "config": {
-    "allsrc": "src{/**,}/*.ts integration-tests{/**,}/*.ts property-based-tests{/**,}/*.ts"
+    "allsrc": "src{/**,}/*.ts integration-tests{/**,}/*.ts property-based-tests{/**,}/*.ts",
+    "prettier_options": "--no-semi --trailing-comma=all --arrow-parens avoid"
   },
   "scripts": {
     "precommit": "tsc --noEmit && lint-staged",
@@ -21,7 +22,8 @@
     "build": "tsc --project tsconfig.build.json",
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
-    "format": "prettier --no-semi --write --trailing-comma=all $npm_package_config_allsrc",
+    "format": "prettier $npm_package_config_prettier_options --write $npm_package_config_allsrc",
+    "format:verify": "prettier $npm_package_config_prettier_options --list-different",
     "lint": "eslint $npm_package_config_allsrc",
     "prepack": "rimraf dist/**/*.test.js",
     "test": "./run-tests.sh --runInBand"
@@ -29,7 +31,7 @@
   "lint-staged": {
     "*.ts": [
       "eslint",
-      "prettier --no-semi --trailing-comma=all --list-different"
+      "yarn format:verify"
     ]
   },
   "jest": {
@@ -70,7 +72,7 @@
     "jest": "^24.5.0",
     "lint-staged": "^8.1.5",
     "np": "^6.2.0",
-    "prettier": "^1.18.2",
+    "prettier": "^2.1.1",
     "randomstring": "^1.1.5",
     "ts-jest": "^24.0.0",
     "ts-node": "8.0.3",

@@ -144,12 +144,14 @@ export function makePatch({
         spawnSafeSync(`npm`, ["i"], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
+          stdio: 'ignore',
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we havn't reproduced
         spawnSafeSync(`npm`, ["i", "--ignore-scripts"], {
           cwd: tmpRepoNpmRoot,
+          stdio: 'ignore',
         })
       }
     }

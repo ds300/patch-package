@@ -2,10 +2,10 @@
   <img src="https://ds300.github.io/patch-package/patch-package.svg" width="80%" alt="patch-package" />
 </p>
 
-**Note: It is not safe to publish npm packages with patched dependencies!**
-
 `patch-package` lets app authors instantly make and keep fixes to npm
 dependencies. It's a vital band-aid for those of us living on the bleeding edge.
+
+Note for module authors: it is not safe to publish an npm package that uses `patch-package` to patch a non-dev-dependency.
 
 ```sh
 # fix a bug in one of your dependencies

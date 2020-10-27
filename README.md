@@ -88,6 +88,14 @@ For `patch-package` to work on Heroku applications, you must specify [`NPM_CONFI
   - restore_cache:
       key: app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
   ```  
+  
+  As well as the save_cache
+    ```yaml
+  - save_cache:
+      key: app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
+      paths:
+           - ./node_modules
+  ```
 
 ## Usage
 

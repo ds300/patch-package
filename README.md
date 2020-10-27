@@ -75,10 +75,19 @@ For `patch-package` to work on Heroku applications, you must specify [`NPM_CONFI
   Otherwise if you update a patch then the change may not be reflected on
   subsequent CI runs.
   
-  E.g., for CircleCI: before loading/saving your cache run `cat patches/* | md5 > patches.hash`
-  and then update your hash key to include a checksum of that file, 
-  `{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}`.
+  #### CircleCI example
+  Before loading/saving your cache, run `md5sum patches/* > patches.hash`
+  ```yaml
+  - run:
+      name: patch-package hash
+      command: md5sum patches/* > patches.hash
+  ```
   
+  Then, update your hash key to include a checksum of that file:
+  ```yaml
+  - restore_cache:
+      key: app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
+  ```  
 
 ## Usage
 

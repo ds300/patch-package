@@ -76,7 +76,7 @@ For `patch-package` to work on Heroku applications, you must specify [`NPM_CONFI
   subsequent CI runs.
   
   #### CircleCI example
-  Before loading/saving your cache, run `md5sum patches/* > patches.hash`
+  Create a hash of your patches before loading/saving your cache. If using a Linux machine, run `md5sum patches/* > patches.hash`. If running on a macOS machine,  use `md5 patches/* > patches.hash`
   ```yaml
   - run:
       name: patch-package hash

@@ -74,7 +74,7 @@
     "@yarnpkg/lockfile": "^1.1.0",
     "chalk": "^2.4.2",
     "cross-spawn": "^6.0.5",
-    "find-yarn-workspace-root": "^1.2.1",
+    "find-yarn-workspace-root": "^2.0.0",
     "fs-extra": "^7.0.1",
     "is-ci": "^2.0.0",
     "klaw-sync": "^6.0.0",

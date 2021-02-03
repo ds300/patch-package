@@ -4,6 +4,7 @@ import { SpawnOptions } from "child_process"
 export interface SpawnSafeOptions extends SpawnOptions {
   throwOnError?: boolean
   logStdErrOnError?: boolean
+  maxBuffer?: number
 }
 
 const defaultOptions: SpawnSafeOptions = {

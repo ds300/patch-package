@@ -5,6 +5,9 @@ import { readFileSync, existsSync } from "fs-extra"
 import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 
+const sanitizeVersion = (version: string): string =>
+  version.replace(/\+.+$/, "")
+
 export function getPackageResolution({
   packageDetails,
   packageManager,
@@ -31,10 +34,10 @@ export function getPackageResolution({
       throw new Error("Can't parse lock file")
     }
 
-    const installedVersion = require(join(
-      resolve(appPath, packageDetails.path),
-      "package.json",
-    )).version as string
+    const installedVersion = sanitizeVersion(
+      require(join(resolve(appPath, packageDetails.path), "package.json"))
+        .version,
+    )
 
     const entries = Object.entries(appLockFile.object).filter(
       ([k, v]) =>

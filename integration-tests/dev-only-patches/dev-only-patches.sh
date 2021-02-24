@@ -6,16 +6,17 @@ export NODE_ENV=production
 
 echo "add patch-package"
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo "SNAPSHOT: patch-package happily ignores slash because it's a dev dep"
-npx patch-package
+patch-package
 echo "END SNAPSHOT"
 
 echo "create fake-package+3.0.0.patch"
 cp patches/slash+3.0.0.patch patches/fake-package+3.0.0.patch
 
 (>&2 echo "SNAPSHOT: patch-package fails to find fake-package")
-if npx patch-package
+if patch-package
 then
   exit 1
 fi
@@ -25,5 +26,5 @@ echo "rename fake-package patch file to .dev.patch"
 mv patches/fake-package+3.0.0.patch patches/fake-package+3.0.0.dev.patch
 
 echo "SNAPSHOT: fake-package should be skipped"
-npx patch-package
+patch-package
 echo "END SNAPSHOT"

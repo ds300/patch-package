@@ -3,6 +3,7 @@ set -e
 
 echo "add patch-package"
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo "edit a file"
 npx replace exports patchPackage node_modules/lodash/_baseClamp.js
@@ -14,7 +15,7 @@ echo "remove a file"
 rm node_modules/lodash/fp/__.js
 
 echo "make the patch file"
-npx patch-package lodash
+patch-package lodash
 
 echo "reinstall node modules"
 rm -rf node_modules
@@ -32,7 +33,7 @@ fi
 ls node_modules/lodash/fp/__.js
 
 echo "apply the patch"
-npx patch-package
+patch-package
 
 echo "make sure the patch is applied"
 ls node_modules/lodash/newFile.md
@@ -43,7 +44,7 @@ fi
 grep patchPackage node_modules/lodash/_baseClamp.js
 
 echo "apply the patch again to make sure it's an idempotent operation"
-npx patch-package
+patch-package
 
 echo "make sure the patch is still applied"
 ls node_modules/lodash/newFile.md
@@ -55,7 +56,7 @@ grep patchPackage node_modules/lodash/_baseClamp.js
 
 
 echo "unapply the patch"
-npx patch-package --reverse
+patch-package --reverse
 
 echo "make sure the patch is unapplied"
 if ls node_modules/lodash/newFile.md
@@ -69,7 +70,7 @@ fi
 ls node_modules/lodash/fp/__.js
 
 echo "unapply the patch again to make sure it's an idempotent operation"
-npx patch-package --reverse
+patch-package --reverse
 
 echo "make sure the patch is still unapplied"
 if ls node_modules/lodash/newFile.md

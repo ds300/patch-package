@@ -3,6 +3,7 @@ set -e
 
 echo "add patch-package"
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo "modify left-pad"
 npx replace leftPad patchPackage node_modules/left-pad/index.js
@@ -17,7 +18,7 @@ then
 fi
 
 (>&2 echo "SNAPSHOT: patch-package fails to parse a patch it created")
-if yarn patch-package left-pad
+if patch-package left-pad
 then
   exit 1
 fi

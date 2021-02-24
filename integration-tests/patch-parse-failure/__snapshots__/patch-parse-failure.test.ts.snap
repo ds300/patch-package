@@ -19,6 +19,5 @@ exports[`Test patch-parse-failure: patch parse failure message 1`] = `
     https://github.com/ds300/patch-package/issues/new?title=Patch+file+parse+error&body=%3CPlease+attach+the+patch+file+in+question%3E
 
 
-error Command failed with exit code 1.
 END SNAPSHOT"
 `;

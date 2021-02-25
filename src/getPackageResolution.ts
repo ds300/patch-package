@@ -31,10 +31,12 @@ export function getPackageResolution({
       throw new Error("Can't parse lock file")
     }
 
-    const installedVersion = require(join(
+    const installedVersionLong = require(join(
       resolve(appPath, packageDetails.path),
       "package.json",
     )).version as string
+    const indexOfPlus = installedVersionLong.indexOf('+');
+    const installedVersion = indexOfPlus === -1 ? installedVersionLong : installedVersionLong.substring(0, indexOfPlus)
 
     const entries = Object.entries(appLockFile.object).filter(
       ([k, v]) =>

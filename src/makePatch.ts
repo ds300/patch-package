@@ -22,6 +22,7 @@ import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependenci
 import { getPackageResolution } from "./getPackageResolution"
 import { parsePatchFile } from "./patch/parse"
 import { gzipSync } from "zlib"
+import { getPackageVersion } from "./getPackageVersion"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -97,13 +98,13 @@ export function makePatch({
       }),
     )
 
-    const packageVersion = require(join(
-      resolve(packageDetails.path),
-      "package.json",
-    )).version as string
+    const packageVersion = getPackageVersion(
+      join(resolve(packageDetails.path), "package.json"),
+    )
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    [".npmrc", ".yarnrc"].forEach(rcFile => {
+    // tslint:disable-next-line:align
+    ;[".npmrc", ".yarnrc"].forEach((rcFile) => {
       const rcPath = join(appPath, rcFile)
       if (existsSync(rcPath)) {
         copySync(rcPath, join(tmpRepo.name, rcFile))
@@ -264,11 +265,11 @@ export function makePatch({
     }
 
     const packageNames = packageDetails.packageNames
-      .map(name => name.replace(/\//g, "+"))
+      .map((name) => name.replace(/\//g, "+"))
       .join("++")
 
     // maybe delete existing
-    getPatchFiles(patchDir).forEach(filename => {
+    getPatchFiles(patchDir).forEach((filename) => {
       const deets = getPackageDetailsFromPatchFilename(filename)
       if (deets && deets.path === packageDetails.path) {
         unlinkSync(join(patchDir, filename))

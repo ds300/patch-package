@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test lerna-canary: making patch 1`] = `
+"SNAPSHOT: making patch
+patch-package 0.0.0
+• Creating temporary folder
+• Installing @parcel/codeframe@2.0.0-nightly.137 with yarn
+• Diffing your files with clean files
+✔ Created file patches/@parcel+codeframe+2.0.0-nightly.137.patch
+END SNAPSHOT"
+`;
+
+exports[`Test lerna-canary: the patch applies 1`] = `
+"SNAPSHOT: the patch applies
+patch-package 0.0.0
+Applying patches...
+@parcel/codeframe@2.0.0-nightly.137 ✔
+END SNAPSHOT"
+`;
+
+exports[`Test lerna-canary: the patch looks like this 1`] = `
+"SNAPSHOT: the patch looks like this
+diff --git a/node_modules/@parcel/codeframe/src/codeframe.js b/node_modules/@parcel/codeframe/src/codeframe.js
+index 2bf2c1c..ef0695b 100644
+--- a/node_modules/@parcel/codeframe/src/codeframe.js
++++ b/node_modules/@parcel/codeframe/src/codeframe.js
+@@ -41,7 +41,7 @@ const highlightSyntax = (txt: string, lang?: string): string => {
+   return emphasize.highlightAuto(txt).value;
+ };
+ 
+-export default function codeFrame(
++export default function patch-package(
+   code: string,
+   highlights: Array<DiagnosticCodeHighlight>,
+   // $FlowFixMe
+END SNAPSHOT"
+`;

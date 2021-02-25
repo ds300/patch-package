@@ -13,7 +13,6 @@
     "patch-package": "./index.js"
   },
   "scripts": {
-    "precommit": "tsc --noEmit && lint-staged",
     "prepublishOnly": "yarn run clean && yarn run build",
     "build": "tsc --project tsconfig.build.json",
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
@@ -21,6 +20,11 @@
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts integration-tests{/**,}/*.ts property-based-tests{/**,}/*.ts",
     "prepack": "rimraf dist/**/*.test.js",
     "test": "./run-tests.sh --runInBand"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsc --noEmit && lint-staged"
+    }
   },
   "lint-staged": {
     "*.ts": [
@@ -59,7 +63,7 @@
     "jest": "^24.5.0",
     "lint-staged": "^8.1.5",
     "np": "^6.2.0",
-    "prettier": "^1.18.2",
+    "prettier": "^2.2.1",
     "randomstring": "^1.1.5",
     "ts-jest": "^24.0.0",
     "ts-node": "8.0.3",

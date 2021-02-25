@@ -130,6 +130,11 @@ team.
 - `--patch-dir`
 
   Specify the name for the directory in which to put the patch files.
+  
+- `--git-ignore`
+
+  By default, patch-package creates patches disregarding your git-ignore
+  settings. Set this option to exclude git-ignored files from patches.
 
 #### Nested packages
 

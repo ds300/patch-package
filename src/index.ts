@@ -16,6 +16,7 @@ const argv = minimist(process.argv.slice(2), {
   boolean: [
     "use-yarn",
     "case-sensitive-path-filtering",
+    "ignore-errors",
     "reverse",
     "help",
     "version",
@@ -69,7 +70,8 @@ if (argv.version || argv.v) {
   } else {
     console.log("Applying patches...")
     const reverse = !!argv["reverse"]
-    applyPatchesForApp({ appPath, reverse, patchDir })
+    const ignoreErrors = !!argv["ignore-errors"]
+    applyPatchesForApp({ appPath, reverse, ignoreErrors, patchDir })
   }
 }
 
@@ -89,6 +91,28 @@ Usage:
 
      ./patches/<package-name>+<version>.patch
 
+  Options:
+
+    ${chalk.bold("--patch-dir <dirname>")}
+
+      Specify the name for the directory in which the patch files are located.
+
+    ${chalk.bold("--ignore-errors")}
+
+      Try to apply all of the patches, even if some of them fail.
+
+    ${chalk.bold("--reverse")}
+        
+      Un-applies all patches.
+
+      Note that this will fail if the patched files have changed since being
+      patched. In that case, you'll probably need to re-install 'node_modules'.
+
+      This option was added to help people using CircleCI avoid an issue around caching
+      and patch file updates (https://github.com/ds300/patch-package/issues/37),
+      but might be useful in other contexts too.
+      
+
   2. Creating patch files
   =======================
 
@@ -101,32 +125,32 @@ Usage:
 
   Options:
 
-     ${chalk.bold("--use-yarn")}
+    ${chalk.bold("--use-yarn")}
 
-         By default, patch-package checks whether you use npm or yarn based on
-         which lockfile you have. If you have both, it uses npm by default.
-         Set this option to override that default and always use yarn.
+        By default, patch-package checks whether you use npm or yarn based on
+        which lockfile you have. If you have both, it uses npm by default.
+        Set this option to override that default and always use yarn.
 
-     ${chalk.bold("--exclude <regexp>")}
+    ${chalk.bold("--exclude <regexp>")}
 
-         Ignore paths matching the regexp when creating patch files.
-         Paths are relative to the root dir of the package to be patched.
+        Ignore paths matching the regexp when creating patch files.
+        Paths are relative to the root dir of the package to be patched.
 
-         Default: 'package\\.json$'
+        Default: 'package\\.json$'
 
-     ${chalk.bold("--include <regexp>")}
+    ${chalk.bold("--include <regexp>")}
 
-         Only consider paths matching the regexp when creating patch files.
-         Paths are relative to the root dir of the package to be patched.
+        Only consider paths matching the regexp when creating patch files.
+        Paths are relative to the root dir of the package to be patched.
 
-         Default '.*'
+        Default '.*'
 
-     ${chalk.bold("--case-sensitive-path-filtering")}
+    ${chalk.bold("--case-sensitive-path-filtering")}
 
-         Make regexps used in --include or --exclude filters case-sensitive.
+        Make regexps used in --include or --exclude filters case-sensitive.
+    
+    ${chalk.bold("--patch-dir")}
 
-     ${chalk.bold("--patch-dir")}
-
-         Specify the name for the directory in which to put the patch files.
+        Specify the name for the directory in which to put the patch files.
 `)
 }

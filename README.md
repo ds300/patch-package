@@ -169,6 +169,10 @@ Run `patch-package` without arguments to apply all patches in your project.
 
   Specify the name for the directory in which the patch files are located
 
+- `--ignore-errors`
+
+  Try to apply all of the patches, even if some of them fail.
+
 #### Notes
 
 To apply patches individually, you may use `git`:

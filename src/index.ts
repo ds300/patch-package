@@ -70,8 +70,7 @@ if (argv.version || argv.v) {
   } else {
     console.log("Applying patches...")
     const reverse = !!argv["reverse"]
-    const ignoreErrors = !!argv["ignore-errors"]
-    applyPatchesForApp({ appPath, reverse, ignoreErrors, patchDir })
+    applyPatchesForApp({ appPath, reverse, patchDir })
   }
 }
 
@@ -96,10 +95,6 @@ Usage:
     ${chalk.bold("--patch-dir <dirname>")}
 
       Specify the name for the directory in which the patch files are located.
-
-    ${chalk.bold("--ignore-errors")}
-
-      Try to apply all of the patches, even if some of them fail.
 
     ${chalk.bold("--reverse")}
         

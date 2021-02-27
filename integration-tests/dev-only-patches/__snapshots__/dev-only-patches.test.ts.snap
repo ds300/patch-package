@@ -18,6 +18,8 @@ Error: Patch file found for package fake-package which is not present at node_mo
   
     fake-package+3.0.0.dev.patch
 
+---
+patch-package finished with 1 error(s).
 END SNAPSHOT"
 `;
 

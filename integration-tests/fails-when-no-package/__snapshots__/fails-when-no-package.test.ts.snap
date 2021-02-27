@@ -3,5 +3,7 @@
 exports[`Test fails-when-no-package: no package present failure 1`] = `
 "SNAPSHOT: no package present failure
 Error: Patch file found for package left-pad which is not present at node_modules/left-pad
+---
+patch-package finished with 1 error(s).
 END SNAPSHOT"
 `;

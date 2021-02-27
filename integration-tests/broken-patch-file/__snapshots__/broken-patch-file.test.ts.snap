@@ -23,5 +23,7 @@ exports[`Test broken-patch-file: patch-package fails when patch file is invalid 
     https://github.com/ds300/patch-package/issues
     
 
+---
+patch-package finished with 1 error(s).
 END SNAPSHOT"
 `;

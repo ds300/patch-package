@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.3.1
+
+- Fix another createPatch bug involving .git folder hygiene (contribution from @gomain in #258)
+
 ## 6.3.0
 
 - Add --error-on-fail cli option 

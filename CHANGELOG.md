@@ -1,5 +1,16 @@
 # Changelog
 
+## 6.3.0
+
+- Add --error-on-fail cli option 
+- Collate errors and warnings to avoid exiting early (with help from @akwodkiewicz in #217)
+- Fix .dev.patch suffix bug (with help from @pdcastro in #224)
+- Support build metadata in package.json version strings (with help from @snowystinger in #213)
+- Change 'no patch files found' message from red to blue (contribution from @dmhalejr in #211)
+- Fix environment variable propogation for spawned tasks (contribution from @chpio in #223)
+- Add --patch-dir option to readme (contribution from @mikehardy in #225)
+- Fix createPatch bug involving .git folder hygiene (contribution from @haroenv in #231)
+
 ## 6.2.2
 
 - Take config from .yarnrc when making patches (contribution from @NMinhNguyen in #222)

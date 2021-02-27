@@ -167,11 +167,10 @@ export function applyPatchesForApp({
               path,
             }),
           )
-        } else {
-          console.log(
-            `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
-          )
         }
+        console.log(
+          `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
+        )
       } else if (installedPackageVersion === version) {
         // completely failed to apply patch
         // TODO: propagate useful error messages from patch application

@@ -10,6 +10,7 @@ import { detectPackageManager } from "./detectPackageManager"
 import { join } from "./path"
 import { normalize, sep } from "path"
 import slash = require("slash")
+import isCi from "is-ci"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -19,6 +20,7 @@ const argv = minimist(process.argv.slice(2), {
     "reverse",
     "help",
     "version",
+    "error-on-fail",
   ],
   string: ["patch-dir"],
 })
@@ -69,7 +71,11 @@ if (argv.version || argv.v) {
   } else {
     console.log("Applying patches...")
     const reverse = !!argv["reverse"]
-    applyPatchesForApp({ appPath, reverse, patchDir })
+    // don't want to exit(1) on postinsall locally.
+    // see https://github.com/ds300/patch-package/issues/86
+    const shouldExitWithError =
+      !!argv["error-on-fail"] || isCi || process.env.NODE_ENV === "test"
+    applyPatchesForApp({ appPath, reverse, patchDir, shouldExitWithError })
   }
 }
 
@@ -94,6 +100,19 @@ Usage:
     ${chalk.bold("--patch-dir <dirname>")}
 
       Specify the name for the directory in which the patch files are located.
+      
+    ${chalk.bold("--error-on-fail")}
+    
+      Forces patch-package to exit with code 1 after failing.
+    
+      When running locally patch-package always exits with 0 by default.
+      This happens even after failing to apply patches because otherwise 
+      yarn.lock and package.json might get out of sync with node_modules,
+      which can be very confusing.
+      
+      --error-on-fail is ${chalk.bold("switched on")} by default on CI.
+      
+      See https://github.com/ds300/patch-package/issues/86 for background.
 
     ${chalk.bold("--reverse")}
         

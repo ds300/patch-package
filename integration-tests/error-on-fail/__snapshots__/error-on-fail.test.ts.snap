@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test error-on-fail: at dev time patch-package fails but returns 0 1`] = `
+"SNAPSHOT: at dev time patch-package fails but returns 0
+
+**ERROR** Failed to apply patch for package left-pad at path
+  
+    node_modules/left-pad
+
+  This error was caused because patch-package cannot apply the following patch file:
+
+    patches/left-pad+1.3.0.patch
+
+  Try removing node_modules and trying again. If that doesn't work, maybe there was
+  an accidental change made to the patch file? Try recreating it by manually
+  editing the appropriate files and running:
+  
+    patch-package left-pad
+  
+  If that doesn't work, then it's a bug in patch-package, so please submit a bug
+  report. Thanks!
+
+    https://github.com/ds300/patch-package/issues
+    
+
+---
+patch-package finished with 1 error(s).
+END SNAPSHOT"
+`;

@@ -9,7 +9,6 @@ import {
   PackageDetails,
 } from "./PackageDetails"
 import { reversePatch } from "./patch/reverse"
-import isCi from "is-ci"
 import semver from "semver"
 import { readPatch } from "./patch/read"
 import { packageIsDevDependency } from "./packageIsDevDependency"
@@ -19,12 +18,6 @@ class PatchApplicationError extends Error {
     super(msg)
   }
 }
-
-// don't want to exit(1) on postinsall locally.
-// see https://github.com/ds300/patch-package/issues/86
-const shouldExitPostinstallWithError = isCi || process.env.NODE_ENV === "test"
-
-const exit = () => process.exit(shouldExitPostinstallWithError ? 1 : 0)
 
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
@@ -90,10 +83,12 @@ export function applyPatchesForApp({
   appPath,
   reverse,
   patchDir,
+  shouldExitWithError,
 }: {
   appPath: string
   reverse: boolean
   patchDir: string
+  shouldExitWithError: boolean
 }): void {
   const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
@@ -227,7 +222,7 @@ export function applyPatchesForApp({
   }
 
   if (errors.length) {
-    exit()
+    process.exit(shouldExitWithError ? 1 : 0)
   }
 }
 

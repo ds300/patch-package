@@ -61,24 +61,27 @@ files.
 
 ### Heroku
 
-For `patch-package` to work on Heroku applications, you must specify [`NPM_CONFIG_PRODUCTION=false` or `YARN_PRODUCTION=false`](https://devcenter.heroku.com/articles/nodejs-support#package-installation). See [this issue](https://github.com/ds300/patch-package/issues/130) for more details.
+For `patch-package` to work on Heroku applications, you must specify
+[`NPM_CONFIG_PRODUCTION=false` or `YARN_PRODUCTION=false`](https://devcenter.heroku.com/articles/nodejs-support#package-installation).
+See [this issue](https://github.com/ds300/patch-package/issues/130) for more
+details.
 
 ### Docker and CI
 
 - If having errors about working directory ("cannot run in wd [...]") when
   building in Docker, you might need to adjust configuration in `.npmrc`. See
   [#185](https://github.com/ds300/patch-package/issues/185).
-- In your `Dockerfile`, remember to copy over the patch files *before* running
+- In your `Dockerfile`, remember to copy over the patch files _before_ running
   `[npm|yarn] install`
 - If you cache `node_modules` rather than running `yarn install` every time,
   make sure that the `patches` dir is included in your cache key somehow.
   Otherwise if you update a patch then the change may not be reflected on
   subsequent CI runs.
-  
-  E.g., for CircleCI: before loading/saving your cache run `cat patches/* | md5 > patches.hash`
-  and then update your hash key to include a checksum of that file, 
+
+  E.g., for CircleCI: before loading/saving your cache run
+  `cat patches/* | md5 > patches.hash` and then update your hash key to include
+  a checksum of that file,
   `{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}`.
-  
 
 ## Usage
 
@@ -153,6 +156,19 @@ more changes, run patch-package, commit the changes to the patch file.
 Run `patch-package` without arguments to apply all patches in your project.
 
 #### Options
+
+- `--error-on-fail`
+
+  Forces patch-package to exit with code 1 after failing.
+
+  When running locally patch-package always exits with 0 by default. This
+  happens even after failing to apply patches because otherwise yarn.lock and
+  package.json might get out of sync with node_modules, which can be very
+  confusing.
+
+  `--error-on-fail` is **switched on** by default on CI.
+
+  See https://github.com/ds300/patch-package/issues/86 for background.
 
 - `--reverse`
 

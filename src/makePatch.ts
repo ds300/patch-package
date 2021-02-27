@@ -187,7 +187,7 @@ export function makePatch({
     // remove nested node_modules just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))
     // remove .git just to be safe
-    rimraf(join(tmpRepoPackagePath, "node_modules"))
+    rimraf(join(tmpRepoPackagePath, ".git"))
 
     // also remove ignored files like before
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)

@@ -16,7 +16,6 @@ const argv = minimist(process.argv.slice(2), {
   boolean: [
     "use-yarn",
     "case-sensitive-path-filtering",
-    "ignore-errors",
     "reverse",
     "help",
     "version",

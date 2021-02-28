@@ -7,6 +7,11 @@ patch-package 0.0.0
 • Installing string-width@2.1.1 with yarn
 • Diffing your files with clean files
 ✔ Created file patches/wrap-ansi++string-width+2.1.1.patch
+
+💡 string-width is on GitHub! To draft an issue based on your patch run
+
+    yarn patch-package wrap-ansi/string-width --create-issue
+
 END SNAPSHOT"
 `;
 

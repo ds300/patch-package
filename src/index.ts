@@ -21,6 +21,7 @@ const argv = minimist(process.argv.slice(2), {
     "help",
     "version",
     "error-on-fail",
+    "create-issue",
   ],
   string: ["patch-dir"],
 })
@@ -58,6 +59,7 @@ if (argv.version || argv.v) {
       appPath,
       argv["use-yarn"] ? "yarn" : null,
     )
+    const createIssue = argv["create-issue"]
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({
         packagePathSpecifier,
@@ -66,6 +68,7 @@ if (argv.version || argv.v) {
         includePaths,
         excludePaths,
         patchDir,
+        createIssue,
       })
     })
   } else {
@@ -137,6 +140,11 @@ Usage:
   based on any changes you've made to the versions installed by yarn/npm.
 
   Options:
+  
+    ${chalk.bold("--create-issue")}
+    
+       For packages whose source is hosted on GitHub this option opens a web
+       browser with a draft issue based on your diff.
 
     ${chalk.bold("--use-yarn")}
 

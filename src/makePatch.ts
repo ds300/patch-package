@@ -17,12 +17,17 @@ import { getPatchFiles } from "./patchFs"
 import {
   getPatchDetailsFromCliString,
   getPackageDetailsFromPatchFilename,
+  PackageDetails,
 } from "./PackageDetails"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { getPackageResolution } from "./getPackageResolution"
 import { parsePatchFile } from "./patch/parse"
 import { gzipSync } from "zlib"
 import { getPackageVersion } from "./getPackageVersion"
+import {
+  maybePrintIssueCreationPrompt,
+  openIssueCreationLink,
+} from "./createIssue"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -42,6 +47,7 @@ export function makePatch({
   includePaths,
   excludePaths,
   patchDir,
+  createIssue,
 }: {
   packagePathSpecifier: string
   appPath: string
@@ -49,6 +55,7 @@ export function makePatch({
   includePaths: RegExp
   excludePaths: RegExp
   patchDir: string
+  createIssue: boolean
 }) {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
@@ -264,10 +271,6 @@ export function makePatch({
       return
     }
 
-    const packageNames = packageDetails.packageNames
-      .map((name) => name.replace(/\//g, "+"))
-      .join("++")
-
     // maybe delete existing
     getPatchFiles(patchDir).forEach((filename) => {
       const deets = getPackageDetailsFromPatchFilename(filename)
@@ -276,7 +279,10 @@ export function makePatch({
       }
     })
 
-    const patchFileName = `${packageNames}+${packageVersion}.patch`
+    const patchFileName = createPatchFileName({
+      packageDetails,
+      packageVersion,
+    })
 
     const patchPath = join(patchesDir, patchFileName)
     if (!existsSync(dirname(patchPath))) {
@@ -285,12 +291,34 @@ export function makePatch({
     }
     writeFileSync(patchPath, diffResult.stdout)
     console.log(
-      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}`,
+      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
     )
+    if (createIssue) {
+      openIssueCreationLink({
+        packageDetails,
+        patchFileContents: diffResult.stdout.toString(),
+      })
+    } else {
+      maybePrintIssueCreationPrompt(packageDetails, packageManager)
+    }
   } catch (e) {
     console.error(e)
     throw e
   } finally {
     tmpRepo.removeCallback()
   }
+}
+
+function createPatchFileName({
+  packageDetails,
+  packageVersion,
+}: {
+  packageDetails: PackageDetails
+  packageVersion: string
+}) {
+  const packageNames = packageDetails.packageNames
+    .map((name) => name.replace(/\//g, "+"))
+    .join("++")
+
+  return `${packageNames}+${packageVersion}.patch`
 }

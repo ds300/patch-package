@@ -22,6 +22,7 @@ patch-package 0.0.0
 • Installing naughty-package@1.0.0 with yarn
 • Diffing your files with clean files
 ✔ Created file patches/naughty-package+1.0.0.patch
+
 END SNAPSHOT"
 `;
 

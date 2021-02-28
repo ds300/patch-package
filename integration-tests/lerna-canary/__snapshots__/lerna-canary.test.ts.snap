@@ -7,6 +7,11 @@ patch-package 0.0.0
 • Installing @parcel/codeframe@2.0.0-nightly.137 with yarn
 • Diffing your files with clean files
 ✔ Created file patches/@parcel+codeframe+2.0.0-nightly.137.patch
+
+💡 @parcel/codeframe is on GitHub! To draft an issue based on your patch run
+
+    yarn patch-package @parcel/codeframe --create-issue
+
 END SNAPSHOT"
 `;
 

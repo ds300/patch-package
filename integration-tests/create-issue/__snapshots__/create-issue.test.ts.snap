@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test create-issue: patching left-pad prompts to submit an issue 1`] = `
+"SNAPSHOT: patching left-pad prompts to submit an issue
+patch-package 0.0.0
+• Creating temporary folder
+• Installing left-pad@1.3.0 with yarn
+• Diffing your files with clean files
+✔ Created file patches/left-pad+1.3.0.patch
+
+💡 left-pad is on GitHub! To draft an issue based on your patch run
+
+    yarn patch-package left-pad --create-issue
+
+END SNAPSHOT"
+`;
+
+exports[`Test create-issue: patching left-pad with --create-issue opens the url 1`] = `
+"SNAPSHOT: patching left-pad with --create-issue opens the url
+patch-package 0.0.0
+• Creating temporary folder
+• Installing left-pad@1.3.0 with yarn
+• Diffing your files with clean files
+✔ Created file patches/left-pad+1.3.0.patch
+
+MOCK opening https://github.com/stevemao/left-pad/issues/new
+MOCK title [Replace me]
+MOCK body Hi! 👋 
+      
+Firstly, thanks for your work on this project! 🙂
+
+Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`left-pad\` for the project I'm working on because [Insert reason here].
+
+Here is the diff that solved my problem:
+
+\`\`\`diff
+diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
+index e90aec3..cbca95b 100644
+--- a/node_modules/left-pad/index.js
++++ b/node_modules/left-pad/index.js
+@@ -4,7 +4,7 @@
+      * To Public License, Version 2, as published by Sam Hocevar. See
+      * http://www.wtfpl.net/ for more details. */
+ 'use strict';
+-module.exports = leftPad;
++module.exports = patch-package;
+ 
+ var cache = [
+   '',
+@@ -19,7 +19,7 @@ var cache = [
+   '         '
+ ];
+ 
+-function leftPad (str, len, ch) {
++function patch-package (str, len, ch) {
+   // convert \`str\` to a \`string\`
+   str = str + '';
+   // \`len\` is the \`pad\`'s length now
+\`\`\`
+
+END SNAPSHOT"
+`;

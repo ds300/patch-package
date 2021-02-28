@@ -1,0 +1,13 @@
+{
+  "name": "create-issue",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "left-pad": "^1.3.0",
+    "lodash": "^4.17.21",
+    "replace": "^1.2.0"
+  }
+}

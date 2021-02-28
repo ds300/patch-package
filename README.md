@@ -106,6 +106,11 @@ team.
 
 #### Options
 
+- `--create-issue`
+
+  For packages whose source is hosted on GitHub this option opens a web browser
+  with a draft issue based on your diff.
+
 - `--use-yarn`
 
   By default, patch-package checks whether you use npm or yarn based on which

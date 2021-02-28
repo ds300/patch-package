@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.0
+
+- Add --create-issue option
+
 ## 6.3.1
 
 - Fix another createPatch bug involving .git folder hygiene (contribution from @gomain in #258)

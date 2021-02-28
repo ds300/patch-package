@@ -3,7 +3,7 @@
   "version": "6.3.1",
   "description": "Fix broken node modules with no fuss",
   "main": "dist/index.js",
-  "repository": "https://github.com/ds300/patch-package",
+  "repository": "github:ds300/patch-package",
   "author": "David Sheldrick",
   "license": "MIT",
   "engines": {

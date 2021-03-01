@@ -297,6 +297,7 @@ export function makePatch({
       openIssueCreationLink({
         packageDetails,
         patchFileContents: diffResult.stdout.toString(),
+        packageVersion,
       })
     } else {
       maybePrintIssueCreationPrompt(packageDetails, packageManager)

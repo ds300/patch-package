@@ -29,7 +29,7 @@ MOCK body Hi! 👋
       
 Firstly, thanks for your work on this project! 🙂
 
-Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`left-pad\` for the project I'm working on because [Insert reason here].
+Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`left-pad@1.3.0\` for the project I'm working on because [Insert reason here].
 
 Here is the diff that solved my problem:
 

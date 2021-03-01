@@ -66,9 +66,11 @@ export function maybePrintIssueCreationPrompt(
 export function openIssueCreationLink({
   packageDetails,
   patchFileContents,
+  packageVersion,
 }: {
   packageDetails: PackageDetails
   patchFileContents: string
+  packageVersion: string
 }) {
   const vcs = getPackageVCSDetails(packageDetails)
 
@@ -91,7 +93,7 @@ export function openIssueCreationLink({
       
 Firstly, thanks for your work on this project! 🙂
 
-Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`${packageDetails.name}\` for the project I'm working on because [Insert reason here].
+Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`${packageDetails.name}@${packageVersion}\` for the project I'm working on because [Insert reason here].
 
 Here is the diff that solved my problem:
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.1
+
+- Add backlink to patch-package repo to collect public usage of --create-issue
+
 ## 3.4.0
 
 - Add --create-issue option

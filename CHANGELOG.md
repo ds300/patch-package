@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.3
+
+- Ensure real path is used when copying package contents. Potentially adds pnpm support (contribution from @milahu in #252)
+
 ## 3.4.2
 
 - Add package version to --create-issue template

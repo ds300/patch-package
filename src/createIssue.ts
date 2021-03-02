@@ -88,12 +88,14 @@ export function openIssueCreationLink({
 
   open(
     `https://github.com/${vcs.org}/${vcs.repo}/issues/new?${stringify({
-      title: "[Replace me]",
+      title: "",
       body: `Hi! 👋 
       
 Firstly, thanks for your work on this project! 🙂
 
-Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`${packageDetails.name}@${packageVersion}\` for the project I'm working on because [Insert reason here].
+Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`${packageDetails.name}@${packageVersion}\` for the project I'm working on.
+
+<!-- 🔺️🔺️🔺️ PLEASE REPLACE THIS BLOCK with a description of your problem, and any other relevant context 🔺️🔺️🔺️ -->
 
 Here is the diff that solved my problem:
 

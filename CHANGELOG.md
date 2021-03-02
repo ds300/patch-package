@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.4.4
+
+- Refine --create-issue template
+
 ## 6.4.3
 
 - Ensure real path is used when copying package contents. Potentially adds pnpm support (contribution from @milahu in #252)

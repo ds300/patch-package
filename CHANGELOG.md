@@ -1,18 +1,18 @@
 # Changelog
 
-## 3.4.3
+## 6.4.3
 
 - Ensure real path is used when copying package contents. Potentially adds pnpm support (contribution from @milahu in #252)
 
-## 3.4.2
+## 6.4.2
 
 - Add package version to --create-issue template
 
-## 3.4.1
+## 6.4.1
 
 - Add backlink to patch-package repo to collect public usage of --create-issue
 
-## 3.4.0
+## 6.4.0
 
 - Add --create-issue option
 

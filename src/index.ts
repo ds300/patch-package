@@ -7,10 +7,11 @@ import { getAppRootPath } from "./getAppRootPath"
 import { makePatch } from "./makePatch"
 import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
-import { join } from "./path"
-import { normalize, sep } from "path"
+import { join, resolve } from "./path"
+import { basename, normalize, sep } from "path"
 import slash = require("slash")
 import isCi from "is-ci"
+import { existsSync } from "fs"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -32,6 +33,16 @@ console.log(
   // tslint:disable-next-line:no-var-requires
   require(join(__dirname, "../package.json")).version,
 )
+
+if (
+  basename(resolve(process.cwd(), "../")) === "node_modules" &&
+  existsSync(resolve(process.cwd(), "../../package.json"))
+) {
+  console.log(
+    `patch-package seems to be running as part of a dependency's postinstall script and will not attempt to apply patches.`,
+  )
+  process.exit(0)
+}
 
 if (argv.version || argv.v) {
   // noop

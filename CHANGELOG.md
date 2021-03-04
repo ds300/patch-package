@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.4.5
+
+- Increase max pipe buffer size when creating patch. (contribution from @nomi9995 in #287)
+
 ## 6.4.4
 
 - Refine --create-issue template

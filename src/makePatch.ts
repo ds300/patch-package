@@ -167,6 +167,7 @@ export function makePatch({
       spawnSafeSync("git", args, {
         cwd: tmpRepo.name,
         env: { ...process.env, HOME: tmpRepo.name },
+        maxBuffer: 1024 * 1024 * 100,
       })
 
     // remove nested node_modules just to be safe

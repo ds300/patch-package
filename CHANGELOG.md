@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.4.6
+
+- Update find-yarn-workspace-root (contribution from @sarimarton in #282)
+- Fix rare npm crash when creating patches (contribution from @kf6kjg in #271)
+
 ## 6.4.5
 
 - Increase max pipe buffer size when creating patch. (contribution from @nomi9995 in #287)

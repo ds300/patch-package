@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.4.7
+
+- Use npm i --force when creating patches
+
 ## 6.4.6
 
 - Update find-yarn-workspace-root (contribution from @sarimarton in #282)

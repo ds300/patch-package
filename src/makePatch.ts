@@ -150,17 +150,17 @@ export function makePatch({
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i"], {
+        spawnSafeSync(`npm`, ["i", "--force"], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
-          stdio: 'ignore',
+          stdio: "ignore",
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we havn't reproduced
-        spawnSafeSync(`npm`, ["i", "--ignore-scripts"], {
+        spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
           cwd: tmpRepoNpmRoot,
-          stdio: 'ignore',
+          stdio: "ignore",
         })
       }
     }

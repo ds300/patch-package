@@ -3,6 +3,7 @@ set -e
 
 echo "add patch-package"
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo "@microsoft/mezzurite-core => @types/angular should not contain patch-package"
 if grep patch-package ./node_modules/@microsoft/mezzurite-core/node_modules/@types/angular/index.d.ts ; then
@@ -13,7 +14,7 @@ echo "edit @microsoft/mezzurite-core => @types/angular"
 yarn replace angular patch-package ./node_modules/@microsoft/mezzurite-core/node_modules/@types/angular/index.d.ts 
 
 echo "SNAPSHOT: create the patch"
-npx patch-package @microsoft/mezzurite-core/@types/angular
+patch-package @microsoft/mezzurite-core/@types/angular
 echo "END SNAPSHOT"
 
 echo "the patch file was created"
@@ -29,7 +30,7 @@ if grep patch-package ./node_modules/@microsoft/mezzurite-core/node_modules/@typ
 fi
 
 echo "SNAPSHOT: run patch-package"
-npx patch-package
+patch-package
 echo "END SNAPSHOT"
 
 echo "@microsoft/mezzurite-core => @types/angular should contain patch-package"

@@ -1,0 +1,13 @@
+diff --git a/node_modules/underscore/README b/node_modules/underscore/README
+index 333b13f..dc192cf 100644
+--- a/node_modules/underscore/README
++++ b/node_modules/underscore/README
+@@ -16,7 +16,7 @@ in JavaScript objects. It's the tie to go along with jQuery's tux.
+ For Docs, License, Tests, and pre-packed downloads, see:
+ http://documentcloud.github.com/underscore/
+ 
+-Many thanks to our contributors:
++Many thanks to our wonderful contributors:
+ 
+   Dmitry Baranovskiy
+   Tim Caswell

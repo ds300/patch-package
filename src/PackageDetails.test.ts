@@ -76,7 +76,7 @@ Object {
   "patchFilename": "banana+0.4.2.dev.patch",
   "path": "node_modules/banana",
   "pathSpecifier": "banana",
-  "version": "0.4.2.dev",
+  "version": "0.4.2",
 }
 `)
   })

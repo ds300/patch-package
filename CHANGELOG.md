@@ -1,5 +1,53 @@
 # Changelog
 
+## 6.4.7
+
+- Use npm i --force when creating patches
+
+## 6.4.6
+
+- Update find-yarn-workspace-root (contribution from @sarimarton in #282)
+- Fix rare npm crash when creating patches (contribution from @kf6kjg in #271)
+
+## 6.4.5
+
+- Increase max pipe buffer size when creating patch. (contribution from @nomi9995 in #287)
+
+## 6.4.4
+
+- Refine --create-issue template
+
+## 6.4.3
+
+- Ensure real path is used when copying package contents. Potentially adds pnpm support (contribution from @milahu in #252)
+
+## 6.4.2
+
+- Add package version to --create-issue template
+
+## 6.4.1
+
+- Add backlink to patch-package repo to collect public usage of --create-issue
+
+## 6.4.0
+
+- Add --create-issue option
+
+## 6.3.1
+
+- Fix another createPatch bug involving .git folder hygiene (contribution from @gomain in #258)
+
+## 6.3.0
+
+- Add --error-on-fail cli option 
+- Collate errors and warnings to avoid exiting early (with help from @akwodkiewicz in #217)
+- Fix .dev.patch suffix bug (with help from @pdcastro in #224)
+- Support build metadata in package.json version strings (with help from @snowystinger in #213)
+- Change 'no patch files found' message from red to blue (contribution from @dmhalejr in #211)
+- Fix environment variable propogation for spawned tasks (contribution from @chpio in #223)
+- Add --patch-dir option to readme (contribution from @mikehardy in #225)
+- Fix createPatch bug involving .git folder hygiene (contribution from @haroenv in #231)
+
 ## 6.2.2
 
 - Take config from .yarnrc when making patches (contribution from @NMinhNguyen in #222)

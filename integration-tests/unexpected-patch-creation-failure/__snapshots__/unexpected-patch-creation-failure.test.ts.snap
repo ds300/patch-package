@@ -20,6 +20,5 @@ exports[`Test unexpected-patch-creation-failure: patch-package fails to parse a 
   attempting to patch.
 
 
-error Command failed with exit code 1.
 END SNAPSHOT"
 `;

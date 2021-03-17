@@ -9,6 +9,7 @@ import {
   mkdirSync,
   unlinkSync,
   mkdirpSync,
+  realpathSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
@@ -17,11 +18,17 @@ import { getPatchFiles } from "./patchFs"
 import {
   getPatchDetailsFromCliString,
   getPackageDetailsFromPatchFilename,
+  PackageDetails,
 } from "./PackageDetails"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { getPackageResolution } from "./getPackageResolution"
 import { parsePatchFile } from "./patch/parse"
 import { gzipSync } from "zlib"
+import { getPackageVersion } from "./getPackageVersion"
+import {
+  maybePrintIssueCreationPrompt,
+  openIssueCreationLink,
+} from "./createIssue"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -41,6 +48,7 @@ export function makePatch({
   includePaths,
   excludePaths,
   patchDir,
+  createIssue,
 }: {
   packagePathSpecifier: string
   appPath: string
@@ -48,6 +56,7 @@ export function makePatch({
   includePaths: RegExp
   excludePaths: RegExp
   patchDir: string
+  createIssue: boolean
 }) {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
@@ -97,13 +106,13 @@ export function makePatch({
       }),
     )
 
-    const packageVersion = require(join(
-      resolve(packageDetails.path),
-      "package.json",
-    )).version as string
+    const packageVersion = getPackageVersion(
+      join(resolve(packageDetails.path), "package.json"),
+    )
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    [".npmrc", ".yarnrc"].forEach(rcFile => {
+    // tslint:disable-next-line:align
+    ;[".npmrc", ".yarnrc"].forEach((rcFile) => {
       const rcPath = join(appPath, rcFile)
       if (existsSync(rcPath)) {
         copySync(rcPath, join(tmpRepo.name, rcFile))
@@ -141,15 +150,17 @@ export function makePatch({
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i"], {
+        spawnSafeSync(`npm`, ["i", "--force"], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
+          stdio: "ignore",
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we havn't reproduced
-        spawnSafeSync(`npm`, ["i", "--ignore-scripts"], {
+        spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
           cwd: tmpRepoNpmRoot,
+          stdio: "ignore",
         })
       }
     }
@@ -158,6 +169,7 @@ export function makePatch({
       spawnSafeSync("git", args, {
         cwd: tmpRepo.name,
         env: { ...process.env, HOME: tmpRepo.name },
+        maxBuffer: 1024 * 1024 * 100,
       })
 
     // remove nested node_modules just to be safe
@@ -181,12 +193,13 @@ export function makePatch({
     // replace package with user's version
     rimraf(tmpRepoPackagePath)
 
-    copySync(packagePath, tmpRepoPackagePath)
+    // pnpm installs packages as symlinks, copySync would copy only the symlink
+    copySync(realpathSync(packagePath), tmpRepoPackagePath)
 
     // remove nested node_modules just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))
     // remove .git just to be safe
-    rimraf(join(tmpRepoPackagePath, "node_modules"))
+    rimraf(join(tmpRepoPackagePath, ".git"))
 
     // also remove ignored files like before
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
@@ -263,19 +276,18 @@ export function makePatch({
       return
     }
 
-    const packageNames = packageDetails.packageNames
-      .map(name => name.replace(/\//g, "+"))
-      .join("++")
-
     // maybe delete existing
-    getPatchFiles(patchDir).forEach(filename => {
+    getPatchFiles(patchDir).forEach((filename) => {
       const deets = getPackageDetailsFromPatchFilename(filename)
       if (deets && deets.path === packageDetails.path) {
         unlinkSync(join(patchDir, filename))
       }
     })
 
-    const patchFileName = `${packageNames}+${packageVersion}.patch`
+    const patchFileName = createPatchFileName({
+      packageDetails,
+      packageVersion,
+    })
 
     const patchPath = join(patchesDir, patchFileName)
     if (!existsSync(dirname(patchPath))) {
@@ -284,12 +296,35 @@ export function makePatch({
     }
     writeFileSync(patchPath, diffResult.stdout)
     console.log(
-      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}`,
+      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
     )
+    if (createIssue) {
+      openIssueCreationLink({
+        packageDetails,
+        patchFileContents: diffResult.stdout.toString(),
+        packageVersion,
+      })
+    } else {
+      maybePrintIssueCreationPrompt(packageDetails, packageManager)
+    }
   } catch (e) {
     console.error(e)
     throw e
   } finally {
     tmpRepo.removeCallback()
   }
+}
+
+function createPatchFileName({
+  packageDetails,
+  packageVersion,
+}: {
+  packageDetails: PackageDetails
+  packageVersion: string
+}) {
+  const packageNames = packageDetails.packageNames
+    .map((name) => name.replace(/\//g, "+"))
+    .join("++")
+
+  return `${packageNames}+${packageVersion}.patch`
 }

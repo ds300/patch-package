@@ -48,7 +48,7 @@ export function getPackageDetailsFromPatchFilename(
   patchFilename: string,
 ): PatchedPackageDetails | null {
   const legacyMatch = patchFilename.match(
-    /^([^+=]+?)(:|\+)(\d+\.\d+\.\d+.*)(\.dev)?\.patch$/,
+    /^([^+=]+?)(:|\+)(\d+\.\d+\.\d+.*?)(\.dev)?\.patch$/,
   )
 
   if (legacyMatch) {

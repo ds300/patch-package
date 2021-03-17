@@ -11,6 +11,5 @@ exports[`Test no-symbolic-links: patch-package fails to create a patch when ther
   ️Please use --include and/or --exclude to narrow the scope of your patch if
   this was unintentional.
 
-error Command failed with exit code 1.
 END SNAPSHOT"
 `;

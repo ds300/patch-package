@@ -3,6 +3,7 @@ set -e
 
 echo "add patch-package"
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo "check file permissions 1"
 ./assert-executable.js node_modules/prettier/bin-prettier.js
@@ -17,7 +18,7 @@ echo "check file permissions 2"
 ./assert-not-executable.js node_modules/prettier/bin-prettier.js
 
 echo "patch prettier"
-npx patch-package prettier
+patch-package prettier
 
 echo "SNAPSHOT: the patch file"
 cat patches/prettier*
@@ -32,7 +33,7 @@ echo "check file permissions 3"
 ./assert-not-executable.js node_modules/prettier/index.js
 
 echo "run patch-package"
-npx patch-package
+patch-package
 
 echo "check file permissions 4"
 ./assert-executable.js node_modules/prettier/index.js

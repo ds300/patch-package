@@ -4,7 +4,7 @@ exports[`Test dev-only-patches: fake-package should be skipped 1`] = `
 "SNAPSHOT: fake-package should be skipped
 patch-package 0.0.0
 Applying patches...
-Skipping dev-only fake-package@3.0.0.dev ✔
+Skipping dev-only fake-package@3.0.0 ✔
 left-pad@1.3.0 ✔
 Skipping dev-only slash@3.0.0 ✔
 END SNAPSHOT"
@@ -18,6 +18,8 @@ Error: Patch file found for package fake-package which is not present at node_mo
   
     fake-package+3.0.0.dev.patch
 
+---
+patch-package finished with 1 error(s).
 END SNAPSHOT"
 `;
 

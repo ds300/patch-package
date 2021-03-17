@@ -1,0 +1,12 @@
+diff --git a/node_modules/zfs/lib/main.js b/node_modules/zfs/lib/main.js
+index ce5f7dd..0d6432b 100644
+--- a/node_modules/zfs/lib/main.js
++++ b/node_modules/zfs/lib/main.js
+@@ -13,6 +13,7 @@ exports.mount = zfs.mount;
+ exports.unmount = zfs.unmount;
+ exports.send = zfs.send;
+ exports.receive = zfs.receive;
++exports.patchPackage = yes;
+ 
+ exports.zfs = {
+     set: zfs.set,

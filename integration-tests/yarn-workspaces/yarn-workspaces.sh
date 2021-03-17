@@ -12,14 +12,14 @@ echo "modify hoisted left-pad"
 npx replace leftPad patch-package node_modules/left-pad/index.js
 
 echo "create patch file"
-npx patch-package left-pad
+yarn patch-package left-pad
 
 echo "modify unhoisted left-pad"
 npx replace leftPad patch-package packages/a/node_modules/left-pad/index.js
 
 echo "create patch file"
 cd packages/a
-npx patch-package left-pad
+yarn patch-package left-pad
 
 echo "go back to root"
 cd ../../

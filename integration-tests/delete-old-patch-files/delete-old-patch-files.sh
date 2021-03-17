@@ -3,9 +3,10 @@ set -e
 
 echo "add patch-package"
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo "apply patch-package"
-npx patch-package
+patch-package
 
 echo "make sure the changes were applied"
 grep patch-package node_modules/@types/lodash/index.d.ts
@@ -16,7 +17,7 @@ ls patches/lodash:4.17.11.patch
 ls patches/@types/lodash:4.14.120.patch
 
 echo "make patch files again"
-npx patch-package lodash @types/lodash
+patch-package lodash @types/lodash
 
 echo "make sure the changes were still applied"
 grep patch-package node_modules/@types/lodash/index.d.ts

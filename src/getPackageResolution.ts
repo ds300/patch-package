@@ -4,6 +4,7 @@ import { PackageManager, detectPackageManager } from "./detectPackageManager"
 import { readFileSync, existsSync } from "fs-extra"
 import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
 import findWorkspaceRoot from "find-yarn-workspace-root"
+import { getPackageVersion } from "./getPackageVersion"
 
 export function getPackageResolution({
   packageDetails,
@@ -31,10 +32,9 @@ export function getPackageResolution({
       throw new Error("Can't parse lock file")
     }
 
-    const installedVersion = require(join(
-      resolve(appPath, packageDetails.path),
-      "package.json",
-    )).version as string
+    const installedVersion = getPackageVersion(
+      join(resolve(appPath, packageDetails.path), "package.json"),
+    )
 
     const entries = Object.entries(appLockFile.object).filter(
       ([k, v]) =>
@@ -87,7 +87,8 @@ export function getPackageResolution({
     }
     lockFileStack.reverse()
     const relevantStackEntry = lockFileStack.find(
-      entry => entry.dependencies && packageDetails.name in entry.dependencies,
+      (entry) =>
+        entry.dependencies && packageDetails.name in entry.dependencies,
     )
     const pkg = relevantStackEntry.dependencies[packageDetails.name]
     return pkg.resolved || pkg.from || pkg.version

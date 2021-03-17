@@ -2,6 +2,7 @@ set -e
 
 echo 'install without error because package.json is sanitized'
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo 'unsnitize package.json'
 npx replace '<<PREINSTALL>>' preinstall package.json
@@ -14,7 +15,7 @@ fi
 npx replace leftPad patchPackage node_modules/left-pad/index.js
 
 echo 'but patch-package still works because it ignores scripts'
-npx patch-package left-pad
+patch-package left-pad
 
 echo "SNAPSHOT: a patch file got produced"
 cat patches/left-pad*.patch

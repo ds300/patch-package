@@ -9,16 +9,15 @@ import {
   PackageDetails,
 } from "./PackageDetails"
 import { reversePatch } from "./patch/reverse"
-import isCi from "is-ci"
 import semver from "semver"
 import { readPatch } from "./patch/read"
 import { packageIsDevDependency } from "./packageIsDevDependency"
 
-// don't want to exit(1) on postinsall locally.
-// see https://github.com/ds300/patch-package/issues/86
-const shouldExitPostinstallWithError = isCi || process.env.NODE_ENV === "test"
-
-const exit = () => process.exit(shouldExitPostinstallWithError ? 1 : 0)
+class PatchApplicationError extends Error {
+  constructor(msg: string) {
+    super(msg)
+  }
+}
 
 function findPatchFiles(patchesDirectory: string): string[] {
   if (!existsSync(patchesDirectory)) {
@@ -46,30 +45,28 @@ function getInstalledPackageVersion({
     if (process.env.NODE_ENV === "production" && isDevOnly) {
       return null
     }
-    console.error(
+
+    let err =
       `${chalk.red("Error:")} Patch file found for package ${posix.basename(
         pathSpecifier,
-      )}` + ` which is not present at ${relative(".", packageDir)}`,
-    )
+      )}` + ` which is not present at ${relative(".", packageDir)}`
 
     if (!isDevOnly && process.env.NODE_ENV === "production") {
-      console.error(
-        `
+      err += `
+
   If this package is a dev dependency, rename the patch file to
   
     ${chalk.bold(patchFilename.replace(".patch", ".dev.patch"))}
-`,
-      )
+`
     }
-
-    exit()
+    throw new PatchApplicationError(err)
   }
 
   const { version } = require(join(packageDir, "package.json"))
   // normalize version for `npm ci`
   const result = semver.valid(version)
   if (result === null) {
-    console.error(
+    throw new PatchApplicationError(
       `${chalk.red(
         "Error:",
       )} Version string '${version}' cannot be parsed from ${join(
@@ -77,8 +74,6 @@ function getInstalledPackageVersion({
         "package.json",
       )}`,
     )
-
-    exit()
   }
 
   return result as string
@@ -88,104 +83,147 @@ export function applyPatchesForApp({
   appPath,
   reverse,
   patchDir,
+  shouldExitWithError,
 }: {
   appPath: string
   reverse: boolean
   patchDir: string
+  shouldExitWithError: boolean
 }): void {
   const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
 
   if (files.length === 0) {
-    console.error(chalk.red("No patch files found"))
+    console.error(chalk.blueBright("No patch files found"))
     return
   }
 
-  files.forEach(filename => {
-    const packageDetails = getPackageDetailsFromPatchFilename(filename)
+  const errors: string[] = []
+  const warnings: string[] = []
 
-    if (!packageDetails) {
-      console.warn(`Unrecognized patch file in patches directory ${filename}`)
-      return
-    }
+  for (const filename of files) {
+    try {
+      const packageDetails = getPackageDetailsFromPatchFilename(filename)
 
-    const {
-      name,
-      version,
-      path,
-      pathSpecifier,
-      isDevOnly,
-      patchFilename,
-    } = packageDetails
+      if (!packageDetails) {
+        warnings.push(
+          `Unrecognized patch file in patches directory ${filename}`,
+        )
+        continue
+      }
 
-    const installedPackageVersion = getInstalledPackageVersion({
-      appPath,
-      path,
-      pathSpecifier,
-      isDevOnly:
-        isDevOnly ||
-        // check for direct-dependents in prod
-        (process.env.NODE_ENV === "production" &&
-          packageIsDevDependency({ appPath, packageDetails })),
-      patchFilename,
-    })
-    if (!installedPackageVersion) {
-      // it's ok we're in production mode and this is a dev only package
-      console.log(
-        `Skipping dev-only ${chalk.bold(pathSpecifier)}@${version} ${chalk.blue(
-          "✔",
-        )}`,
-      )
-      return
-    }
+      const {
+        name,
+        version,
+        path,
+        pathSpecifier,
+        isDevOnly,
+        patchFilename,
+      } = packageDetails
 
-    if (
-      applyPatch({
-        patchFilePath: resolve(patchesDirectory, filename) as string,
-        reverse,
-        packageDetails,
-        patchDir,
+      const installedPackageVersion = getInstalledPackageVersion({
+        appPath,
+        path,
+        pathSpecifier,
+        isDevOnly:
+          isDevOnly ||
+          // check for direct-dependents in prod
+          (process.env.NODE_ENV === "production" &&
+            packageIsDevDependency({ appPath, packageDetails })),
+        patchFilename,
       })
-    ) {
-      // yay patch was applied successfully
-      // print warning if version mismatch
-      if (installedPackageVersion !== version) {
-        printVersionMismatchWarning({
-          packageName: name,
-          actualVersion: installedPackageVersion,
-          originalVersion: version,
-          pathSpecifier,
-          path,
+      if (!installedPackageVersion) {
+        // it's ok we're in production mode and this is a dev only package
+        console.log(
+          `Skipping dev-only ${chalk.bold(
+            pathSpecifier,
+          )}@${version} ${chalk.blue("✔")}`,
+        )
+        continue
+      }
+
+      if (
+        applyPatch({
+          patchFilePath: resolve(patchesDirectory, filename) as string,
+          reverse,
+          packageDetails,
+          patchDir,
         })
-      } else {
+      ) {
+        // yay patch was applied successfully
+        // print warning if version mismatch
+        if (installedPackageVersion !== version) {
+          warnings.push(
+            createVersionMismatchWarning({
+              packageName: name,
+              actualVersion: installedPackageVersion,
+              originalVersion: version,
+              pathSpecifier,
+              path,
+            }),
+          )
+        }
         console.log(
           `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
         )
-      }
-    } else {
-      // completely failed to apply patch
-      // TODO: propagate useful error messages from patch application
-      if (installedPackageVersion === version) {
-        printBrokenPatchFileError({
-          packageName: name,
-          patchFileName: filename,
-          pathSpecifier,
-          path,
-        })
+      } else if (installedPackageVersion === version) {
+        // completely failed to apply patch
+        // TODO: propagate useful error messages from patch application
+        errors.push(
+          createBrokenPatchFileError({
+            packageName: name,
+            patchFileName: filename,
+            pathSpecifier,
+            path,
+          }),
+        )
       } else {
-        printPatchApplictionFailureError({
-          packageName: name,
-          actualVersion: installedPackageVersion,
-          originalVersion: version,
-          patchFileName: filename,
-          path,
-          pathSpecifier,
-        })
+        errors.push(
+          createPatchApplictionFailureError({
+            packageName: name,
+            actualVersion: installedPackageVersion,
+            originalVersion: version,
+            patchFileName: filename,
+            path,
+            pathSpecifier,
+          }),
+        )
       }
-
-      exit()
+    } catch (error) {
+      if (error instanceof PatchApplicationError) {
+        errors.push(error.message)
+      } else {
+        errors.push(createUnexpectedError({ filename, error }))
+      }
     }
-  })
+  }
+
+  for (const warning of warnings) {
+    console.warn(warning)
+  }
+  for (const error of errors) {
+    console.error(error)
+  }
+
+  const problemsSummary = []
+  if (warnings.length) {
+    problemsSummary.push(chalk.yellow(`${warnings.length} warning(s)`))
+  }
+  if (errors.length) {
+    problemsSummary.push(chalk.red(`${errors.length} error(s)`))
+  }
+
+  if (problemsSummary.length) {
+    console.error("---")
+    console.error(
+      "patch-package finished with",
+      problemsSummary.join(", ") + ".",
+    )
+  }
+
+  if (errors.length) {
+    process.exit(shouldExitWithError ? 1 : 0)
+  }
 }
 
 export function applyPatch({
@@ -213,7 +251,7 @@ export function applyPatch({
   return true
 }
 
-function printVersionMismatchWarning({
+function createVersionMismatchWarning({
   packageName,
   actualVersion,
   originalVersion,
@@ -226,8 +264,8 @@ function printVersionMismatchWarning({
   pathSpecifier: string
   path: string
 }) {
-  console.warn(`
-${chalk.red("Warning:")} patch-package detected a patch file version mismatch
+  return `
+${chalk.yellow("Warning:")} patch-package detected a patch file version mismatch
 
   Don't worry! This is probably fine. The patch was still applied
   successfully. Here's the deets:
@@ -251,10 +289,10 @@ ${chalk.red("Warning:")} patch-package detected a patch file version mismatch
     ${chalk.bold(`patch-package ${pathSpecifier}`)}
 
   to update the version in the patch file name and make this warning go away.
-`)
+`
 }
 
-function printBrokenPatchFileError({
+function createBrokenPatchFileError({
   packageName,
   patchFileName,
   path,
@@ -265,7 +303,7 @@ function printBrokenPatchFileError({
   path: string
   pathSpecifier: string
 }) {
-  console.error(`
+  return `
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
     `Failed to apply patch for package ${chalk.bold(packageName)} at path`,
   )}
@@ -287,10 +325,10 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 
     https://github.com/ds300/patch-package/issues
     
-`)
+`
 }
 
-function printPatchApplictionFailureError({
+function createPatchApplictionFailureError({
   packageName,
   actualVersion,
   originalVersion,
@@ -305,7 +343,7 @@ function printPatchApplictionFailureError({
   path: string
   pathSpecifier: string
 }) {
-  console.error(`
+  return `
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
     `Failed to apply patch for package ${chalk.bold(packageName)} at path`,
   )}
@@ -333,5 +371,22 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
     Patch file: patches/${patchFileName}
     Patch was made for version: ${chalk.green.bold(originalVersion)}
     Installed version: ${chalk.red.bold(actualVersion)}
-`)
+`
+}
+
+function createUnexpectedError({
+  filename,
+  error,
+}: {
+  filename: string
+  error: Error
+}) {
+  return `
+${chalk.red.bold("**ERROR**")} ${chalk.red(
+    `Failed to apply patch file ${chalk.bold(filename)}`,
+  )}
+  
+${error.stack}
+
+  `
 }

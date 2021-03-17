@@ -1,0 +1,13 @@
+diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
+index e90aec3..4a20773 100644
+--- a/node_modules/left-pad/index.js
++++ b/node_modules/left-pad/index.js
+@@ -4,7 +4,7 @@
+      * To Public License, Version 2, as published by Sam Hocevar. See
+      * http://www.wtfpl.net/ for more details. */
+ 'use strict';
+-module.notreal = leftPad;
++module.patchPackage = leftPad;
+ 
+ var cache = [
+   '',

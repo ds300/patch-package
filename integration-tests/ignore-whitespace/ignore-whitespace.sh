@@ -3,13 +3,14 @@ set -e
 
 echo "add patch-package"
 yarn add $1
+alias patch-package=./node_modules/.bin/patch-package
 
 echo "add random bits of whitespace"
 node add-whitespace.js
 
 echo "try to make patch file (should be empty)"
 (>&2 echo "SNAPSHOT: empty changeset when adding whitespace")
-if npx patch-package alphabet
+if patch-package alphabet
 then
   exit 1
 fi
@@ -21,7 +22,7 @@ npx replace 'a' 'patch-package' node_modules/alphabet/index.js
 node add-whitespace.js 2
 
 echo "make patch file for line a"
-npx patch-package alphabet
+patch-package alphabet
 
 echo "SNAPSHOT: line a changed"
 cat patches/alphabet*.patch
@@ -30,19 +31,19 @@ echo "END SNAPSHOT"
 echo "make sure the patch can be applied to clean files"
 rm -rf node_modules
 yarn
-npx patch-package
+patch-package
 grep patch-package node_modules/alphabet/index.js
 
 echo "make sure the patch can be applied to dirty files"
 rm -rf node_modules
 yarn
 node add-whitespace.js
-npx patch-package
+patch-package
 grep patch-package node_modules/alphabet/index.js
 
 echo "make sure the patch can be applied to dirty files with different whitespace"
 rm -rf node_modules
 yarn
 node add-whitespace.js 1
-npx patch-package
+patch-package
 grep patch-package node_modules/alphabet/index.js

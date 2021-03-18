@@ -6,6 +6,7 @@ export NODE_ENV=production
 
 echo "add patch-package"
 yarn add $1
+shopt -s expand_aliases # enable alias
 alias patch-package=./node_modules/.bin/patch-package
 
 echo "SNAPSHOT: patch-package happily ignores slash because it's a dev dep"

@@ -3,6 +3,7 @@ set -e
 
 echo "add patch-package"
 yarn add $1
+shopt -s expand_aliases # enable alias
 alias patch-package=./node_modules/.bin/patch-package
 
 # this test makes sure that we can patch packages with build metadata in their version strings e.g. 4.5.6+commitsha

@@ -220,9 +220,10 @@ export function makePatch({
     }
 
     // pnpm installs packages as symlinks, copySync would copy only the symlink
-    copySync(realpathSync(packagePath), tmpRepoPackagePath, {
+    const srcPath = realpathSync(packagePath)
+    copySync(srcPath, tmpRepoPackagePath, {
       filter: (path) => {
-        return path.indexOf("/node_modules/") === -1
+        return !path.startsWith(srcPath + "/node_modules/")
       },
     })
 

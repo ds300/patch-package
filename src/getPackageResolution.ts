@@ -7,7 +7,7 @@ import findWorkspaceRoot from "find-yarn-workspace-root"
 import { getPackageVersion } from "./getPackageVersion"
 import { execSync } from "child_process"
 
-const isVerbose = true // TODO expose to CLI
+const isVerbose = false // TODO expose to CLI
 
 export function getPackageResolution({
   packageDetails,

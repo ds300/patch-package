@@ -82,7 +82,11 @@ export function executeTestCase(testCase: TestCase) {
     }
   }
 
-  const tmpDir = tmp.dirSync({ unsafeCleanup: true, mode: 0o100777 })
+  const tmpDir = tmp.dirSync({
+    unsafeCleanup: true,
+    mode: 0o100777,
+    prefix: "patch-package.test-property.",
+  })
 
   spawnSafeSync("git", ["init"], { cwd: tmpDir.name })
 
@@ -144,4 +148,6 @@ export function executeTestCase(testCase: TestCase) {
       expect(fs.getWorkingFiles()).toEqual(testCase.cleanFiles)
     })
   })
+
+  tmpDir.removeCallback()
 }

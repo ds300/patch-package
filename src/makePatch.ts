@@ -31,7 +31,7 @@ import {
   openIssueCreationLink,
 } from "./createIssue"
 
-const isVerbose = true // TODO expose to CLI
+const isVerbose = false // TODO expose to CLI
 
 function printNoPackageFoundError(
   packageName: string,
@@ -76,16 +76,26 @@ export function makePatch({
     process.exit(1)
   }
 
-  const tmpRepo = dirSync({ unsafeCleanup: true })
-  const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
-  const tmpRepoNpmRoot = tmpRepoPackagePath.slice(
-    0,
-    -`/node_modules/${packageDetails.name}`.length,
-  )
+  const tmpRepo = dirSync({
+    unsafeCleanup: true,
+    prefix: "patch-package.tmpRepo.",
+  })
 
-  const tmpRepoPackageJsonPath = join(tmpRepoNpmRoot, "package.json")
+  function cleanup() {
+    tmpRepo.removeCallback()
+  }
 
   try {
+    // finally: cleanup()
+
+    const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
+    const tmpRepoNpmRoot = tmpRepoPackagePath.slice(
+      0,
+      -`/node_modules/${packageDetails.name}`.length,
+    )
+
+    const tmpRepoPackageJsonPath = join(tmpRepoNpmRoot, "package.json")
+
     const patchesDir = resolve(join(appPath, patchDir))
 
     console.info(chalk.grey("•"), "Creating temporary folder")
@@ -262,6 +272,7 @@ export function makePatch({
         `⁉️  Not creating patch file for package '${packagePathSpecifier}'`,
       )
       console.warn(`⁉️  There don't appear to be any changes.`)
+      cleanup()
       process.exit(1)
       return
     }
@@ -313,6 +324,7 @@ export function makePatch({
 
 `)
       }
+      cleanup()
       process.exit(1)
       return
     }
@@ -352,7 +364,7 @@ export function makePatch({
     console.error(e)
     throw e
   } finally {
-    tmpRepo.removeCallback()
+    cleanup()
   }
 }
 

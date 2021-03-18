@@ -18,7 +18,10 @@ export function runIntegrationTest({
   shouldProduceSnapshots: boolean
 }) {
   describe(`Test ${projectName}:`, () => {
-    const tmpDir = tmp.dirSync({ unsafeCleanup: true })
+    const tmpDir = tmp.dirSync({
+      unsafeCleanup: true,
+      prefix: "patch-package.test-integration.",
+    })
     fs.copySync(join(__dirname, projectName), tmpDir.name, {
       recursive: true,
     })
@@ -80,5 +83,7 @@ export function runIntegrationTest({
         expect(snapshots && snapshots.length).toBeFalsy()
       })
     }
+
+    tmpDir.removeCallback()
   })
 }

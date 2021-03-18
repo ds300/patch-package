@@ -2,7 +2,6 @@ set -e
 
 echo 'install without error because package.json is sanitized'
 yarn add $1
-shopt -s expand_aliases # enable alias
 alias patch-package=./node_modules/.bin/patch-package
 
 echo 'unsnitize package.json'

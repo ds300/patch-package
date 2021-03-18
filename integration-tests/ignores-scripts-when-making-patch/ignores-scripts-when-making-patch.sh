@@ -3,7 +3,6 @@ set -e
 
 echo "add patch-package"
 yarn add $1
-shopt -s expand_aliases # enable alias
 alias patch-package=./node_modules/.bin/patch-package
 
 npx replace postinstall lol node_modules/naughty-package/postinstall.sh

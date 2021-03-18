@@ -142,6 +142,7 @@ const hunkLinetypes: {
   "\\": "pragma",
   // Treat blank lines as context
   undefined: "context",
+  "\r": "context",
 }
 
 function parsePatchLines(

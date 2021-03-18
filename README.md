@@ -5,6 +5,8 @@
 `patch-package` lets app authors instantly make and keep fixes to npm
 dependencies. It's a vital band-aid for those of us living on the bleeding edge.
 
+Note for module authors: it is not safe to publish an npm package that uses `patch-package` to patch a non-dev-dependency.
+
 ```sh
 # fix a bug in one of your dependencies
 vim node_modules/some-package/brokenFile.js

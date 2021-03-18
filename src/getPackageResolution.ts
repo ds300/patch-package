@@ -5,6 +5,9 @@ import { readFileSync, existsSync } from "fs-extra"
 import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 import { getPackageVersion } from "./getPackageVersion"
+import { execSync } from "child_process"
+
+const isVerbose = true // TODO expose to CLI
 
 export function getPackageResolution({
   packageDetails,
@@ -56,21 +59,69 @@ export function getPackageResolution({
       console.warn(
         `Ambigious lockfile entries for ${packageDetails.pathSpecifier}. Using version ${installedVersion}`,
       )
-      return installedVersion
+      return { version: installedVersion }
     }
 
     if (resolutions[0]) {
-      return resolutions[0]
+      return { version: resolutions[0] }
     }
 
     const resolution = entries[0][0].slice(packageDetails.name.length + 1)
 
     // resolve relative file path
     if (resolution.startsWith("file:.")) {
-      return `file:${resolve(appPath, resolution.slice("file:".length))}`
+      return {
+        version: `file:${resolve(appPath, resolution.slice("file:".length))}`,
+      }
     }
-
-    return resolution
+    return { version: resolution }
+  } else if (packageManager === "pnpm") {
+    const lockfile = require("js-yaml").load(
+      require("fs").readFileSync(join(appPath, "pnpm-lock.yaml"), "utf8"),
+    )
+    let resolvedVersion =
+      (lockfile.dependencies && lockfile.dependencies[packageDetails.name]) ||
+      (lockfile.devDependencies &&
+        lockfile.devDependencies[packageDetails.name])
+    if (resolvedVersion.startsWith("link:")) {
+      const localPath = resolve(resolvedVersion.slice(5))
+      if (isVerbose) {
+        console.log(`pnpm installed ${packageDetails.name} from ${localPath}`)
+      }
+      if (existsSync(localPath + "/.git")) {
+        // we hope that the originCommit will be available for future downloads
+        // otherwise our patch will not work ...
+        // ideally, we would use the last stable release before originCommit from npm or github
+        function exec(cmd: string) {
+          return execSync(cmd, {
+            cwd: localPath,
+            windowsHide: true,
+            encoding: "utf8",
+          }).trim()
+        }
+        const originUrl = exec("git remote get-url origin")
+        const originCommit = exec("git rev-parse origin/HEAD") // npm needs the long commit hash
+        resolvedVersion = `git+${originUrl}#${originCommit}`
+        if (isVerbose) {
+          console.log(
+            `using ${packageDetails.name} version ${resolvedVersion} from git origin/HEAD in ${localPath}`,
+          )
+        }
+        return { version: resolvedVersion, originCommit }
+      }
+      const pkgJson = localPath + "/package.json"
+      if (existsSync(pkgJson)) {
+        resolvedVersion = require(pkgJson).version
+        console.warn(
+          `warning: using ${packageDetails.name} version ${resolvedVersion} from ${pkgJson}`,
+        )
+        return { version: resolvedVersion }
+      }
+    }
+    if (isVerbose) {
+      console.log(`using ${packageDetails.name} version ${resolvedVersion}`)
+    }
+    return { version: resolvedVersion }
   } else {
     const lockfile = require(join(
       appPath,
@@ -91,7 +142,7 @@ export function getPackageResolution({
         entry.dependencies && packageDetails.name in entry.dependencies,
     )
     const pkg = relevantStackEntry.dependencies[packageDetails.name]
-    return pkg.resolved || pkg.from || pkg.version
+    return { version: pkg.resolved || pkg.from || pkg.version }
   }
 }
 

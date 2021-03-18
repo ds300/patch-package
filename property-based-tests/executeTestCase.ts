@@ -24,32 +24,31 @@ jest.mock("fs-extra", () => {
     setWorkingFiles,
     getWorkingFiles,
     ensureDirSync: jest.fn(),
-    readFileSync: jest.fn(path => getWorkingFiles()[path].contents),
+    readFileSync: jest.fn((filePath) => getWorkingFiles()[filePath].contents),
     writeFileSync: jest.fn(
-      (path: string, contents: string, opts?: { mode?: number }) => {
-        getWorkingFiles()[path] = {
+      (filePath: string, contents: string, opts?: { mode?: number }) => {
+        getWorkingFiles()[filePath] = {
           contents,
           mode: opts && typeof opts.mode === "number" ? opts.mode : 0o644,
         }
       },
     ),
-    unlinkSync: jest.fn(path => delete getWorkingFiles()[path]),
+    unlinkSync: jest.fn((filePath) => delete getWorkingFiles()[filePath]),
     moveSync: jest.fn((from, to) => {
       getWorkingFiles()[to] = getWorkingFiles()[from]
       delete getWorkingFiles()[from]
     }),
-    statSync: jest.fn(path => getWorkingFiles()[path]),
-    chmodSync: jest.fn((path, mode) => {
-      const { contents } = getWorkingFiles()[path]
-      getWorkingFiles()[path] = { contents, mode }
+    statSync: jest.fn((filePath) => getWorkingFiles()[filePath]),
+    chmodSync: jest.fn((filePath, mode) => {
+      const { contents } = getWorkingFiles()[filePath]
+      getWorkingFiles()[filePath] = { contents, mode }
     }),
   }
 })
 
 function writeFiles(cwd: string, files: Files): void {
   const mkdirpSync = require("fs-extra/lib/mkdirs/index.js").mkdirpSync
-  const writeFileSync = require("fs").writeFileSync
-  Object.keys(files).forEach(filePath => {
+  Object.keys(files).forEach((filePath) => {
     if (!filePath.startsWith(".git/")) {
       mkdirpSync(path.join(cwd, path.dirname(filePath)))
       writeFileSync(path.join(cwd, filePath), files[filePath].contents, {
@@ -62,7 +61,7 @@ function writeFiles(cwd: string, files: Files): void {
 function removeLeadingSpaceOnBlankLines(patchFileContents: string): string {
   return patchFileContents
     .split("\n")
-    .map(line => (line === " " ? "" : line))
+    .map((line) => (line === " " ? "" : line))
     .join("\n")
 }
 

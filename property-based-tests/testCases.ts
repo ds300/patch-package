@@ -121,7 +121,7 @@ function insertLinesIntoFile(file: File): File {
 function getUniqueFilename(files: Files) {
   let filename = makeFileName()
   const ks = Object.keys(files)
-  while (ks.some(k => k.startsWith(filename))) {
+  while (ks.some((k) => k.startsWith(filename))) {
     filename = makeFileName()
   }
   return filename

@@ -10,6 +10,7 @@ import {
   unlinkSync,
   mkdirpSync,
   realpathSync,
+  renameSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
@@ -29,6 +30,8 @@ import {
   maybePrintIssueCreationPrompt,
   openIssueCreationLink,
 } from "./createIssue"
+
+const isVerbose = true // TODO expose to CLI
 
 function printNoPackageFoundError(
   packageName: string,
@@ -87,17 +90,19 @@ export function makePatch({
 
     console.info(chalk.grey("•"), "Creating temporary folder")
 
+    const resolvedVersion = getPackageResolution({
+      packageDetails,
+      packageManager,
+      appPath,
+    })
+
     // make a blank package.json
     mkdirpSync(tmpRepoNpmRoot)
     writeFileSync(
       tmpRepoPackageJsonPath,
       JSON.stringify({
         dependencies: {
-          [packageDetails.name]: getPackageResolution({
-            packageDetails,
-            packageManager,
-            appPath,
-          }),
+          [packageDetails.name]: resolvedVersion.version,
         },
         resolutions: resolveRelativeFileDependencies(
           appPath,
@@ -106,9 +111,10 @@ export function makePatch({
       }),
     )
 
-    const packageVersion = getPackageVersion(
-      join(resolve(packageDetails.path), "package.json"),
-    )
+    // originCommit is more precise than pkg.version
+    const packageVersion =
+      resolvedVersion.originCommit ||
+      getPackageVersion(join(resolve(packageDetails.path), "package.json"))
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
     // tslint:disable-next-line:align
@@ -143,25 +149,41 @@ export function makePatch({
         )
       }
     } else {
+      const npmCmd = packageManager === "pnpm" ? "pnpm" : "npm"
       console.info(
         chalk.grey("•"),
-        `Installing ${packageDetails.name}@${packageVersion} with npm`,
+        `Installing ${packageDetails.name}@${packageVersion} with ${npmCmd}`,
       )
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i", "--force"], {
+        if (isVerbose) {
+          console.log(`run "${npmCmd} install --force" in ${tmpRepoNpmRoot}`)
+        }
+        spawnSafeSync(npmCmd, ["install", "--force"], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
-          stdio: "ignore",
+          stdio: isVerbose ? "inherit" : "ignore",
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we havn't reproduced
-        spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
+        if (isVerbose) {
+          console.log(
+            `run "${npmCmd} install --ignore-scripts --force" in ${tmpRepoNpmRoot}`,
+          )
+        }
+        spawnSafeSync(npmCmd, ["install", "--ignore-scripts", "--force"], {
           cwd: tmpRepoNpmRoot,
-          stdio: "ignore",
+          stdio: isVerbose ? "inherit" : "ignore",
         })
+      }
+      if (packageManager === "pnpm") {
+        // workaround for `git diff`: replace symlink with hardlink
+        const pkgPath = tmpRepoNpmRoot + "/node_modules/" + packageDetails.name
+        const realPath = realpathSync(pkgPath)
+        unlinkSync(pkgPath) // rm symlink
+        renameSync(realPath, pkgPath)
       }
     }
 
@@ -193,8 +215,16 @@ export function makePatch({
     // replace package with user's version
     rimraf(tmpRepoPackagePath)
 
+    if (isVerbose) {
+      console.log(`copy ${realpathSync(packagePath)} to ${tmpRepoPackagePath}`)
+    }
+
     // pnpm installs packages as symlinks, copySync would copy only the symlink
-    copySync(realpathSync(packagePath), tmpRepoPackagePath)
+    copySync(realpathSync(packagePath), tmpRepoPackagePath, {
+      filter: (path) => {
+        return path.indexOf("/node_modules/") === -1
+      },
+    })
 
     // remove nested node_modules just to be safe
     rimraf(join(tmpRepoPackagePath, "node_modules"))
@@ -207,6 +237,13 @@ export function makePatch({
     // stage all files
     git("add", "-f", packageDetails.path)
 
+    // TODO allow to add more paths via CLI, to exclude cache files like 'test/stubs*/**'
+    const ignorePaths = [
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      // 'test/stubs*/**',
+    ]
+
     // get diff of changes
     const diffResult = git(
       "diff",
@@ -214,6 +251,9 @@ export function makePatch({
       "--no-color",
       "--ignore-space-at-eol",
       "--no-ext-diff",
+      ...ignorePaths.map(
+        (path) => `:(exclude,top)${packageDetails.path}/${path}`,
+      ),
     )
 
     if (diffResult.stdout.length === 0) {

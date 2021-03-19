@@ -18,10 +18,15 @@ git commit -m "fix brokenFile.js in some-package"
 ```
 
 Patches created by `patch-package` are automatically and gracefully applied when
-you use `npm`(>=5) or `yarn`.
+you use `npm` or `yarn`.
 
-No more waiting around for pull requests to be merged and published. No more
-forking repos just to fix that one tiny thing preventing your app from working.
+No more waiting around for pull requests to be merged and published! No more
+forking repos just to change one line!
+
+ⓘ <em>Is your project a published npm package? If so you should only patch dev
+dependencies. Because of the way node_modules folders are managed, patch files
+can't be reliably applied for your dependents. `patch-package` won't even
+try.</em>
 
 ## Set-up
 

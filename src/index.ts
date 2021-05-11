@@ -2,15 +2,8 @@ import chalk from "chalk"
 import process from "process"
 import minimist from "minimist"
 
-import { applyPatchesForApp } from "./applyPatches"
 import { getAppRootPath } from "./getAppRootPath"
-import { makePatch } from "./makePatch"
-import { makeRegExp } from "./makeRegExp"
-import { detectPackageManager } from "./detectPackageManager"
 import { join } from "./path"
-import { normalize, sep } from "path"
-import slash = require("slash")
-import isCi from "is-ci"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -32,6 +25,23 @@ console.log(
   // tslint:disable-next-line:no-var-requires
   require(join(__dirname, "../package.json")).version,
 )
+
+// used in imported modules
+const isDebug = (global.patchPackageIsDebug = Boolean(argv.debug))
+global.patchPackageIsVerbose = isDebug || Boolean(argv.verbose)
+
+if (isDebug) {
+  console.log(`patch-package/index: argv:`)
+  console.dir(argv)
+}
+
+import { applyPatchesForApp } from "./applyPatches"
+import { makePatch } from "./makePatch"
+import { makeRegExp } from "./makeRegExp"
+import { detectPackageManager } from "./detectPackageManager"
+import { normalize, sep } from "path"
+import slash = require("slash")
+import isCi from "is-ci"
 
 if (argv.version || argv.v) {
   // noop

@@ -31,7 +31,8 @@ import {
   openIssueCreationLink,
 } from "./createIssue"
 
-const isVerbose = false // TODO expose to CLI
+const isVerbose = global.patchPackageIsVerbose
+const isDebug = global.patchPackageIsDebug
 
 function printNoPackageFoundError(
   packageName: string,
@@ -104,6 +105,7 @@ export function makePatch({
       packageDetails,
       packageManager,
       appPath,
+      appPackageJson,
     })
 
     // make a blank package.json
@@ -122,9 +124,26 @@ export function makePatch({
     )
 
     // originCommit is more precise than pkg.version
+    if (isDebug) {
+      console.log(
+        `patch-package/makePatch: resolvedVersion.originCommit = ${resolvedVersion.originCommit}`,
+      )
+    }
     const packageVersion =
       resolvedVersion.originCommit ||
       getPackageVersion(join(resolve(packageDetails.path), "package.json"))
+
+    if (isDebug) {
+      console.log(`patch-package/makePatch: packageVersion = ${packageVersion}`)
+      console.log(
+        `patch-package/makePatch: package path = ${packageDetails.path}`,
+      )
+      console.log(
+        `patch-package/makePatch: package path resolved = ${resolve(
+          packageDetails.path,
+        )}`,
+      )
+    }
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
     // tslint:disable-next-line:align
@@ -168,7 +187,9 @@ export function makePatch({
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
         if (isVerbose) {
-          console.log(`run "${npmCmd} install --force" in ${tmpRepoNpmRoot}`)
+          console.log(
+            `patch-package/makePatch: run "${npmCmd} install --force" in ${tmpRepoNpmRoot}`,
+          )
         }
         spawnSafeSync(npmCmd, ["install", "--force"], {
           cwd: tmpRepoNpmRoot,
@@ -180,7 +201,7 @@ export function makePatch({
         // an implicit context which we havn't reproduced
         if (isVerbose) {
           console.log(
-            `run "${npmCmd} install --ignore-scripts --force" in ${tmpRepoNpmRoot}`,
+            `patch-package/makePatch: run "${npmCmd} install --ignore-scripts --force" in ${tmpRepoNpmRoot}`,
           )
         }
         spawnSafeSync(npmCmd, ["install", "--ignore-scripts", "--force"], {
@@ -217,6 +238,7 @@ export function makePatch({
     git("config", "--local", "user.email", "patch@pack.age")
 
     // remove ignored files first
+    // use CLI options --exclude and --include
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
     git("add", "-f", packageDetails.path)
@@ -226,7 +248,11 @@ export function makePatch({
     rimraf(tmpRepoPackagePath)
 
     if (isVerbose) {
-      console.log(`copy ${realpathSync(packagePath)} to ${tmpRepoPackagePath}`)
+      console.log(
+        `patch-package/makePatch: copy ${realpathSync(
+          packagePath,
+        )} to ${tmpRepoPackagePath}`,
+      )
     }
 
     // pnpm installs packages as symlinks, copySync would copy only the symlink
@@ -243,17 +269,13 @@ export function makePatch({
     rimraf(join(tmpRepoPackagePath, ".git"))
 
     // also remove ignored files like before
+    // use CLI options --exclude and --include
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
     // stage all files
     git("add", "-f", packageDetails.path)
 
-    // TODO allow to add more paths via CLI, to exclude cache files like 'test/stubs*/**'
-    const ignorePaths = [
-      "package-lock.json",
-      "pnpm-lock.yaml",
-      // 'test/stubs*/**',
-    ]
+    const ignorePaths = ["package-lock.json", "pnpm-lock.yaml"]
 
     // get diff of changes
     const diffResult = git(

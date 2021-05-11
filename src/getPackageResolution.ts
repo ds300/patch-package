@@ -7,16 +7,19 @@ import findWorkspaceRoot from "find-yarn-workspace-root"
 import { getPackageVersion } from "./getPackageVersion"
 import { execSync } from "child_process"
 
-const isVerbose = false // TODO expose to CLI
+const isVerbose = global.patchPackageIsVerbose
+const isDebug = global.patchPackageIsDebug
 
 export function getPackageResolution({
   packageDetails,
   packageManager,
   appPath,
+  appPackageJson,
 }: {
   packageDetails: PackageDetails
   packageManager: PackageManager
   appPath: string
+  appPackageJson: any
 }) {
   if (packageManager === "yarn") {
     let lockFilePath = "yarn.lock"
@@ -76,17 +79,63 @@ export function getPackageResolution({
     }
     return { version: resolution }
   } else if (packageManager === "pnpm") {
+    // WORKAROUND for pnpm bug? pnpm-lock.yaml says version 1.2.3 for linked packages, not link:../../path/to/package
+    const declaredVersion =
+      (appPackageJson.dependencies &&
+        appPackageJson.dependencies[packageDetails.name]) ||
+      (appPackageJson.devDependencies &&
+        appPackageJson.devDependencies[packageDetails.name])
+    if (isDebug) {
+      console.log(
+        `patch-package/getPackageResolution: declaredVersion = ${declaredVersion}`,
+      )
+    }
+
     const lockfile = require("js-yaml").load(
       require("fs").readFileSync(join(appPath, "pnpm-lock.yaml"), "utf8"),
     )
+    if (isDebug) {
+      console.log(`patch-package/getPackageResolution: appPath = ${appPath}`)
+      console.log(`patch-package/getPackageResolution: packageDetails:`)
+      console.dir(packageDetails)
+      console.log(
+        `patch-package/getPackageResolution: packageDetails.name = ${packageDetails.name}`,
+      )
+      console.log(
+        `patch-package/getPackageResolution: lockfile.dependencies[packageDetails.name] = ${
+          lockfile.dependencies[packageDetails.name]
+        }`,
+      )
+      console.log(
+        `patch-package/getPackageResolution: lockfile.devDependencies[packageDetails.name] = ${
+          lockfile.devDependencies[packageDetails.name]
+        }`,
+      )
+    }
     let resolvedVersion =
       (lockfile.dependencies && lockfile.dependencies[packageDetails.name]) ||
       (lockfile.devDependencies &&
         lockfile.devDependencies[packageDetails.name])
+    if (declaredVersion.startsWith("link:")) {
+      // WORKAROUND
+      if (isDebug) {
+        console.log(
+          `patch-package/getPackageResolution: using declaredVersion ${declaredVersion}, not resolvedVersion ${resolvedVersion}`,
+        )
+      }
+      resolvedVersion = declaredVersion
+    }
+    if (isDebug) {
+      console.log(
+        `patch-package/getPackageResolution: resolvedVersion = ${resolvedVersion}`,
+      )
+    }
     if (resolvedVersion.startsWith("link:")) {
       const localPath = resolve(resolvedVersion.slice(5))
       if (isVerbose) {
-        console.log(`pnpm installed ${packageDetails.name} from ${localPath}`)
+        console.log(
+          `patch-package/getPackageResolution: pnpm installed ${packageDetails.name} from ${localPath}`,
+        )
       }
       if (existsSync(localPath + "/.git")) {
         // we hope that the originCommit will be available for future downloads
@@ -100,11 +149,12 @@ export function getPackageResolution({
           }).trim()
         }
         const originUrl = exec("git remote get-url origin")
+        // TODO what if the upstream repo is not called "origin"?
         const originCommit = exec("git rev-parse origin/HEAD") // npm needs the long commit hash
         resolvedVersion = `git+${originUrl}#${originCommit}`
         if (isVerbose) {
           console.log(
-            `using ${packageDetails.name} version ${resolvedVersion} from git origin/HEAD in ${localPath}`,
+            `patch-package/getPackageResolution: using ${packageDetails.name} version ${resolvedVersion} from git origin/HEAD in ${localPath}`,
           )
         }
         return { version: resolvedVersion, originCommit }
@@ -119,7 +169,9 @@ export function getPackageResolution({
       }
     }
     if (isVerbose) {
-      console.log(`using ${packageDetails.name} version ${resolvedVersion}`)
+      console.log(
+        `patch-package/getPackageResolution: using ${packageDetails.name} version ${resolvedVersion}`,
+      )
     }
     return { version: resolvedVersion }
   } else {
@@ -158,6 +210,7 @@ if (require.main === module) {
       appPath: process.cwd(),
       packageDetails,
       packageManager: detectPackageManager(process.cwd(), null),
+      appPackageJson: {}, // TODO?
     }),
   )
 }

@@ -14,5 +14,10 @@ echo "END SNAPSHOT"
 (>&2 echo "END SNAPSHOT")
 
 echo "SNAPSHOT: a patch file got produced"
+[ ! -f patches/naughty-package+1.0.0.patch ] && {
+  echo "ERROR: file not found: patches/naughty-package+1.0.0.patch"
+  echo "ls patches/:"
+  ls patches/
+}
 cat patches/naughty-package+1.0.0.patch
 echo "END SNAPSHOT"

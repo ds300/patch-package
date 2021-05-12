@@ -4,7 +4,7 @@ import chalk from "chalk"
 import process from "process"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 
-export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
+export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap" | "pnpm"
 
 function printNoYarnLockfileError() {
   console.error(`
@@ -64,6 +64,8 @@ export const detectPackageManager = (
     }
   } else if (yarnLockExists || findWorkspaceRoot()) {
     return "yarn"
+  } else if (fs.existsSync(join(appRootPath, "pnpm-lock.yaml"))) {
+    return "pnpm"
   } else {
     printNoLockfilesError()
     process.exit(1)

@@ -14,5 +14,7 @@ export function packageIsDevDependency({
     return false
   }
   const { devDependencies } = require(packageJsonPath)
-  return Boolean(devDependencies && devDependencies[packageDetails.packageNames[0]])
+  return Boolean(
+    devDependencies && devDependencies[packageDetails.packageNames[0]],
+  )
 }

@@ -7,7 +7,7 @@ import { resolveRelativeFileDependencies } from "../src/resolveRelativeFileDepen
 export const patchPackageTarballPath = resolve(
   fs
     .readdirSync(".")
-    .filter(nm => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
+    .filter((nm) => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
 )
 
 export function runIntegrationTest({
@@ -18,7 +18,10 @@ export function runIntegrationTest({
   shouldProduceSnapshots: boolean
 }) {
   describe(`Test ${projectName}:`, () => {
-    const tmpDir = tmp.dirSync({ unsafeCleanup: true })
+    const tmpDir = tmp.dirSync({
+      unsafeCleanup: true,
+      prefix: "patch-package.test-integration.",
+    })
     fs.copySync(join(__dirname, projectName), tmpDir.name, {
       recursive: true,
     })
@@ -64,7 +67,7 @@ export function runIntegrationTest({
         expect(snapshots && snapshots.length).toBeTruthy()
       })
       if (snapshots) {
-        snapshots.forEach(snapshot => {
+        snapshots.forEach((snapshot) => {
           const snapshotDescriptionMatch = snapshot.match(/SNAPSHOT: (.*)/)
           if (snapshotDescriptionMatch) {
             it(snapshotDescriptionMatch[1], () => {
@@ -80,5 +83,7 @@ export function runIntegrationTest({
         expect(snapshots && snapshots.length).toBeFalsy()
       })
     }
+
+    tmpDir.removeCallback()
   })
 }

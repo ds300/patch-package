@@ -7,7 +7,7 @@ export const executeEffects = (
   effects: ParsedPatchFile,
   { dryRun }: { dryRun: boolean },
 ) => {
-  effects.forEach(eff => {
+  effects.forEach((eff) => {
     switch (eff.type) {
       case "file deletion":
         if (dryRun) {

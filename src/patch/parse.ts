@@ -175,7 +175,16 @@ function parsePatchLines(
     const line = lines[i]
 
     if (state === "parsing header") {
-      if (line.startsWith("@@")) {
+      if (line.startsWith("#")) {
+        // ignore metadata comment line in header
+        // in the unidiff format, all header lines before `--- a/` are comment lines
+        // git-diff uses these comment lines to store metadata
+        // https://stackoverflow.com/questions/18979120
+        if (global.patchPackageIsDebug) {
+          console.log(`patch-package/patch/parse: ignore comment line: ${line}`)
+        }
+        continue
+      } else if (line.startsWith("@@")) {
         state = "parsing hunks"
         currentFilePatch.hunks = []
         i--
@@ -206,9 +215,10 @@ function parsePatchLines(
       } else if (line.startsWith("rename to ")) {
         currentFilePatch.renameTo = line.slice("rename to ".length).trim()
       } else if (line.startsWith("index ")) {
-        const match = line.match(/(\w+)\.\.(\w+)/)
+        const match = line.match(/(\w+)\.\.(\w+)/) // TODO match whole line
+        //const match = line.match(/^index (\w+)\.\.(\w+)$/)
         if (!match) {
-          continue
+          continue // TODO handle parse error?
         }
         currentFilePatch.beforeHash = match[1]
         currentFilePatch.afterHash = match[2]

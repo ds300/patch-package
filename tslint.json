@@ -18,7 +18,8 @@
     "object-literal-key-quotes": [false],
     "max-line-length": false,
     "no-default-export": true,
-    "no-namespace": false
+    "no-namespace": false,
+    "comment-format": false
   },
   "rulesDirectory": []
 }

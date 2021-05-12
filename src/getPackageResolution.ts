@@ -5,9 +5,9 @@ import { readFileSync, existsSync } from "fs-extra"
 import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 import { getPackageVersion } from "./getPackageVersion"
-import { execSync } from "child_process"
+//import { execSync } from "child_process"
 
-const isVerbose = global.patchPackageIsVerbose
+//const isVerbose = global.patchPackageIsVerbose
 const isDebug = global.patchPackageIsDebug
 
 export function getPackageResolution({
@@ -91,6 +91,12 @@ export function getPackageResolution({
       )
     }
 
+    // TODO validate: declaredVersion must not be wildcard
+    return { version: declaredVersion }
+
+    // TODO dont use lockfiles at all?
+    // package versions should be pinned in /package.json, so it works with all package managers at all times
+    /*
     const lockfile = require("js-yaml").load(
       require("fs").readFileSync(join(appPath, "pnpm-lock.yaml"), "utf8"),
     )
@@ -174,6 +180,7 @@ export function getPackageResolution({
       )
     }
     return { version: resolvedVersion }
+    */
   } else {
     const lockfile = require(join(
       appPath,

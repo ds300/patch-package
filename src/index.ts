@@ -1,24 +1,29 @@
 import chalk from "chalk"
 import process from "process"
-import minimist from "minimist"
+import dashdash from "dashdash"
 
 import { getAppRootPath } from "./getAppRootPath"
 import { join } from "./path"
 
 const appPath = getAppRootPath()
-const argv = minimist(process.argv.slice(2), {
-  boolean: [
-    "use-yarn",
-    "case-sensitive-path-filtering",
-    "reverse",
-    "help",
-    "version",
-    "error-on-fail",
-    "create-issue",
-  ],
-  string: ["patch-dir"],
-})
-const packageNames = argv._
+
+var dashdashOptions = [
+  { name: "use-yarn", type: "bool" },
+  { name: "case-sensitive-path-filtering", type: "bool" },
+  { name: "reverse", type: "bool" },
+  { names: ["help", "h"], type: "bool" },
+  { names: ["version", "v"], type: "bool" },
+  { name: "error-on-fail", type: "bool" },
+  { name: "verbose", type: "bool" },
+  { name: "debug", type: "bool" },
+  { name: "patch-dir", type: "string" },
+  { name: "include", type: "string" },
+  { name: "exclude", type: "string" },
+];
+
+const argv = dashdash.parse({ options: dashdashOptions });
+
+const packageNames = argv._args
 
 console.log(
   chalk.bold("patch-package"),
@@ -27,8 +32,8 @@ console.log(
 )
 
 // used in imported modules
-const isDebug = (global.patchPackageIsDebug = Boolean(argv.debug))
-global.patchPackageIsVerbose = isDebug || Boolean(argv.verbose)
+const isDebug = global.patchPackageIsDebug = argv.debug
+global.patchPackageIsVerbose = isDebug || argv.verbose
 
 if (isDebug) {
   console.log(`patch-package/index: argv:`)
@@ -43,12 +48,12 @@ import { normalize, sep } from "path"
 import slash = require("slash")
 import isCi from "is-ci"
 
-if (argv.version || argv.v) {
+if (argv.version) {
   // noop
-} else if (argv.help || argv.h) {
+} else if (argv.help) {
   printHelp()
 } else {
-  const patchDir = slash(normalize((argv["patch-dir"] || "patches") + sep))
+  const patchDir = slash(normalize((argv.patch_dir || "patches") + sep))
   if (patchDir.startsWith("/")) {
     throw new Error("--patch-dir must be a relative path")
   }
@@ -57,19 +62,19 @@ if (argv.version || argv.v) {
       argv.include,
       "include",
       /.*/,
-      argv["case-sensitive-path-filtering"],
+      argv.case_sensitive_path_filtering,
     )
     const excludePaths = makeRegExp(
       argv.exclude,
       "exclude",
       /package\.json$/,
-      argv["case-sensitive-path-filtering"],
+      argv.case_sensitive_path_filtering,
     )
     const packageManager = detectPackageManager(
       appPath,
-      argv["use-yarn"] ? "yarn" : null,
+      argv.use_yarn ? "yarn" : null,
     )
-    const createIssue = argv["create-issue"]
+    const createIssue = argv.create_issue
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({
         packagePathSpecifier,
@@ -83,11 +88,11 @@ if (argv.version || argv.v) {
     })
   } else {
     console.log("Applying patches...")
-    const reverse = !!argv["reverse"]
+    const reverse = argv.reverse
     // don't want to exit(1) on postinsall locally.
     // see https://github.com/ds300/patch-package/issues/86
     const shouldExitWithError =
-      !!argv["error-on-fail"] || isCi || process.env.NODE_ENV === "test"
+      argv.error_on_fail || isCi || process.env.NODE_ENV === "test"
     applyPatchesForApp({ appPath, reverse, patchDir, shouldExitWithError })
   }
 }

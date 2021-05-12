@@ -9,6 +9,7 @@ const appPath = getAppRootPath()
 
 var dashdashOptions = [
   { name: "use-yarn", type: "bool" },
+  { name: "create-issue", type: "bool" },
   { name: "case-sensitive-path-filtering", type: "bool" },
   { name: "reverse", type: "bool" },
   { names: ["help", "h"], type: "bool" },
@@ -74,6 +75,10 @@ if (argv.version) {
       appPath,
       argv.use_yarn ? "yarn" : null,
     )
+    if (isDebug) {
+      console.log(`patch-package/index: packageManager = ${packageManager}`)
+    }
+
     const createIssue = argv.create_issue
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({

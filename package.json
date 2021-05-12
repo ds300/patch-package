@@ -13,13 +13,14 @@
     "patch-package": "./index.js"
   },
   "scripts": {
-    "prepublishOnly": "yarn run clean && yarn run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "build": "tsc --project tsconfig.build.json",
     "new-integration-test": "ts-node integration-tests/newIntegrationTest.ts",
     "clean": "rimraf dist patch-package.test*.tgz",
     "format": "prettier --no-semi --write --trailing-comma=all src{/**,}/*.ts integration-tests{/**,}/*.ts property-based-tests{/**,}/*.ts",
     "prepack": "rimraf dist/**/*.test.js",
-    "test": "./run-tests.sh --runInBand"
+    "test": "./run-tests.sh --runInBand",
+    "prepare": "npm run build"
   },
   "husky": {
     "hooks": {

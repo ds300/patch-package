@@ -127,7 +127,7 @@ export function makePatch({
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
+        spawnSafeSync(`yarn`, ["install", "--ignore-engines", `${packageDetails.name}@${packageVersion}`], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
         })
@@ -136,7 +136,7 @@ export function makePatch({
         // an implicit context which we havn't reproduced
         spawnSafeSync(
           `yarn`,
-          ["install", "--ignore-engines", "--ignore-scripts"],
+          ["install", "--ignore-engines", "--ignore-scripts", `${packageDetails.name}@${packageVersion}`],
           {
             cwd: tmpRepoNpmRoot,
           },
@@ -150,7 +150,7 @@ export function makePatch({
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i", "--force"], {
+        spawnSafeSync(`npm`, ["i", "--force", `${packageDetails.name}@${packageVersion}`], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
           stdio: "ignore",
@@ -158,7 +158,7 @@ export function makePatch({
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we havn't reproduced
-        spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
+        spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force", `${packageDetails.name}@${packageVersion}`], {
           cwd: tmpRepoNpmRoot,
           stdio: "ignore",
         })

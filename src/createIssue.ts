@@ -46,12 +46,26 @@ function getPackageVCSDetails(packageDetails: PackageDetails) {
   }
 }
 
+export function shouldRecommendIssue(
+  vcsDetails: ReturnType<typeof getPackageVCSDetails>,
+) {
+  if (!vcsDetails) {
+    return true
+  }
+
+  const { repo, org } = vcsDetails
+  if (repo === "DefinitelyTyped" && org === "DefinitelyTyped") {
+    return false
+  }
+  return true
+}
+
 export function maybePrintIssueCreationPrompt(
   packageDetails: PackageDetails,
   packageManager: PackageManager,
 ) {
   const vcs = getPackageVCSDetails(packageDetails)
-  if (vcs) {
+  if (vcs && shouldRecommendIssue(vcs)) {
     console.log(`💡 ${chalk.bold(packageDetails.name)} is on ${
       vcs.provider
     }! To draft an issue based on your patch run

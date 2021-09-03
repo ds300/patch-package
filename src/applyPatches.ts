@@ -84,11 +84,13 @@ export function applyPatchesForApp({
   reverse,
   patchDir,
   shouldExitWithError,
+  shouldExitWithWarning,
 }: {
   appPath: string
   reverse: boolean
   patchDir: string
   shouldExitWithError: boolean
+  shouldExitWithWarning: boolean
 }): void {
   const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
@@ -221,9 +223,15 @@ export function applyPatchesForApp({
     )
   }
 
-  if (errors.length) {
-    process.exit(shouldExitWithError ? 1 : 0)
+  if (errors.length && shouldExitWithError) {
+    process.exit(1)
   }
+
+  if (warnings.length && shouldExitWithWarning) {
+    process.exit(1)
+  }
+
+  process.exit(0)
 }
 
 export function applyPatch({

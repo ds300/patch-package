@@ -21,6 +21,7 @@ const argv = minimist(process.argv.slice(2), {
     "help",
     "version",
     "error-on-fail",
+    "error-on-warn",
     "create-issue",
   ],
   string: ["patch-dir"],
@@ -78,7 +79,16 @@ if (argv.version || argv.v) {
     // see https://github.com/ds300/patch-package/issues/86
     const shouldExitWithError =
       !!argv["error-on-fail"] || isCi || process.env.NODE_ENV === "test"
-    applyPatchesForApp({ appPath, reverse, patchDir, shouldExitWithError })
+
+    const shouldExitWithWarning = !!argv["error-on-warn"]
+
+    applyPatchesForApp({
+      appPath,
+      reverse,
+      patchDir,
+      shouldExitWithError,
+      shouldExitWithWarning,
+    })
   }
 }
 
@@ -116,6 +126,12 @@ Usage:
       --error-on-fail is ${chalk.bold("switched on")} by default on CI.
       
       See https://github.com/ds300/patch-package/issues/86 for background.
+      
+    ${chalk.bold("--error-on-warn")}
+    
+      Forces patch-package to exit with code 1 after warning.
+      
+      See https://github.com/ds300/patch-package/issues/314 for background.
 
     ${chalk.bold("--reverse")}
         

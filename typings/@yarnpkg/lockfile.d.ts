@@ -10,4 +10,5 @@ declare module "@yarnpkg/lockfile" {
       }
     }
   }
+  export function stringify(o: object): string
 }

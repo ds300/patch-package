@@ -6,6 +6,7 @@ import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
 import yaml from "yaml"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 import { getPackageVersion } from "./getPackageVersion"
+import { coerceSemVer } from "./coerceSemVer"
 
 export function getPackageResolution({
   packageDetails,
@@ -54,7 +55,7 @@ export function getPackageResolution({
       ([k, v]) =>
         k.startsWith(packageDetails.name + "@") &&
         // @ts-ignore
-        v.version === installedVersion,
+        coerceSemVer(v.version) === coerceSemVer(installedVersion),
     )
 
     const resolutions = entries.map(([_, v]) => {

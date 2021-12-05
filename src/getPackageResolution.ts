@@ -31,9 +31,11 @@ export function getPackageResolution({
     const lockFileString = readFileSync(lockFilePath).toString()
     let appLockFile
     if (lockFileString.includes("yarn lockfile v1")) {
-      appLockFile = parseYarnLockFile(lockFileString)
-      if (appLockFile.type !== "success") {
+      const parsedYarnLockFile = parseYarnLockFile(lockFileString)
+      if (parsedYarnLockFile.type !== "success") {
         throw new Error("Can't parse lock file")
+      } else {
+        appLockFile = parsedYarnLockFile.object
       }
     } else {
       try {
@@ -48,7 +50,7 @@ export function getPackageResolution({
       join(resolve(appPath, packageDetails.path), "package.json"),
     )
 
-    const entries = Object.entries(appLockFile.object || appLockFile).filter(
+    const entries = Object.entries(appLockFile).filter(
       ([k, v]) =>
         k.startsWith(packageDetails.name + "@") &&
         // @ts-ignore

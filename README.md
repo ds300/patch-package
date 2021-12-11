@@ -281,6 +281,11 @@ Yarn only runs the `postinstall` hook after `yarn` and `yarn add`, but not after
 `yarn remove`. The `postinstall-postinstall` package is used to make sure your
 `postinstall` hook gets executed even after a `yarn remove`.
 
+Note that `postinstall-postinstall` will run your `postinstall` hook twice if you
+are doing a `yarn install`, etc. So if you add your own script to the `postinstall`
+hook, it must be idempotent, and you should be aware that the first time it is run,
+you will not see console output. 
+
 ## License
 
 MIT

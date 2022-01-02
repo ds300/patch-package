@@ -235,7 +235,7 @@ export function makePatch({
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
         })
-      } catch (e) {
+      } catch (e: any) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we havn't reproduced
         spawnSafeSync(
@@ -265,7 +265,7 @@ export function makePatch({
           logStdErrOnError: false,
           stdio: isVerbose ? "inherit" : "ignore",
         })
-      } catch (e) {
+      } catch (e: any) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we havn't reproduced
         if (isVerbose) {
@@ -370,9 +370,10 @@ export function makePatch({
 
     try {
       parsePatchFile(diffResult.stdout.toString())
-    } catch (e) {
+    } catch (e: any) {
+      if (!(e instanceof Error)) return
       if (
-        (e as Error).message.includes("Unexpected file mode string: 120000")
+        e.message.includes("Unexpected file mode string: 120000")
       ) {
         console.error(`
 ⛔️ ${chalk.red.bold("ERROR")}
@@ -495,7 +496,7 @@ export function makePatch({
     } else {
       maybePrintIssueCreationPrompt(packageDetails, packageManager)
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
     throw e
   } finally {

@@ -189,7 +189,7 @@ export function applyPatchesForApp({
           }),
         )
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof PatchApplicationError) {
         errors.push(error.message)
       } else {
@@ -379,14 +379,15 @@ function createUnexpectedError({
   error,
 }: {
   filename: string
-  error: Error
+  error: any
 }) {
+  var stack = (error instanceof Error) ? error.stack : error
   return `
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
     `Failed to apply patch file ${chalk.bold(filename)}`,
   )}
   
-${error.stack}
+${stack}
 
   `
 }

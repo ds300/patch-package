@@ -12,6 +12,10 @@ import {
   mkdirpSync,
   realpathSync,
   renameSync,
+  /*
+  lstatSync,
+  readlinkSync,
+  */
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
@@ -150,9 +154,31 @@ export function makePatch({
         var protocol = m[1]
         var location = m[2]
         var isGit = protocol.startsWith('git')
-        var gitCommit = isGit ? location.split('#').slice(-1)[0] : null
+        var gitCommit = (isGit && location.includes("#")) ? location.split('#').slice(-1)[0] : null
+        if (isDebug) {
+          console.dir({ loc: 'get declaredVersion', isGit, gitCommit });
+        }
         if (isGit && !gitCommit) {
-          throw new Error(`error: found wildcard git version ${v}. package.json must pin the exact version of ${packageDetails.name} in the format <protocol>:<packagePath>#<commitHash>`)
+          var error = new Error(`found wildcard git version ${v}. \
+package.json must pin the exact version of ${packageDetails.name} \
+in the format <protocol>:<packagePath>#<commitHash>. \
+commitHash is the full hash with 40 chars.`)
+          delete error.stack
+          throw error
+          /* too complex
+          // guess commit hash of installed package
+          var stats = lstatSync(packageDetails.path)
+          if (stats.isSymbolicLink()) {
+            var linkTarget = readlinkSync(packageDetails.path)
+            if (linkTarget.startsWith(".pnpm")) {
+              var match = linkTarget.match(/^\.pnpm\/[^/]+@([0-9a-f]{10})_[0-9a-f]{32}\//)
+              if (match) {
+                gitCommit = match[1]
+                if (isDebug) console.log(`parsed gitCommit ${gitCommit} from pnpm symlink`)
+              }
+            }
+          }
+          */
         }
         if (isGit) {
           return { full: v, protocol, location, gitCommit }
@@ -163,16 +189,31 @@ export function makePatch({
           // -> use version number from package's package.json
           var version = getPackageVersion(join(resolve(packageDetails.path), "package.json"))
           if (isVerbose) {
-            console.log(`patch-package/makePatch: warning: using version ${version} from ${packageDetails.name}/package.json`)
+            console.log(`patch-package/makePatch: using version ${version} from ${packageDetails.name}/package.json`)
           }
           return { version }
         }
       }
-      if (!v.match(/^[0-9]+\.[0-9]+\.[0-9]+/)) {
-        throw new Error(`error: found wildcard version. package.json must pin the exact version of ${packageDetails.name} in the format <package>@<major>.<minor>.<patch>`)
+      // https://docs.npmjs.com/about-semantic-versioning
+      if (!v.match(/^[0-9]+\.[0-9]+\.[0-9]+$/)) {
+        var exactPart = v.match(/^[^~]([0-9]+\.[0-9]+\.[0-9]+)$/)
+        var exampleVersion = '1.2.3'
+        if (exactPart) {
+          exampleVersion = exactPart[1]
+        }
+        console.warn(`patch-package/makePatch: warning: found wildcard version. \
+to ensure successful patching, package.json should pin the exact version of ${packageDetails.name} \
+in the format <major>.<minor>.<patch>, for example: "${packageDetails.name}": "${exampleVersion}"`)
       }
       return { full: v, version: v }
     })()
+
+    if (isDebug) {
+      //console.log(`patch-package/makePatch: resolvedVersion.originCommit = ${resolvedVersion.originCommit}`)
+      console.log(`patch-package/makePatch: declaredVersion.version = ${declaredVersion.version}`)
+      console.log(`patch-package/makePatch: declaredVersion.gitCommit = ${declaredVersion.gitCommit}`)
+      console.log(`patch-package/makePatch: declaredVersion.full = ${declaredVersion.full}`)
+    }
 
     const packageVersion = (
       declaredVersion.version || declaredVersion.gitCommit || declaredVersion.full
@@ -207,9 +248,7 @@ export function makePatch({
     */
 
     if (isDebug) {
-      console.log(`patch-package/makePatch: resolvedVersion.version = ${resolvedVersion.version}`)
       console.log(`patch-package/makePatch: getPackageVersion -> ${getPackageVersion(join(resolve(packageDetails.path), "package.json"))}`)
-      console.log(`patch-package/makePatch: packageVersion = ${packageVersion}`)
       console.log(`patch-package/makePatch: package path = ${packageDetails.path}`)
       console.log(`patch-package/makePatch: package path resolved = ${resolve(packageDetails.path)}`)
     }
@@ -480,8 +519,7 @@ export function makePatch({
 
     const patchPath = join(patchesDir, patchFileName)
     if (!existsSync(dirname(patchPath))) {
-      // scoped package
-      mkdirSync(dirname(patchPath))
+      mkdirSync(dirname(patchPath), { recursive: true })
     }
     writeFileSync(patchPath, diffHeader + diffResult.stdout)
     console.log(
@@ -497,7 +535,7 @@ export function makePatch({
       maybePrintIssueCreationPrompt(packageDetails, packageManager)
     }
   } catch (e: any) {
-    console.error(e)
+    //console.error(e)
     throw e
   } finally {
     cleanup()

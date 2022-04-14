@@ -1,3 +1,6 @@
+This fork attempts to solve issues with partially-applied patches. See
+[this PR](https://github.com/Abbondanzo/patch-package/pull/1) for more context.
+
 <p align="center">
   <img src="https://ds300.github.io/patch-package/patch-package.svg" width="80%" alt="patch-package" />
 </p>
@@ -78,9 +81,12 @@ details.
   Otherwise if you update a patch then the change may not be reflected on
   subsequent CI runs.
 
-  
 ### CircleCI
-Create a hash of your patches before loading/saving your cache. If using a Linux machine, run `md5sum patches/* > patches.hash`. If running on a macOS machine,  use `md5 patches/* > patches.hash`
+
+Create a hash of your patches before loading/saving your cache. If using a Linux
+machine, run `md5sum patches/* > patches.hash`. If running on a macOS machine,
+use `md5 patches/* > patches.hash`
+
 ```yaml
 - run:
     name: patch-package hash
@@ -88,19 +94,24 @@ Create a hash of your patches before loading/saving your cache. If using a Linux
 ```
 
 Then, update your hash key to include a checksum of that file:
+
 ```yaml
 - restore_cache:
-    key: app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
-```  
+    key:
+      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash"
+      }}
+```
 
 As well as the save_cache
+
 ```yaml
 - save_cache:
-    key: app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
+    key:
+      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash"
+      }}
     paths:
       - ./node_modules
 ```
-
 
 ## Usage
 

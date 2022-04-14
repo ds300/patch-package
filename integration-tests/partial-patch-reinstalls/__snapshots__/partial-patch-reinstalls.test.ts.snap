@@ -5,3 +5,17 @@ exports[`Test partial-patch-reinstalls: left-pad should contain patch-package 1`
     // devide \`len\` by 2, ditch the patch-package
 END SNAPSHOT"
 `;
+
+exports[`Test partial-patch-reinstalls: left-pad should no longer contain yarn 1`] = `
+"SNAPSHOT: left-pad should no longer contain yarn
+    // devide \`len\` by 2, ditch the patch-package
+END SNAPSHOT"
+`;
+
+exports[`Test partial-patch-reinstalls: warning when the patch was applied as a reinstall 1`] = `
+"SNAPSHOT: warning when the patch was applied as a reinstall
+Patch conflicts found for left-pad. Performed clean reinstall
+---
+patch-package finished with 1 warning(s).
+END SNAPSHOT"
+`;

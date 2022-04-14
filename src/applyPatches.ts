@@ -12,6 +12,8 @@ import { reversePatch } from "./patch/reverse"
 import semver from "semver"
 import { readPatch } from "./patch/read"
 import { packageIsDevDependency } from "./packageIsDevDependency"
+import { PackageManager } from "./detectPackageManager"
+import { installCleanPackage } from "./installCleanPackage"
 
 class PatchApplicationError extends Error {
   constructor(msg: string) {
@@ -84,11 +86,13 @@ export function applyPatchesForApp({
   reverse,
   patchDir,
   shouldExitWithError,
+  packageManager,
 }: {
   appPath: string
   reverse: boolean
   patchDir: string
   shouldExitWithError: boolean
+  packageManager: PackageManager
 }): void {
   const patchesDirectory = join(appPath, patchDir)
   const files = findPatchFiles(patchesDirectory)
@@ -167,16 +171,41 @@ export function applyPatchesForApp({
           `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
         )
       } else if (installedPackageVersion === version) {
-        // completely failed to apply patch
-        // TODO: propagate useful error messages from patch application
-        errors.push(
-          createBrokenPatchFileError({
-            packageName: name,
-            patchFileName: filename,
-            pathSpecifier,
-            path,
-          }),
-        )
+        // Retry a fresh install
+        installCleanPackage({
+          appPath,
+          packageManager,
+          packageDetails,
+        })
+        // Check patch again
+        if (
+          applyPatch({
+            patchFilePath: resolve(patchesDirectory, filename) as string,
+            reverse,
+            packageDetails,
+            patchDir,
+          })
+        ) {
+          warnings.push(
+            `Patch conflicts found for ${name}. Performed clean reinstall`,
+          )
+          console.info(chalk.grey("•"), "Creating temporary folder")
+          console.info(chalk.grey("•"), "Creating temporary folder")
+          console.info(chalk.grey("•"), "Creating temporary folder")
+
+          console.log(
+            `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
+          )
+        } else {
+          errors.push(
+            createBrokenPatchFileError({
+              packageName: name,
+              patchFileName: filename,
+              pathSpecifier,
+              path,
+            }),
+          )
+        }
       } else {
         errors.push(
           createPatchApplictionFailureError({

@@ -1,34 +1,31 @@
 import chalk from "chalk"
-import { join, dirname, resolve } from "./path"
-import { spawnSafeSync } from "./spawnSafe"
-import { PackageManager } from "./detectPackageManager"
-import { removeIgnoredFiles } from "./filterFiles"
 import {
-  writeFileSync,
+  copySync,
   existsSync,
   mkdirSync,
-  unlinkSync,
-  mkdirpSync,
   realpathSync,
+  unlinkSync,
+  writeFileSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
-import { copySync } from "fs-extra"
-import { dirSync } from "tmp"
-import { getPatchFiles } from "./patchFs"
-import {
-  getPatchDetailsFromCliString,
-  getPackageDetailsFromPatchFilename,
-  PackageDetails,
-} from "./PackageDetails"
-import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
-import { getPackageResolution } from "./getPackageResolution"
-import { parsePatchFile } from "./patch/parse"
 import { gzipSync } from "zlib"
-import { getPackageVersion } from "./getPackageVersion"
 import {
   maybePrintIssueCreationPrompt,
   openIssueCreationLink,
 } from "./createIssue"
+import { PackageManager } from "./detectPackageManager"
+import { downloadPackage } from "./downloadPackage"
+import { removeIgnoredFiles } from "./filterFiles"
+import { getPackageVersion } from "./getPackageVersion"
+import {
+  getPackageDetailsFromPatchFilename,
+  getPatchDetailsFromCliString,
+  PackageDetails,
+} from "./PackageDetails"
+import { parsePatchFile } from "./patch/parse"
+import { getPatchFiles } from "./patchFs"
+import { dirname, join, resolve } from "./path"
+import { spawnSafeSync } from "./spawnSafe"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -64,7 +61,7 @@ export function makePatch({
     console.error("No such package", packagePathSpecifier)
     return
   }
-  const appPackageJson = require(join(appPath, "package.json"))
+
   const packagePath = join(appPath, packageDetails.path)
   const packageJsonPath = join(packagePath, "package.json")
 
@@ -73,97 +70,17 @@ export function makePatch({
     process.exit(1)
   }
 
-  const tmpRepo = dirSync({ unsafeCleanup: true })
-  const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
-  const tmpRepoNpmRoot = tmpRepoPackagePath.slice(
-    0,
-    -`/node_modules/${packageDetails.name}`.length,
-  )
-
-  const tmpRepoPackageJsonPath = join(tmpRepoNpmRoot, "package.json")
+  const { tmpRepo, tmpRepoPackagePath } = downloadPackage({
+    packageDetails,
+    appPath,
+    packageManager,
+  })
 
   try {
     const patchesDir = resolve(join(appPath, patchDir))
-
-    console.info(chalk.grey("•"), "Creating temporary folder")
-
-    // make a blank package.json
-    mkdirpSync(tmpRepoNpmRoot)
-    writeFileSync(
-      tmpRepoPackageJsonPath,
-      JSON.stringify({
-        dependencies: {
-          [packageDetails.name]: getPackageResolution({
-            packageDetails,
-            packageManager,
-            appPath,
-          }),
-        },
-        resolutions: resolveRelativeFileDependencies(
-          appPath,
-          appPackageJson.resolutions || {},
-        ),
-      }),
-    )
-
     const packageVersion = getPackageVersion(
       join(resolve(packageDetails.path), "package.json"),
     )
-
-    // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    // tslint:disable-next-line:align
-    ;[".npmrc", ".yarnrc"].forEach((rcFile) => {
-      const rcPath = join(appPath, rcFile)
-      if (existsSync(rcPath)) {
-        copySync(rcPath, join(tmpRepo.name, rcFile))
-      }
-    })
-
-    if (packageManager === "yarn") {
-      console.info(
-        chalk.grey("•"),
-        `Installing ${packageDetails.name}@${packageVersion} with yarn`,
-      )
-      try {
-        // try first without ignoring scripts in case they are required
-        // this works in 99.99% of cases
-        spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
-          cwd: tmpRepoNpmRoot,
-          logStdErrOnError: false,
-        })
-      } catch (e) {
-        // try again while ignoring scripts in case the script depends on
-        // an implicit context which we havn't reproduced
-        spawnSafeSync(
-          `yarn`,
-          ["install", "--ignore-engines", "--ignore-scripts"],
-          {
-            cwd: tmpRepoNpmRoot,
-          },
-        )
-      }
-    } else {
-      console.info(
-        chalk.grey("•"),
-        `Installing ${packageDetails.name}@${packageVersion} with npm`,
-      )
-      try {
-        // try first without ignoring scripts in case they are required
-        // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i", "--force"], {
-          cwd: tmpRepoNpmRoot,
-          logStdErrOnError: false,
-          stdio: "ignore",
-        })
-      } catch (e) {
-        // try again while ignoring scripts in case the script depends on
-        // an implicit context which we havn't reproduced
-        spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
-          cwd: tmpRepoNpmRoot,
-          stdio: "ignore",
-        })
-      }
-    }
 
     const git = (...args: string[]) =>
       spawnSafeSync("git", args, {
@@ -307,9 +224,6 @@ export function makePatch({
     } else {
       maybePrintIssueCreationPrompt(packageDetails, packageManager)
     }
-  } catch (e) {
-    console.error(e)
-    throw e
   } finally {
     tmpRepo.removeCallback()
   }

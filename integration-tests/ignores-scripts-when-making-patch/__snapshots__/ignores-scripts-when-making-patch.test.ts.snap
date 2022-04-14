@@ -3,7 +3,7 @@
 exports[`Test ignores-scripts-when-making-patch: a patch file got produced 1`] = `
 "SNAPSHOT: a patch file got produced
 diff --git a/node_modules/naughty-package/postinstall.sh b/node_modules/naughty-package/postinstall.sh
-index 3784520..c4af29c 100755
+index ee4b4db..14efe37 100755
 --- a/node_modules/naughty-package/postinstall.sh
 +++ b/node_modules/naughty-package/postinstall.sh
 @@ -1,4 +1,4 @@

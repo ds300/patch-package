@@ -171,7 +171,7 @@ export function applyPatchesForApp({
           `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
         )
       } else if (installedPackageVersion === version) {
-        // Retry a fresh install, bitch
+        // Retry a fresh install
         installCleanPackage({
           appPath,
           packageManager,
@@ -186,6 +186,13 @@ export function applyPatchesForApp({
             patchDir,
           })
         ) {
+          warnings.push(
+            `Patch conflicts found for ${name}. Performed clean reinstall`,
+          )
+          console.info(chalk.grey("•"), "Creating temporary folder")
+          console.info(chalk.grey("•"), "Creating temporary folder")
+          console.info(chalk.grey("•"), "Creating temporary folder")
+
           console.log(
             `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
           )

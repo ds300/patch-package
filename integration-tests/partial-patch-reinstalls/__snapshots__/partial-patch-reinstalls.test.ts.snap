@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test partial-patch-reinstalls: left-pad should contain patch-package 1`] = `
+"SNAPSHOT: left-pad should contain patch-package
+    // devide \`len\` by 2, ditch the patch-package
+END SNAPSHOT"
+`;

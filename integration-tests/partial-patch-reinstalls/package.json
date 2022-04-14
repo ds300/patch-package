@@ -1,0 +1,12 @@
+{
+  "name": "partial-patch-reinstalls",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prepare": "patch-package"
+  },
+  "dependencies": {
+    "left-pad": "1.1.2"
+  }
+}

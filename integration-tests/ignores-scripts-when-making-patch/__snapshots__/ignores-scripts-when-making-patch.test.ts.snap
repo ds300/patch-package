@@ -11,7 +11,7 @@ index 3784520..c4af29c 100755
 +# lol
  
  # if we're running in the main repo is ok
- if ls ../@abbo/patch-package ;
+ if ls ../@abbo/patch-package; then
 END SNAPSHOT"
 `;
 

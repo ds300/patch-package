@@ -18,10 +18,11 @@ export function installCleanPackage({
     packageDetails,
     packageManager,
   })
-  const dstFolder = join(appPath, packageDetails.path)
-  console.error(appPath)
-  console.error(tmpRepo.name)
-  console.error(tmpRepoPackagePath)
-  console.error(dstFolder)
-  moveSync(tmpRepoPackagePath, dstFolder, { overwrite: true })
+
+  try {
+    const dstFolder = join(appPath, packageDetails.path)
+    moveSync(tmpRepoPackagePath, dstFolder, { overwrite: true })
+  } finally {
+    tmpRepo.removeCallback()
+  }
 }

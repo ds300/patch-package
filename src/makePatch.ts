@@ -76,98 +76,101 @@ export function makePatch({
     packageManager,
   })
 
-  const patchesDir = resolve(join(appPath, patchDir))
-  const packageVersion = getPackageVersion(
-    join(resolve(packageDetails.path), "package.json"),
-  )
-
-  const git = (...args: string[]) =>
-    spawnSafeSync("git", args, {
-      cwd: tmpRepo.name,
-      env: { ...process.env, HOME: tmpRepo.name },
-      maxBuffer: 1024 * 1024 * 100,
-    })
-
-  // remove nested node_modules just to be safe
-  rimraf(join(tmpRepoPackagePath, "node_modules"))
-  // remove .git just to be safe
-  rimraf(join(tmpRepoPackagePath, ".git"))
-
-  // commit the package
-  console.info(chalk.grey("•"), "Diffing your files with clean files")
-  writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
-  git("init")
-  git("config", "--local", "user.name", "patch-package")
-  git("config", "--local", "user.email", "patch@pack.age")
-
-  // remove ignored files first
-  removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
-
-  git("add", "-f", packageDetails.path)
-  git("commit", "--allow-empty", "-m", "init")
-
-  // replace package with user's version
-  rimraf(tmpRepoPackagePath)
-
-  // pnpm installs packages as symlinks, copySync would copy only the symlink
-  copySync(realpathSync(packagePath), tmpRepoPackagePath)
-
-  // remove nested node_modules just to be safe
-  rimraf(join(tmpRepoPackagePath, "node_modules"))
-  // remove .git just to be safe
-  rimraf(join(tmpRepoPackagePath, ".git"))
-
-  // also remove ignored files like before
-  removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
-
-  // stage all files
-  git("add", "-f", packageDetails.path)
-
-  // get diff of changes
-  const diffResult = git(
-    "diff",
-    "--cached",
-    "--no-color",
-    "--ignore-space-at-eol",
-    "--no-ext-diff",
-  )
-
-  if (diffResult.stdout.length === 0) {
-    console.warn(
-      `⁉️  Not creating patch file for package '${packagePathSpecifier}'`,
-    )
-    console.warn(`⁉️  There don't appear to be any changes.`)
-    process.exit(1)
-    return
-  }
-
   try {
-    parsePatchFile(diffResult.stdout.toString())
-  } catch (e) {
-    if ((e as Error).message.includes("Unexpected file mode string: 120000")) {
-      console.error(`
+    const patchesDir = resolve(join(appPath, patchDir))
+    const packageVersion = getPackageVersion(
+      join(resolve(packageDetails.path), "package.json"),
+    )
+
+    const git = (...args: string[]) =>
+      spawnSafeSync("git", args, {
+        cwd: tmpRepo.name,
+        env: { ...process.env, HOME: tmpRepo.name },
+        maxBuffer: 1024 * 1024 * 100,
+      })
+
+    // remove nested node_modules just to be safe
+    rimraf(join(tmpRepoPackagePath, "node_modules"))
+    // remove .git just to be safe
+    rimraf(join(tmpRepoPackagePath, ".git"))
+
+    // commit the package
+    console.info(chalk.grey("•"), "Diffing your files with clean files")
+    writeFileSync(join(tmpRepo.name, ".gitignore"), "!/node_modules\n\n")
+    git("init")
+    git("config", "--local", "user.name", "patch-package")
+    git("config", "--local", "user.email", "patch@pack.age")
+
+    // remove ignored files first
+    removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
+
+    git("add", "-f", packageDetails.path)
+    git("commit", "--allow-empty", "-m", "init")
+
+    // replace package with user's version
+    rimraf(tmpRepoPackagePath)
+
+    // pnpm installs packages as symlinks, copySync would copy only the symlink
+    copySync(realpathSync(packagePath), tmpRepoPackagePath)
+
+    // remove nested node_modules just to be safe
+    rimraf(join(tmpRepoPackagePath, "node_modules"))
+    // remove .git just to be safe
+    rimraf(join(tmpRepoPackagePath, ".git"))
+
+    // also remove ignored files like before
+    removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
+
+    // stage all files
+    git("add", "-f", packageDetails.path)
+
+    // get diff of changes
+    const diffResult = git(
+      "diff",
+      "--cached",
+      "--no-color",
+      "--ignore-space-at-eol",
+      "--no-ext-diff",
+    )
+
+    if (diffResult.stdout.length === 0) {
+      console.warn(
+        `⁉️  Not creating patch file for package '${packagePathSpecifier}'`,
+      )
+      console.warn(`⁉️  There don't appear to be any changes.`)
+      process.exit(1)
+      return
+    }
+
+    try {
+      parsePatchFile(diffResult.stdout.toString())
+    } catch (e) {
+      if (
+        (e as Error).message.includes("Unexpected file mode string: 120000")
+      ) {
+        console.error(`
 ⛔️ ${chalk.red.bold("ERROR")}
 
   Your changes involve creating symlinks. patch-package does not yet support
   symlinks.
   
   ️Please use ${chalk.bold("--include")} and/or ${chalk.bold(
-        "--exclude",
-      )} to narrow the scope of your patch if
+          "--exclude",
+        )} to narrow the scope of your patch if
   this was unintentional.
 `)
-    } else {
-      const outPath = "./patch-package-error.json.gz"
-      writeFileSync(
-        outPath,
-        gzipSync(
-          JSON.stringify({
-            error: { message: e.message, stack: e.stack },
-            patch: diffResult.stdout.toString(),
-          }),
-        ),
-      )
-      console.error(`
+      } else {
+        const outPath = "./patch-package-error.json.gz"
+        writeFileSync(
+          outPath,
+          gzipSync(
+            JSON.stringify({
+              error: { message: e.message, stack: e.stack },
+              patch: diffResult.stdout.toString(),
+            }),
+          ),
+        )
+        console.error(`
 ⛔️ ${chalk.red.bold("ERROR")}
         
   patch-package was unable to read the patch-file made by git. This should not
@@ -185,41 +188,44 @@ export function makePatch({
   attempting to patch.
 
 `)
+      }
+      process.exit(1)
+      return
     }
-    process.exit(1)
-    return
-  }
 
-  // maybe delete existing
-  getPatchFiles(patchDir).forEach((filename) => {
-    const deets = getPackageDetailsFromPatchFilename(filename)
-    if (deets && deets.path === packageDetails.path) {
-      unlinkSync(join(patchDir, filename))
-    }
-  })
+    // maybe delete existing
+    getPatchFiles(patchDir).forEach((filename) => {
+      const deets = getPackageDetailsFromPatchFilename(filename)
+      if (deets && deets.path === packageDetails.path) {
+        unlinkSync(join(patchDir, filename))
+      }
+    })
 
-  const patchFileName = createPatchFileName({
-    packageDetails,
-    packageVersion,
-  })
-
-  const patchPath = join(patchesDir, patchFileName)
-  if (!existsSync(dirname(patchPath))) {
-    // scoped package
-    mkdirSync(dirname(patchPath))
-  }
-  writeFileSync(patchPath, diffResult.stdout)
-  console.log(
-    `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
-  )
-  if (createIssue) {
-    openIssueCreationLink({
+    const patchFileName = createPatchFileName({
       packageDetails,
-      patchFileContents: diffResult.stdout.toString(),
       packageVersion,
     })
-  } else {
-    maybePrintIssueCreationPrompt(packageDetails, packageManager)
+
+    const patchPath = join(patchesDir, patchFileName)
+    if (!existsSync(dirname(patchPath))) {
+      // scoped package
+      mkdirSync(dirname(patchPath))
+    }
+    writeFileSync(patchPath, diffResult.stdout)
+    console.log(
+      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
+    )
+    if (createIssue) {
+      openIssueCreationLink({
+        packageDetails,
+        patchFileContents: diffResult.stdout.toString(),
+        packageVersion,
+      })
+    } else {
+      maybePrintIssueCreationPrompt(packageDetails, packageManager)
+    }
+  } finally {
+    tmpRepo.removeCallback()
   }
 }
 

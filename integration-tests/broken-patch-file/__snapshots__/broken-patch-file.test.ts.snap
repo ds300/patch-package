@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Test broken-patch-file: patch-package fails when patch file is invalid 1`] = `
-"SNAPSHOT: patch-package failss when patch file is invalid
+"SNAPSHOT: patch-package fails when patch file is invalid
 
 **ERROR** Failed to apply patch for package left-pad at path
   

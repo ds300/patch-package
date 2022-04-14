@@ -1,5 +1,5 @@
 {
-  "name": "@abbondanzo/patch-package",
+  "name": "@abbo/patch-package",
   "version": "6.4.7",
   "description": "Fix broken node modules with no fuss",
   "main": "dist/index.js",

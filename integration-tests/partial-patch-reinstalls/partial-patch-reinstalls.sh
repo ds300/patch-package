@@ -11,7 +11,7 @@ echo "END SNAPSHOT"
 
 # Simulates a "dirty" patch where there's stuff already applied
 echo "replace pad with yarn in left-pad/index.js"
-sed -i '' 's/pad/yarn/g' node_modules/left-pad/index.js
+sed -i 's/pad/yarn/g' node_modules/left-pad/index.js
 
 (echo >&2 "SNAPSHOT: warning when the patch was applied as a reinstall")
 patch-package

@@ -8,6 +8,9 @@ alias patch-package=./node_modules/.bin/patch-package
 echo "modify left-pad"
 npx replace leftPad patchPackage node_modules/left-pad/index.js
 
+ls -la node_modules/patch-package
+ls -la node_modules/patch-package/dist
+
 echo "force patch-package to fail"
 npx replace 'parsePatchFile\(' 'blarseBlatchBlile(' node_modules/patch-package/dist/makePatch.js
 

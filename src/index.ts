@@ -42,6 +42,10 @@ if (argv.version || argv.v) {
   if (patchDir.startsWith("/")) {
     throw new Error("--patch-dir must be a relative path")
   }
+  const packageManager = detectPackageManager(
+    appPath,
+    argv["use-yarn"] ? "yarn" : null,
+  )
   if (packageNames.length) {
     const includePaths = makeRegExp(
       argv.include,
@@ -54,10 +58,6 @@ if (argv.version || argv.v) {
       "exclude",
       /package\.json$/,
       argv["case-sensitive-path-filtering"],
-    )
-    const packageManager = detectPackageManager(
-      appPath,
-      argv["use-yarn"] ? "yarn" : null,
     )
     const createIssue = argv["create-issue"]
     packageNames.forEach((packagePathSpecifier: string) => {
@@ -78,7 +78,13 @@ if (argv.version || argv.v) {
     // see https://github.com/ds300/patch-package/issues/86
     const shouldExitWithError =
       !!argv["error-on-fail"] || isCi || process.env.NODE_ENV === "test"
-    applyPatchesForApp({ appPath, reverse, patchDir, shouldExitWithError })
+    applyPatchesForApp({
+      appPath,
+      packageManager,
+      reverse,
+      patchDir,
+      shouldExitWithError,
+    })
   }
 }
 

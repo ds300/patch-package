@@ -7,6 +7,7 @@
   "author": "David Sheldrick",
   "license": "MIT",
   "engines": {
+    "node": ">=10",
     "npm": ">5"
   },
   "bin": {
@@ -72,7 +73,7 @@
   },
   "dependencies": {
     "@yarnpkg/lockfile": "^1.1.0",
-    "chalk": "^2.4.2",
+    "chalk": "^4.1.2",
     "cross-spawn": "^6.0.5",
     "find-yarn-workspace-root": "^2.0.0",
     "fs-extra": "^7.0.1",

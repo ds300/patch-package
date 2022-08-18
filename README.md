@@ -6,15 +6,9 @@
 dependencies. It's a vital band-aid for those of us living on the bleeding edge.
 
 _Note for module authors: it is not safe to publish an npm package that uses
-`patch-package` to patch a non-dev-dependency because patches are applied to
-a specific file in your node_modules folder, but when a package is installed
-by end users the node_modules dependency tree may shift things around, and
-this shifting could be due to factors that can't be controlled by
-`patch-package`._
-
-_Also, if the dependency you are patching is also imported by the user of your
-package, patch package shouldn't patch that version of the package... which is
-not really feasible._
+`patch-package` to patch a non-dev-dependency. This is because `patch-package` works by patching specific files in specific places within the `node_modules` folder, and currently cannot control the following factors:_
+- _When an end user installs your package, their `node_modules` dependency tree may have shifted things around._
+- _If the dependency you patched is also depended on by other packages (or directly by the end user), you might be causing unintended breaking changes._
 
 ```sh
 # fix a bug in one of your dependencies

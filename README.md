@@ -5,7 +5,16 @@
 `patch-package` lets app authors instantly make and keep fixes to npm
 dependencies. It's a vital band-aid for those of us living on the bleeding edge.
 
-Note for module authors: it is not safe to publish an npm package that uses `patch-package` to patch a non-dev-dependency.
+_Note for module authors: it is not safe to publish an npm package that uses
+`patch-package` to patch a non-dev-dependency because patches are applied to
+a specific file in your node_modules folder, but when a package is installed
+by end users the node_modules dependency tree may shift things around, and
+this shifting could be due to factors that can't be controlled by
+`patch-package`._
+
+_Also, if the dependency you are patching is also imported by the user of your
+package, patch package shouldn't patch that version of the package... which is
+not really feasible._
 
 ```sh
 # fix a bug in one of your dependencies

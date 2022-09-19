@@ -15,6 +15,7 @@ import isCi from "is-ci"
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
   boolean: [
+    "use-npm",
     "use-yarn",
     "case-sensitive-path-filtering",
     "reverse",
@@ -57,7 +58,7 @@ if (argv.version || argv.v) {
     )
     const packageManager = detectPackageManager(
       appPath,
-      argv["use-yarn"] ? "yarn" : null,
+      argv["use-yarn"] ? "yarn" : (argv["use-npm"] ? "npm" : null),
     )
     const createIssue = argv["create-issue"]
     packageNames.forEach((packagePathSpecifier: string) => {

@@ -52,7 +52,7 @@ if (argv.version || argv.v) {
     const excludePaths = makeRegExp(
       argv.exclude,
       "exclude",
-      /package\.json$/,
+      /^package\.json$/,
       argv["case-sensitive-path-filtering"],
     )
     const packageManager = detectPackageManager(

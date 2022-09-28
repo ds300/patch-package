@@ -3,6 +3,7 @@ import { PackageDetails, getPatchDetailsFromCliString } from "./PackageDetails"
 import { PackageManager, detectPackageManager } from "./detectPackageManager"
 import { readFileSync, existsSync } from "fs-extra"
 import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
+import yaml from "yaml"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 import { getPackageVersion } from "./getPackageVersion"
 
@@ -27,22 +28,37 @@ export function getPackageResolution({
     if (!existsSync(lockFilePath)) {
       throw new Error("Can't find yarn.lock file")
     }
-    const appLockFile = parseYarnLockFile(readFileSync(lockFilePath).toString())
-    if (appLockFile.type !== "success") {
-      throw new Error("Can't parse lock file")
+    const lockFileString = readFileSync(lockFilePath).toString()
+    let appLockFile
+    if (lockFileString.includes("yarn lockfile v1")) {
+      const parsedYarnLockFile = parseYarnLockFile(lockFileString)
+      if (parsedYarnLockFile.type !== "success") {
+        throw new Error("Could not parse yarn v1 lock file")
+      } else {
+        appLockFile = parsedYarnLockFile.object
+      }
+    } else {
+      try {
+        appLockFile = yaml.parse(lockFileString)
+      } catch (e) {
+        console.error(e)
+        throw new Error("Could not  parse yarn v2 lock file")
+      }
     }
 
     const installedVersion = getPackageVersion(
       join(resolve(appPath, packageDetails.path), "package.json"),
     )
 
-    const entries = Object.entries(appLockFile.object).filter(
+    const entries = Object.entries(appLockFile).filter(
       ([k, v]) =>
         k.startsWith(packageDetails.name + "@") &&
+        // @ts-ignore
         v.version === installedVersion,
     )
 
     const resolutions = entries.map(([_, v]) => {
+      // @ts-ignore
       return v.resolved
     })
 
@@ -68,6 +84,10 @@ export function getPackageResolution({
     // resolve relative file path
     if (resolution.startsWith("file:.")) {
       return `file:${resolve(appPath, resolution.slice("file:".length))}`
+    }
+
+    if (resolution.startsWith("npm:")) {
+      return resolution.replace("npm:", "")
     }
 
     return resolution

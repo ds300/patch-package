@@ -42,7 +42,7 @@ Then
 You can use `--save-dev` if you don't need to run npm in production, e.g. if
 you're making a web frontend.
 
-### yarn
+### yarn v1
 
     yarn add patch-package postinstall-postinstall
 
@@ -58,6 +58,16 @@ Same as for yarn ☝️ Note that if you want to patch un-hoisted packages you'l
 need to repeat the setup process for the child package. Also make sure you're in
 the child package directory when you run `patch-package` to generate the patch
 files.
+
+### yarn v2+
+
+yarn 2+ have native support for patching dependencies via [`yarn patch`](https://yarnpkg.com/cli/patch).
+You do not need to use patch-package on these projects.
+
+### pnpm
+
+pnpm has native support for patching dependencies via [`pnpm patch`](https://pnpm.io/cli/patch).
+You do not need to use patch-package on these projects.
 
 ### Heroku
 

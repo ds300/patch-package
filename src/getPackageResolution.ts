@@ -33,7 +33,7 @@ export function getPackageResolution({
     if (lockFileString.includes("yarn lockfile v1")) {
       const parsedYarnLockFile = parseYarnLockFile(lockFileString)
       if (parsedYarnLockFile.type !== "success") {
-        throw new Error("Can't parse lock file")
+        throw new Error("Could not parse yarn v1 lock file")
       } else {
         appLockFile = parsedYarnLockFile.object
       }
@@ -42,7 +42,7 @@ export function getPackageResolution({
         appLockFile = yaml.parse(lockFileString)
       } catch (e) {
         console.error(e)
-        throw new Error("Can't parse lock file")
+        throw new Error("Could not  parse yarn v2 lock file")
       }
     }
 

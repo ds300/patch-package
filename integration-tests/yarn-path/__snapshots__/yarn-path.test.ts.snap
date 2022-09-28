@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test yarn-path: uses yarn version specified in yarn-path 1`] = `
+"SNAPSHOT: uses yarn version specified in yarn-path
+foobarbaz
+END SNAPSHOT"
+`;

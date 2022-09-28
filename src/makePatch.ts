@@ -10,6 +10,7 @@ import {
   unlinkSync,
   mkdirpSync,
   realpathSync,
+  readFileSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
 import { copySync } from "fs-extra"
@@ -29,6 +30,7 @@ import {
   maybePrintIssueCreationPrompt,
   openIssueCreationLink,
 } from "./createIssue"
+import { parse, stringify } from "@yarnpkg/lockfile"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -111,13 +113,27 @@ export function makePatch({
     )
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    // tslint:disable-next-line:align
-    ;[".npmrc", ".yarnrc"].forEach((rcFile) => {
-      const rcPath = join(appPath, rcFile)
-      if (existsSync(rcPath)) {
-        copySync(rcPath, join(tmpRepo.name, rcFile))
+    const npmrcPath = join(appPath, ".npmrc")
+    if (existsSync(npmrcPath)) {
+      copySync(npmrcPath, join(tmpRepo.name, ".npmrc"))
+    }
+
+    // Update yarn-path config to point to location specified relative to original yarnrc
+    // https://classic.yarnpkg.com/en/docs/yarnrc/#toc-yarn-path
+    const yarnrcPath = join(appPath, ".yarnrc")
+    const tmpYarnrcPath = join(tmpRepo.name, ".yarnrc")
+    if (existsSync(yarnrcPath)) {
+      try {
+        const yarnrc = parse(readFileSync(yarnrcPath).toString("UTF8"))
+          .object as any
+        if (yarnrc["yarn-path"]) {
+          yarnrc["yarn-path"] = join(appPath, yarnrc["yarn-path"])
+          writeFileSync(tmpYarnrcPath, stringify(yarnrc))
+        }
+      } catch (e) {
+        copySync(yarnrcPath, tmpYarnrcPath)
       }
-    })
+    }
 
     if (packageManager === "yarn") {
       console.info(

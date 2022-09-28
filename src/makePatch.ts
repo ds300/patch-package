@@ -214,6 +214,8 @@ export function makePatch({
       "--no-color",
       "--ignore-space-at-eol",
       "--no-ext-diff",
+      "--src-prefix=a/",
+      "--dst-prefix=b/"
     )
 
     if (diffResult.stdout.length === 0) {

@@ -115,7 +115,7 @@ export function makePatch({
     ;[".npmrc", ".yarnrc"].forEach((rcFile) => {
       const rcPath = join(appPath, rcFile)
       if (existsSync(rcPath)) {
-        copySync(rcPath, join(tmpRepo.name, rcFile))
+        copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
       }
     })
 

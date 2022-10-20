@@ -1,0 +1,11 @@
+{
+  "name": "error-on-warn",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "left-pad": "1.1.3"
+  }
+}

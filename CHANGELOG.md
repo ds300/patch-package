@@ -1,5 +1,24 @@
 # Changelog
 
+## 6.5.0
+
+Special thanks to @orta for stepping in to get this release out.
+
+- Don't show issue creation tips for DefinitelyTyped (contribution from @orta in
+  #331)
+- Add --error-on-warn flag (contribution from @mvargeson in #345)
+- Add excplit git diff path prefixes (contribution from @tye-singwa in #395)
+- Add yarn 2 compatibility (contribution from @maman in #363)
+- Update license (contribution from @Serjobas in #422)
+- Fix patch file parse but (contribution from @bill2004158 in #301)
+- Add unit tests for getPackageVersion (contribution from @MHekert in #359)
+- Deref symlink on copying .npmrc and .yarnrc in makePatch (contribution from
+  @jimmyltsinn in 402)
+- Fix package.json exclusion (contribution from @milahu in #390)
+- Upgrade minimist (contribution from @tapanprakasht in #412)
+- Upgrade chalk (contribution from @stianjensen in #389)
+- Support .yarnrc (contribution from @NMinhNguyen in #222)
+
 ## 6.4.7
 
 - Use npm i --force when creating patches
@@ -11,7 +30,8 @@
 
 ## 6.4.5
 
-- Increase max pipe buffer size when creating patch. (contribution from @nomi9995 in #287)
+- Increase max pipe buffer size when creating patch. (contribution from
+  @nomi9995 in #287)
 
 ## 6.4.4
 
@@ -19,7 +39,8 @@
 
 ## 6.4.3
 
-- Ensure real path is used when copying package contents. Potentially adds pnpm support (contribution from @milahu in #252)
+- Ensure real path is used when copying package contents. Potentially adds pnpm
+  support (contribution from @milahu in #252)
 
 ## 6.4.2
 
@@ -35,22 +56,29 @@
 
 ## 6.3.1
 
-- Fix another createPatch bug involving .git folder hygiene (contribution from @gomain in #258)
+- Fix another createPatch bug involving .git folder hygiene (contribution from
+  @gomain in #258)
 
 ## 6.3.0
 
-- Add --error-on-fail cli option 
-- Collate errors and warnings to avoid exiting early (with help from @akwodkiewicz in #217)
+- Add --error-on-fail cli option
+- Collate errors and warnings to avoid exiting early (with help from
+  @akwodkiewicz in #217)
 - Fix .dev.patch suffix bug (with help from @pdcastro in #224)
-- Support build metadata in package.json version strings (with help from @snowystinger in #213)
-- Change 'no patch files found' message from red to blue (contribution from @dmhalejr in #211)
-- Fix environment variable propogation for spawned tasks (contribution from @chpio in #223)
+- Support build metadata in package.json version strings (with help from
+  @snowystinger in #213)
+- Change 'no patch files found' message from red to blue (contribution from
+  @dmhalejr in #211)
+- Fix environment variable propogation for spawned tasks (contribution from
+  @chpio in #223)
 - Add --patch-dir option to readme (contribution from @mikehardy in #225)
-- Fix createPatch bug involving .git folder hygiene (contribution from @haroenv in #231)
+- Fix createPatch bug involving .git folder hygiene (contribution from @haroenv
+  in #231)
 
 ## 6.2.2
 
-- Take config from .yarnrc when making patches (contribution from @NMinhNguyen in #222)
+- Take config from .yarnrc when making patches (contribution from @NMinhNguyen
+  in #222)
 
 ## 6.2.1
 
@@ -58,7 +86,8 @@
 - Fall back to version in package-lock (contribution from @bschlenk in #206)
 - Add tips about Docker and CI to README (contribution from @harriha in #208)
 - Remove update notifier (contribution from @christianbundy in #196)
-- Add github actions checks (contribution from @asadm in #186 and @DanielRuf in #188, #187)
+- Add github actions checks (contribution from @asadm in #186 and @DanielRuf in
+  #188, #187)
 - Fix url in README (contribution from @DanielRuf in #184)
 - Upgrade node in CI to 12 (contribution from @DanielRuf in #183)
 

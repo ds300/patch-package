@@ -1,2 +1,2 @@
 import { runIntegrationTest } from "../runIntegrationTest"
-runIntegrationTest({ projectName: "lockfile", shouldProduceSnapshots: true })
+runIntegrationTest({ projectName: "lockfile", shouldProduceSnapshots: false })

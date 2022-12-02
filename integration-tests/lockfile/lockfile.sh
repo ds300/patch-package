@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # make sure errors stop the script
 set -e
 
@@ -5,7 +7,7 @@ echo "add patch-package"
 npm i $1
 alias patch-package=./node_modules/.bin/patch-package
 
-function testLockFile() {
+testLockFile() {
     echo "Version test $1"
     npm i --lockfile-version $1
 
@@ -18,9 +20,8 @@ function testLockFile() {
     echo "patch-package should run"
     patch-package left-pad
 
-    echo "SNAPSHOT: check patch with lockfile $1"
-    cat patches/left-pad+1.3.0.patch
-    echo "END SNAPSHOT"
+    echo "check that the patch is created"
+    test -f patches/left-pad+1.3.0.patch || exit 1
 }
 
 echo "test lockfile v1"

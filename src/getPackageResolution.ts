@@ -42,7 +42,7 @@ export function getPackageResolution({
         appLockFile = yaml.parse(lockFileString)
       } catch (e) {
         console.error(e)
-        throw new Error("Could not  parse yarn v2 lock file")
+        throw new Error("Could not parse yarn v2 lock file")
       }
     }
 
@@ -64,7 +64,7 @@ export function getPackageResolution({
 
     if (resolutions.length === 0) {
       throw new Error(
-        `Can't find lockfile entry for ${packageDetails.pathSpecifier}`,
+        `\`${packageDetails.pathSpecifier}\`'s installed version is ${installedVersion} but a lockfile entry for it couldn't be find. Your lockfile is likely to be corrupt or you forgot to reinstall your packages.`,
       )
     }
 

@@ -24,11 +24,11 @@ testLockFile() {
     test -f patches/left-pad+1.3.0.patch || exit 1
 }
 
-echo "test lockfile v1"
-testLockFile 1
+echo "test lockfile v3"
+testLockFile 3
 
 echo "test lockfile v2"
 testLockFile 2
 
-echo "test lockfile v3"
-testLockFile 3
+echo "test lockfile v1"
+testLockFile 1

@@ -7,16 +7,13 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        # node: [10, 12, 13]
-        node: [14]
+        node: [10, 12, 13]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - run: sudo apt install libavahi-compat-libdnssd-dev
       - run: yarn install
       - run: git config --global user.email "patch-package@test.com"
       - run: git config --global user.name "patch-package"
-      # - run: yarn run test
-      - run: yarn run test --verbose integration-tests/lockfile
+      - run: yarn run test

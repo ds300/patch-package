@@ -3,14 +3,12 @@ set -e
 
 echo "add patch-package"
 npm i $1
-set -x
 alias patch-package=./node_modules/.bin/patch-package
 
 echo "Add left-pad"
 npm i left-pad@1.3.0
 
 testLockFile() {
-    set -x
     echo "Version test $1"
     npm i --lockfile-version $1
 

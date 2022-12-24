@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # make sure errors stop the script
 set -e
 

@@ -14,6 +14,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
+      - run: sudo apt install libavahi-compat-libdnssd-dev
       - run: yarn install
       - run: git config --global user.email "patch-package@test.com"
       - run: git config --global user.name "patch-package"

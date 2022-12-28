@@ -111,7 +111,7 @@ export function getPackageResolution({
         entry.dependencies && packageDetails.name in entry.dependencies,
     )
     const pkg = relevantStackEntry.dependencies[packageDetails.name]
-    return pkg.resolved || pkg.from || pkg.version
+    return pkg.resolved || pkg.version || pkg.from
   }
 }
 

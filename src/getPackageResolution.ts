@@ -64,7 +64,7 @@ export function getPackageResolution({
 
     if (resolutions.length === 0) {
       throw new Error(
-        `\`${packageDetails.pathSpecifier}\`'s installed version is ${installedVersion} but a lockfile entry for it couldn't be find. Your lockfile is likely to be corrupt or you forgot to reinstall your packages.`,
+        `\`${packageDetails.pathSpecifier}\`'s installed version is ${installedVersion} but a lockfile entry for it couldn't be found. Your lockfile is likely to be corrupt or you forgot to reinstall your packages.`,
       )
     }
 

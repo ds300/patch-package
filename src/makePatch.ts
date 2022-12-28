@@ -110,14 +110,15 @@ export function makePatch({
       join(resolve(packageDetails.path), "package.json"),
     )
 
-    // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    // tslint:disable-next-line:align
-    ;[".npmrc", ".yarnrc"].forEach((rcFile) => {
-      const rcPath = join(appPath, rcFile)
-      if (existsSync(rcPath)) {
-        copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
-      }
-    })
+      // copy .npmrc/.yarnrc in case packages are hosted in private registry
+      // copy .yarn directory as well to ensure installations work in yarn 2
+      // tslint:disable-next-line:align
+      ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
+        const rcPath = join(appPath, rcFile)
+        if (existsSync(rcPath)) {
+          copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
+        }
+      })
 
     if (packageManager === "yarn") {
       console.info(

@@ -106,11 +106,17 @@ export function getPackageResolution({
       }
     }
     lockFileStack.reverse()
-    const relevantStackEntry = lockFileStack.find(
-      (entry) =>
-        entry.dependencies && packageDetails.name in entry.dependencies,
-    )
-    const pkg = relevantStackEntry.dependencies[packageDetails.name]
+    const relevantStackEntry = lockFileStack.find((entry) => {
+      if (entry.dependencies) {
+        return entry.dependencies && packageDetails.name in entry.dependencies
+      } else if (entry.packages) {
+        return entry.packages && packageDetails.path in entry.packages
+      }
+      throw new Error("Cannot find dependencies or packages in lockfile")
+    })
+    const pkg = relevantStackEntry.dependencies
+      ? relevantStackEntry.dependencies[packageDetails.name]
+      : relevantStackEntry.packages[packageDetails.path]
     return pkg.resolved || pkg.version || pkg.from
   }
 }
@@ -120,7 +126,6 @@ if (require.main === module) {
   if (!packageDetails) {
     console.error(`Can't find package ${process.argv[2]}`)
     process.exit(1)
-    throw new Error()
   }
   console.log(
     getPackageResolution({

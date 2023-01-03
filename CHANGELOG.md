@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.5.1
+
+- Improve error message for missing lockfile entry (contribution from @Andarist in #439)
+- Fix creating patches for github dependencies (contribution from @dijonkitchen in #444)
+- Improve yarn 2 support by copying .yarn dir when creating patch (contribution from @bdwain in #438)
+- Upgrade `fs-extra` (contribution from @stianjensen in #441)
+- Add support for nmp lockfile v2 (contribution from @anas10 in #434)
+
 ## 6.5.0
 
 Special thanks to @orta for stepping in to get this release out.

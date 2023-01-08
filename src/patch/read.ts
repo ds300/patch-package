@@ -4,6 +4,7 @@ import { relative, resolve } from "../path"
 import { normalize } from "path"
 import { PackageDetails } from "../PackageDetails"
 import { parsePatchFile, PatchFilePart } from "./parse"
+import { realpathCwd } from "../realpathCwd"
 
 export function readPatch({
   patchFilePath,
@@ -19,7 +20,7 @@ export function readPatch({
   } catch (e) {
     const fixupSteps: string[] = []
     const relativePatchFilePath = normalize(
-      relative(process.cwd(), patchFilePath),
+      relative(realpathCwd(), patchFilePath),
     )
     const patchBaseDir = relativePatchFilePath.slice(
       0,
@@ -36,7 +37,7 @@ export function readPatch({
     fixupSteps.push(`npx patch-package ${packageDetails.pathSpecifier}`)
     if (patchBaseDir) {
       fixupSteps.push(
-        `cd ${relative(resolve(process.cwd(), patchBaseDir), process.cwd())}`,
+        `cd ${relative(resolve(realpathCwd(), patchBaseDir), realpathCwd())}`,
       )
     }
 

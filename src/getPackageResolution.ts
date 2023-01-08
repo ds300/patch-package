@@ -6,6 +6,7 @@ import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
 import yaml from "yaml"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 import { getPackageVersion } from "./getPackageVersion"
+import { realpathCwd } from "./realpathCwd"
 
 export function getPackageResolution({
   packageDetails,
@@ -129,7 +130,7 @@ if (require.main === module) {
   }
   console.log(
     getPackageResolution({
-      appPath: process.cwd(),
+      appPath: realpathCwd(),
       packageDetails,
       packageManager: detectPackageManager(process.cwd(), null),
     }),

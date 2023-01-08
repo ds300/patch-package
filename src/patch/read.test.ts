@@ -7,6 +7,9 @@ const removeAnsiCodes = (s: string) =>
     "",
   )
 
+jest.mock("fs", () => ({
+  realpathSync: jest.fn((path)=>path),
+}))
 jest.mock("fs-extra", () => ({
   readFileSync: jest.fn(),
 }))

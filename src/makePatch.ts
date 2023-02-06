@@ -151,7 +151,9 @@ export function makePatch({
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i", "--force"], {
+        // fixes { status: 1, signal: null, output: [ null, null, null ], pid: 69006, stdout: null, stderr: null, error: null }
+}       
+        spawnSafeSync(`npm`, ["i", "--legacy-peer-deps"], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
           stdio: "ignore",

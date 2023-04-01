@@ -1,0 +1,13 @@
+diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
+index 26f73ff..60f3f56 100644
+--- a/node_modules/left-pad/index.js
++++ b/node_modules/left-pad/index.js
+@@ -7,7 +7,7 @@
+ module.exports = leftPad;
+
+ var cache = [
+-  '',
++  "",
+   ' ',
+   '  ',
+   '   ',

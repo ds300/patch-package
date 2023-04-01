@@ -23,6 +23,7 @@ const argv = minimist(process.argv.slice(2), {
     "error-on-fail",
     "error-on-warn",
     "create-issue",
+    "ignore-missing",
   ],
   string: ["patch-dir"],
 })
@@ -82,12 +83,15 @@ if (argv.version || argv.v) {
 
     const shouldExitWithWarning = !!argv["error-on-warn"]
 
+    const ignoreMissing = !!argv["ignore-missing"]
+
     applyPatchesForApp({
       appPath,
       reverse,
       patchDir,
       shouldExitWithError,
       shouldExitWithWarning,
+      ignoreMissing,
     })
   }
 }
@@ -144,6 +148,14 @@ Usage:
       and patch file updates (https://github.com/ds300/patch-package/issues/37),
       but might be useful in other contexts too.
       
+    ${chalk.bold("--ignore-missing")}
+
+      Ignores patches for packages that are not present in node_modules.
+      This is useful when working with monorepos and wanting to install sub-packages
+      separately from the root package, with pruned dependencies.
+
+      See https://github.com/ds300/patch-package/issues/339 for background.
+
 
   2. Creating patch files
   =======================

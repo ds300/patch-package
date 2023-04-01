@@ -219,6 +219,14 @@ Run `patch-package` without arguments to apply all patches in your project.
 
   Specify the name for the directory in which the patch files are located
 
+- `--ignore-missing`
+
+  Ignores patches for packages that are not present in node_modules.
+  This is useful when working with monorepos and wanting to install sub-packages
+  separately from the root package, with pruned dependencies.
+
+  See https://github.com/ds300/patch-package/issues/339 for background.
+
 #### Notes
 
 To apply patches individually, you may use `git`:

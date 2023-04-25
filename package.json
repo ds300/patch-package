@@ -72,7 +72,7 @@
   "dependencies": {
     "@yarnpkg/lockfile": "^1.1.0",
     "chalk": "^4.1.2",
-    "cross-spawn": "^6.0.5",
+    "cross-spawn": "^7.0.3",
     "find-yarn-workspace-root": "^2.0.0",
     "fs-extra": "^9.0.0",
     "is-ci": "^2.0.0",

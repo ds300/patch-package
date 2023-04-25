@@ -7,7 +7,7 @@
   "author": "David Sheldrick",
   "license": "MIT",
   "engines": {
-    "node": ">=10",
+    "node": ">=14",
     "npm": ">5"
   },
   "bin": "./index.js",

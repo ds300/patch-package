@@ -56,3 +56,5 @@ jspm_packages/
 
 dist/
 patch-package.test.tgz
+
+.yarn/cache

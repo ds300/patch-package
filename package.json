@@ -1,18 +1,16 @@
 {
   "name": "patch-package",
-  "version": "6.5.0",
+  "version": "6.5.1",
   "description": "Fix broken node modules with no fuss",
   "main": "dist/index.js",
   "repository": "github:ds300/patch-package",
   "author": "David Sheldrick",
   "license": "MIT",
   "engines": {
-    "node": ">=10",
+    "node": ">=14",
     "npm": ">5"
   },
-  "bin": {
-    "patch-package": "./index.js"
-  },
+  "bin": "./index.js",
   "scripts": {
     "prepublishOnly": "yarn run clean && yarn run build",
     "build": "tsc --project tsconfig.build.json",
@@ -74,7 +72,7 @@
     "@yarnpkg/lockfile": "^1.1.0",
     "chalk": "^4.1.2",
     "ci-info": "^3.7.0",
-    "cross-spawn": "^6.0.5",
+    "cross-spawn": "^7.0.3",
     "find-yarn-workspace-root": "^2.0.0",
     "fs-extra": "^9.0.0",
     "klaw-sync": "^6.0.0",
@@ -84,7 +82,7 @@
     "semver": "^5.6.0",
     "slash": "^2.0.0",
     "tmp": "^0.0.33",
-    "yaml": "^1.10.2"
+    "yaml": "^2.2.2"
   },
   "files": [
     "index.js",
@@ -93,5 +91,6 @@
     "LICENSE",
     "patch-package-banner.png",
     "README.md"
-  ]
+  ],
+  "packageManager": "yarn@1.22.19"
 }

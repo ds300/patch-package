@@ -7,12 +7,10 @@
   "author": "David Sheldrick",
   "license": "MIT",
   "engines": {
-    "node": ">=10",
+    "node": ">=14",
     "npm": ">5"
   },
-  "bin": {
-    "patch-package": "./index.js"
-  },
+  "bin": "./index.js",
   "scripts": {
     "prepublishOnly": "yarn run clean && yarn run build",
     "build": "tsc --project tsconfig.build.json",
@@ -85,7 +83,7 @@
     "semver": "^5.6.0",
     "slash": "^2.0.0",
     "tmp": "^0.0.33",
-    "yaml": "^1.10.2"
+    "yaml": "^2.2.2"
   },
   "files": [
     "index.js",
@@ -94,5 +92,6 @@
     "LICENSE",
     "patch-package-banner.png",
     "README.md"
-  ]
+  ],
+  "packageManager": "yarn@1.22.19"
 }

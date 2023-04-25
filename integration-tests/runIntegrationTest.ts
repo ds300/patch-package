@@ -40,6 +40,10 @@ export function runIntegrationTest({
       {
         cwd: tmpDir.name,
         throwOnError: false,
+        env: {
+          ...process.env,
+          PATCH_PACKAGE_INTEGRATION_TEST: "1",
+        },
         shell: true,
       },
     )

@@ -3,12 +3,13 @@ set -e
 
 echo "set production mode"
 export NODE_ENV=production
+export CI="true"
 
 echo "add patch-package"
 yarn add $1
 alias patch-package=./node_modules/.bin/patch-package
 
-echo "SNAPSHOT: patch-package happily ignores slash because it's a dev dep"
+echo "SNAPSHOT: patch-package happily ignores slash on CI because it's a dev dep"
 patch-package
 echo "END SNAPSHOT"
 

@@ -75,10 +75,13 @@ if (argv.version || argv.v) {
   } else {
     console.log("Applying patches...")
     const reverse = !!argv["reverse"]
-    // don't want to exit(1) on postinsall locally.
+    // don't want to exit(1) on postinstall locally.
     // see https://github.com/ds300/patch-package/issues/86
     const shouldExitWithError =
-      !!argv["error-on-fail"] || isCI || process.env.NODE_ENV === "test"
+      !!argv["error-on-fail"] ||
+      (process.env.NODE_ENV === "production" && isCI) ||
+      (isCI && !process.env.PATCH_PACKAGE_INTEGRATION_TEST) ||
+      process.env.NODE_ENV === "test"
 
     const shouldExitWithWarning = !!argv["error-on-warn"]
 

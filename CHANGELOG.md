@@ -1,5 +1,18 @@
 # Changelog
 
+## 7.0.0
+
+### Breaking changes
+
+- Bump `yaml` to fix security issue. Required bumping minimum node version from
+  8 to 14. (contribution from @mayank99 in #463)
+
+### Other changes
+
+- Bump `cross-spawn` (contribution from @stianjensen in #457)
+- Replace `is-ci` with `ci-info` (contribution from @paescuj in #446)
+- Make version number parsing more robust (contribution from @MHekert in #361)
+
 ## 6.5.1
 
 Special thanks to @orta again for putting this release together.

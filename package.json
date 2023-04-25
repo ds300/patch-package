@@ -10,9 +10,7 @@
     "node": ">=10",
     "npm": ">5"
   },
-  "bin": {
-    "patch-package": "./index.js"
-  },
+  "bin": "./index.js",
   "scripts": {
     "prepublishOnly": "yarn run clean && yarn run build",
     "build": "tsc --project tsconfig.build.json",
@@ -94,5 +92,6 @@
     "LICENSE",
     "patch-package-banner.png",
     "README.md"
-  ]
+  ],
+  "packageManager": "yarn@1.22.19"
 }

@@ -23,8 +23,8 @@ patch-package finished with 1 error(s).
 END SNAPSHOT"
 `;
 
-exports[`Test dev-only-patches: patch-package happily ignores slash because it's a dev dep 1`] = `
-"SNAPSHOT: patch-package happily ignores slash because it's a dev dep
+exports[`Test dev-only-patches: patch-package happily ignores slash on CI because it's a dev dep 1`] = `
+"SNAPSHOT: patch-package happily ignores slash on CI because it's a dev dep
 patch-package 0.0.0
 Applying patches...
 left-pad@1.3.0 ✔

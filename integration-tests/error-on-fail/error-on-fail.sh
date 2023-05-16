@@ -6,7 +6,7 @@ yarn add $1
 alias patch-package=./node_modules/.bin/patch-package
 
 export NODE_ENV="development"
-export CI=""
+export CI="true"
 
 (>&2 echo "SNAPSHOT: at dev time patch-package fails but returns 0")
 if ! patch-package;

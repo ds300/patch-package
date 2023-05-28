@@ -114,7 +114,7 @@ ${patchFileContents}
     `https://github.com/${vcs.org}/${vcs.repo}/issues/new?${stringify({
       title: "",
       body: `Hi! 👋 
-    
+      
 Firstly, thanks for your work on this project! 🙂
 
 Today I used [patch-package](https://github.com/ds300/patch-package) to patch \`${packageDetails.name}@${packageVersion}\` for the project I'm working on.

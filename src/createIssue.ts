@@ -105,7 +105,7 @@ export function openIssueCreationLink({
   
   if (patchContentExceedsLimit) {
     diffContents = '<!-- 🔺️🔺️🔺️ PLEASE REPLACE THIS BLOCK with the diff contents printed out by the `--create-issue` command. 🔺️🔺️🔺️ -->';
-    console.log(`📋 Copy the following diff contents and paste them into the issue diff section:
+    console.log(`📋 Copy the following diff contents and paste it in the new issue's diff section:
     
 ${patchFileContents}
 `);

@@ -120,10 +120,12 @@ export function openIssueCreationLink({
   packageDetails,
   patchFileContents,
   packageVersion,
+  patchPath,
 }: {
   packageDetails: PackageDetails
   patchFileContents: string
   packageVersion: string
+  patchPath: string
 }) {
   const vcs = getPackageVCSDetails(packageDetails)
 
@@ -149,10 +151,11 @@ export function openIssueCreationLink({
   const urlExceedsLimit = patchFileContents.length > 1950
 
   if (urlExceedsLimit) {
-    const diffMessage =
-      "<!-- 🔺️🔺️🔺️ PLEASE REPLACE THIS BLOCK with the diff contents of . 🔺️🔺️🔺️ -->"
+    const diffMessage = `<!-- 🔺️🔺️🔺️ PLEASE REPLACE THIS BLOCK with the diff contents of ${patchPath
+      .split("/")
+      .pop()}. 🔺️🔺️🔺️ -->`
     console.log(
-      `📋 Copy the contents in and paste it in the new issue's diff section:`,
+      `📋 Copy the contents in [ ${patchPath} ] and paste it in the new issue's diff section.`,
     )
     issueUrl = createIssueUrl({
       vcs,

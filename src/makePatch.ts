@@ -110,15 +110,15 @@ export function makePatch({
       join(resolve(packageDetails.path), "package.json"),
     )
 
-      // copy .npmrc/.yarnrc in case packages are hosted in private registry
-      // copy .yarn directory as well to ensure installations work in yarn 2
-      // tslint:disable-next-line:align
-      ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
-        const rcPath = join(appPath, rcFile)
-        if (existsSync(rcPath)) {
-          copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
-        }
-      })
+    // copy .npmrc/.yarnrc in case packages are hosted in private registry
+    // copy .yarn directory as well to ensure installations work in yarn 2
+    // tslint:disable-next-line:align
+    ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
+      const rcPath = join(appPath, rcFile)
+      if (existsSync(rcPath)) {
+        copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
+      }
+    })
 
     if (packageManager === "yarn") {
       console.info(
@@ -216,7 +216,7 @@ export function makePatch({
       "--ignore-space-at-eol",
       "--no-ext-diff",
       "--src-prefix=a/",
-      "--dst-prefix=b/"
+      "--dst-prefix=b/",
     )
 
     if (diffResult.stdout.length === 0) {
@@ -306,6 +306,7 @@ export function makePatch({
         packageDetails,
         patchFileContents: diffResult.stdout.toString(),
         packageVersion,
+        patchPath,
       })
     } else {
       maybePrintIssueCreationPrompt(packageDetails, packageManager)

@@ -1,9 +1,12 @@
 # make sure errors stop the script
 set -e
 
+npm install
+
 echo "add patch-package"
 npm add $1
 alias patch-package=./node_modules/.bin/patch-package
+
 
 echo "SNAPSHOT: patch-package happily applies both good patches"
 patch-package

@@ -1,6 +1,7 @@
 import {
   getPackageDetailsFromPatchFilename,
   getPatchDetailsFromCliString,
+  parseNameAndVersion,
 } from "./PackageDetails"
 
 describe("getPackageDetailsFromPatchFilename", () => {
@@ -278,5 +279,95 @@ Object {
 }
 `,
     )
+  })
+})
+
+describe("parseNameAndVersion", () => {
+  it("works for good-looking names", () => {
+    expect(parseNameAndVersion("lodash+2.3.4")).toMatchInlineSnapshot(`
+Object {
+  "packageName": "lodash",
+  "version": "2.3.4",
+}
+`)
+    expect(parseNameAndVersion("patch-package+2.0.0-alpha.3"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "patch-package",
+  "version": "2.0.0-alpha.3",
+}
+`)
+  })
+  it("works for scoped package names", () => {
+    expect(parseNameAndVersion("@react-spring+rafz+2.0.0-alpha.3"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "@react-spring/rafz",
+  "version": "2.0.0-alpha.3",
+}
+`)
+    expect(parseNameAndVersion("@microsoft+api-extractor+2.2.3"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "@microsoft/api-extractor",
+  "version": "2.2.3",
+}
+`)
+  })
+  it("works for ordered patches", () => {
+    expect(parseNameAndVersion("patch-package+2.0.0+01"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "patch-package",
+  "sequenceNumber": 1,
+  "version": "2.0.0",
+}
+`)
+    expect(parseNameAndVersion("@react-spring+rafz+2.0.0-alpha.3+23"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "@react-spring/rafz",
+  "sequenceNumber": 23,
+  "version": "2.0.0-alpha.3",
+}
+`)
+    expect(parseNameAndVersion("@microsoft+api-extractor+2.0.0+001"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "@microsoft/api-extractor",
+  "sequenceNumber": 1,
+  "version": "2.0.0",
+}
+`)
+  })
+
+  it("works for ordered patches with names", () => {
+    expect(parseNameAndVersion("patch-package+2.0.0+021+FixImportantThing"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "patch-package",
+  "sequenceName": "FixImportantThing",
+  "sequenceNumber": 21,
+  "version": "2.0.0",
+}
+`)
+    expect(parseNameAndVersion("@react-spring+rafz+2.0.0-alpha.3+000023+Foo"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "@react-spring/rafz",
+  "sequenceName": "Foo",
+  "sequenceNumber": 23,
+  "version": "2.0.0-alpha.3",
+}
+`)
+    expect(parseNameAndVersion("@microsoft+api-extractor+2.0.0+001+Bar"))
+      .toMatchInlineSnapshot(`
+Object {
+  "packageName": "@microsoft/api-extractor",
+  "sequenceName": "Bar",
+  "sequenceNumber": 1,
+  "version": "2.0.0",
+}
+`)
   })
 })

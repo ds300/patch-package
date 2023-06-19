@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test apply-multiple-patches: patch-package fails when a patch in the sequence is invalid 1`] = `
+"SNAPSHOT: patch-package fails when a patch in the sequence is invalid
+
+**ERROR** Failed to apply patch for package left-pad at path
+  
+    node_modules/left-pad
+
+  This error was caused because patch-package cannot apply the following patch file:
+
+    patches/left-pad+1.3.0+03+broken.patch
+
+  Try removing node_modules and trying again. If that doesn't work, maybe there was
+  an accidental change made to the patch file? Try recreating it by manually
+  editing the appropriate files and running:
+  
+    patch-package left-pad
+  
+  If that doesn't work, then it's a bug in patch-package, so please submit a bug
+  report. Thanks!
+
+    https://github.com/ds300/patch-package/issues
+    
+
+---
+patch-package finished with 1 error(s).
+END SNAPSHOT"
+`;
+
+exports[`Test apply-multiple-patches: patch-package happily applies both good patches 1`] = `
+"SNAPSHOT: patch-package happily applies both good patches
+patch-package 0.0.0
+Applying patches...
+left-pad@1.3.0 (1 hello) ✔
+left-pad@1.3.0 (2 world) ✔
+END SNAPSHOT"
+`;

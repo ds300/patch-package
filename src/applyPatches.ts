@@ -7,6 +7,7 @@ import { posix } from "path"
 import {
   getPackageDetailsFromPatchFilename,
   PackageDetails,
+  PatchedPackageDetails,
 } from "./PackageDetails"
 import { reversePatch } from "./patch/reverse"
 import semver from "semver"
@@ -103,99 +104,126 @@ export function applyPatchesForApp({
   const errors: string[] = []
   const warnings: string[] = []
 
-  for (const filename of files) {
-    try {
-      const packageDetails = getPackageDetailsFromPatchFilename(filename)
+  const groupedPatchFileDetails: Record<string, PatchedPackageDetails[]> = {}
+  for (const file of files) {
+    const details = getPackageDetailsFromPatchFilename(file)
+    if (!details) {
+      warnings.push(`Unrecognized patch file in patches directory ${file}`)
+      continue
+    }
+    if (!groupedPatchFileDetails[details.pathSpecifier]) {
+      groupedPatchFileDetails[details.pathSpecifier] = []
+    }
+    groupedPatchFileDetails[details.pathSpecifier].push(details)
+  }
 
-      if (!packageDetails) {
-        warnings.push(
-          `Unrecognized patch file in patches directory ${filename}`,
-        )
-        continue
-      }
+  for (const [_, details] of Object.entries(groupedPatchFileDetails)) {
+    details.sort((a, b) => {
+      return (a.sequenceNumber ?? 0) - (b.sequenceNumber ?? 0)
+    })
+    packageLoop: for (const packageDetails of details) {
+      try {
+        const {
+          name,
+          version,
+          path,
+          pathSpecifier,
+          isDevOnly,
+          patchFilename,
+        } = packageDetails
 
-      const {
-        name,
-        version,
-        path,
-        pathSpecifier,
-        isDevOnly,
-        patchFilename,
-      } = packageDetails
-
-      const installedPackageVersion = getInstalledPackageVersion({
-        appPath,
-        path,
-        pathSpecifier,
-        isDevOnly:
-          isDevOnly ||
-          // check for direct-dependents in prod
-          (process.env.NODE_ENV === "production" &&
-            packageIsDevDependency({ appPath, packageDetails })),
-        patchFilename,
-      })
-      if (!installedPackageVersion) {
-        // it's ok we're in production mode and this is a dev only package
-        console.log(
-          `Skipping dev-only ${chalk.bold(
-            pathSpecifier,
-          )}@${version} ${chalk.blue("✔")}`,
-        )
-        continue
-      }
-
-      if (
-        applyPatch({
-          patchFilePath: resolve(patchesDirectory, filename) as string,
-          reverse,
-          packageDetails,
-          patchDir,
+        const installedPackageVersion = getInstalledPackageVersion({
+          appPath,
+          path,
+          pathSpecifier,
+          isDevOnly:
+            isDevOnly ||
+            // check for direct-dependents in prod
+            (process.env.NODE_ENV === "production" &&
+              packageIsDevDependency({ appPath, packageDetails })),
+          patchFilename,
         })
-      ) {
-        // yay patch was applied successfully
-        // print warning if version mismatch
-        if (installedPackageVersion !== version) {
-          warnings.push(
-            createVersionMismatchWarning({
+        if (!installedPackageVersion) {
+          // it's ok we're in production mode and this is a dev only package
+          console.log(
+            `Skipping dev-only ${chalk.bold(
+              pathSpecifier,
+            )}@${version} ${chalk.blue("✔")}`,
+          )
+          continue
+        }
+
+        if (
+          applyPatch({
+            patchFilePath: resolve(patchesDirectory, patchFilename) as string,
+            reverse,
+            packageDetails,
+            patchDir,
+          })
+        ) {
+          // yay patch was applied successfully
+          // print warning if version mismatch
+          if (installedPackageVersion !== version) {
+            warnings.push(
+              createVersionMismatchWarning({
+                packageName: name,
+                actualVersion: installedPackageVersion,
+                originalVersion: version,
+                pathSpecifier,
+                path,
+              }),
+            )
+          }
+          const sequenceString =
+            packageDetails.sequenceNumber != null
+              ? ` (${packageDetails.sequenceNumber}${
+                  packageDetails.sequenceName
+                    ? " " + packageDetails.sequenceName
+                    : ""
+                })`
+              : ""
+          console.log(
+            `${chalk.bold(
+              pathSpecifier,
+            )}@${version}${sequenceString} ${chalk.green("✔")}`,
+          )
+        } else if (installedPackageVersion === version) {
+          // completely failed to apply patch
+          // TODO: propagate useful error messages from patch application
+          errors.push(
+            createBrokenPatchFileError({
               packageName: name,
-              actualVersion: installedPackageVersion,
-              originalVersion: version,
+              patchFilename,
               pathSpecifier,
               path,
             }),
           )
+        } else {
+          errors.push(
+            createPatchApplicationFailureError({
+              packageName: name,
+              actualVersion: installedPackageVersion,
+              originalVersion: version,
+              patchFilename,
+              path,
+              pathSpecifier,
+            }),
+          )
         }
-        console.log(
-          `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
-        )
-      } else if (installedPackageVersion === version) {
-        // completely failed to apply patch
-        // TODO: propagate useful error messages from patch application
-        errors.push(
-          createBrokenPatchFileError({
-            packageName: name,
-            patchFileName: filename,
-            pathSpecifier,
-            path,
-          }),
-        )
-      } else {
-        errors.push(
-          createPatchApplictionFailureError({
-            packageName: name,
-            actualVersion: installedPackageVersion,
-            originalVersion: version,
-            patchFileName: filename,
-            path,
-            pathSpecifier,
-          }),
-        )
-      }
-    } catch (error) {
-      if (error instanceof PatchApplicationError) {
-        errors.push(error.message)
-      } else {
-        errors.push(createUnexpectedError({ filename, error }))
+      } catch (error) {
+        if (error instanceof PatchApplicationError) {
+          errors.push(error.message)
+        } else {
+          errors.push(
+            createUnexpectedError({
+              filename: packageDetails.patchFilename,
+              error: error as Error,
+            }),
+          )
+        }
+        if (details.length > 0) {
+          continue packageLoop
+        }
       }
     }
   }
@@ -302,12 +330,12 @@ ${chalk.yellow("Warning:")} patch-package detected a patch file version mismatch
 
 function createBrokenPatchFileError({
   packageName,
-  patchFileName,
+  patchFilename,
   path,
   pathSpecifier,
 }: {
   packageName: string
-  patchFileName: string
+  patchFilename: string
   path: string
   pathSpecifier: string
 }) {
@@ -320,7 +348,7 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 
   This error was caused because patch-package cannot apply the following patch file:
 
-    patches/${patchFileName}
+    patches/${patchFilename}
 
   Try removing node_modules and trying again. If that doesn't work, maybe there was
   an accidental change made to the patch file? Try recreating it by manually
@@ -336,18 +364,18 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 `
 }
 
-function createPatchApplictionFailureError({
+function createPatchApplicationFailureError({
   packageName,
   actualVersion,
   originalVersion,
-  patchFileName,
+  patchFilename,
   path,
   pathSpecifier,
 }: {
   packageName: string
   actualVersion: string
   originalVersion: string
-  patchFileName: string
+  patchFilename: string
   path: string
   pathSpecifier: string
 }) {
@@ -376,7 +404,7 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
     patch-package ${pathSpecifier}
 
   Info:
-    Patch file: patches/${patchFileName}
+    Patch file: patches/${patchFilename}
     Patch was made for version: ${chalk.green.bold(originalVersion)}
     Installed version: ${chalk.red.bold(actualVersion)}
 `

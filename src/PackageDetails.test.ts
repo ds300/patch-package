@@ -97,6 +97,8 @@ Object {
   "patchFilename": "banana++apple+0.4.2.patch",
   "path": "node_modules/banana/node_modules/apple",
   "pathSpecifier": "banana/apple",
+  "sequenceName": undefined,
+  "sequenceNumber": undefined,
   "version": "0.4.2",
 }
 `)
@@ -119,6 +121,8 @@ Object {
   "patchFilename": "@types+banana++@types+apple++@mollusc+man+0.4.2-banana-tree.patch",
   "path": "node_modules/@types/banana/node_modules/@types/apple/node_modules/@mollusc/man",
   "pathSpecifier": "@types/banana/@types/apple/@mollusc/man",
+  "sequenceName": undefined,
+  "sequenceNumber": undefined,
   "version": "0.4.2-banana-tree",
 }
 `)
@@ -140,6 +144,8 @@ Object {
   "patchFilename": "@types+banana.patch++hello+0.4.2-banana-tree.patch",
   "path": "node_modules/@types/banana.patch/node_modules/hello",
   "pathSpecifier": "@types/banana.patch/hello",
+  "sequenceName": undefined,
+  "sequenceNumber": undefined,
   "version": "0.4.2-banana-tree",
 }
 `)
@@ -161,7 +167,52 @@ Object {
   "patchFilename": "@types+banana.patch++hello+0.4.2-banana-tree.dev.patch",
   "path": "node_modules/@types/banana.patch/node_modules/hello",
   "pathSpecifier": "@types/banana.patch/hello",
+  "sequenceName": undefined,
+  "sequenceNumber": undefined,
   "version": "0.4.2-banana-tree",
+}
+`)
+  })
+
+  it("works for ordered patches", () => {
+    expect(getPackageDetailsFromPatchFilename("left-pad+1.3.0+02+world"))
+      .toMatchInlineSnapshot(`
+Object {
+  "humanReadablePathSpecifier": "left-pad",
+  "isDevOnly": false,
+  "isNested": false,
+  "name": "left-pad",
+  "packageNames": Array [
+    "left-pad",
+  ],
+  "patchFilename": "left-pad+1.3.0+02+world",
+  "path": "node_modules/left-pad",
+  "pathSpecifier": "left-pad",
+  "sequenceName": "world",
+  "sequenceNumber": 2,
+  "version": "1.3.0",
+}
+`)
+
+    expect(
+      getPackageDetailsFromPatchFilename(
+        "@microsoft/api-extractor+2.0.0+01+FixThing",
+      ),
+    ).toMatchInlineSnapshot(`
+Object {
+  "humanReadablePathSpecifier": "@microsoft/api-extractor",
+  "isDevOnly": false,
+  "isNested": false,
+  "name": "@microsoft/api-extractor",
+  "packageNames": Array [
+    "@microsoft/api-extractor",
+  ],
+  "patchFilename": "@microsoft/api-extractor+2.0.0+01+FixThing",
+  "path": "node_modules/@microsoft/api-extractor",
+  "pathSpecifier": "@microsoft/api-extractor",
+  "sequenceName": "FixThing",
+  "sequenceNumber": 1,
+  "version": "2.0.0",
 }
 `)
   })

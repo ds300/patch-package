@@ -11,7 +11,7 @@ describe(packageIsDevDependency, () => {
     expect(
       packageIsDevDependency({
         appPath,
-        packageDetails: getPackageDetailsFromPatchFilename(
+        patchDetails: getPackageDetailsFromPatchFilename(
           "typescript+3.0.1.patch",
         )!,
       }),
@@ -21,9 +21,7 @@ describe(packageIsDevDependency, () => {
     expect(
       packageIsDevDependency({
         appPath,
-        packageDetails: getPackageDetailsFromPatchFilename(
-          "chalk+3.0.1.patch",
-        )!,
+        patchDetails: getPackageDetailsFromPatchFilename("chalk+3.0.1.patch")!,
       }),
     ).toBe(false)
   })
@@ -32,7 +30,7 @@ describe(packageIsDevDependency, () => {
     expect(
       packageIsDevDependency({
         appPath,
-        packageDetails: getPackageDetailsFromPatchFilename(
+        patchDetails: getPackageDetailsFromPatchFilename(
           // cosmiconfig is a transitive dep of lint-staged
           "cosmiconfig+3.0.1.patch",
         )!,

@@ -121,7 +121,7 @@ export function applyPatchesForApp({
     details.sort((a, b) => {
       return (a.sequenceNumber ?? 0) - (b.sequenceNumber ?? 0)
     })
-    packageLoop: for (const packageDetails of details) {
+    packageLoop: for (const patchDetails of details) {
       try {
         const {
           name,
@@ -130,7 +130,7 @@ export function applyPatchesForApp({
           pathSpecifier,
           isDevOnly,
           patchFilename,
-        } = packageDetails
+        } = patchDetails
 
         const installedPackageVersion = getInstalledPackageVersion({
           appPath,
@@ -140,7 +140,10 @@ export function applyPatchesForApp({
             isDevOnly ||
             // check for direct-dependents in prod
             (process.env.NODE_ENV === "production" &&
-              packageIsDevDependency({ appPath, packageDetails })),
+              packageIsDevDependency({
+                appPath,
+                patchDetails,
+              })),
           patchFilename,
         })
         if (!installedPackageVersion) {
@@ -157,7 +160,7 @@ export function applyPatchesForApp({
           applyPatch({
             patchFilePath: resolve(patchesDirectory, patchFilename) as string,
             reverse,
-            packageDetails,
+            patchDetails,
             patchDir,
           })
         ) {
@@ -175,10 +178,10 @@ export function applyPatchesForApp({
             )
           }
           const sequenceString =
-            packageDetails.sequenceNumber != null
-              ? ` (${packageDetails.sequenceNumber}${
-                  packageDetails.sequenceName
-                    ? " " + packageDetails.sequenceName
+            patchDetails.sequenceNumber != null
+              ? ` (${patchDetails.sequenceNumber}${
+                  patchDetails.sequenceName
+                    ? " " + patchDetails.sequenceName
                     : ""
                 })`
               : ""
@@ -198,6 +201,9 @@ export function applyPatchesForApp({
               path,
             }),
           )
+          // in case the package has multiple patches, we need to break out of this inner loop
+          // because we don't want to apply more patches on top of the broken state
+          break packageLoop
         } else {
           errors.push(
             createPatchApplicationFailureError({
@@ -209,6 +215,9 @@ export function applyPatchesForApp({
               pathSpecifier,
             }),
           )
+          // in case the package has multiple patches, we need to break out of this inner loop
+          // because we don't want to apply more patches on top of the broken state
+          break packageLoop
         }
       } catch (error) {
         if (error instanceof PatchApplicationError) {
@@ -216,14 +225,14 @@ export function applyPatchesForApp({
         } else {
           errors.push(
             createUnexpectedError({
-              filename: packageDetails.patchFilename,
+              filename: patchDetails.patchFilename,
               error: error as Error,
             }),
           )
         }
-        if (details.length > 0) {
-          continue packageLoop
-        }
+        // in case the package has multiple patches, we need to break out of this inner loop
+        // because we don't want to apply more patches on top of the broken state
+        break packageLoop
       }
     }
   }
@@ -265,15 +274,19 @@ export function applyPatchesForApp({
 export function applyPatch({
   patchFilePath,
   reverse,
-  packageDetails,
+  patchDetails,
   patchDir,
 }: {
   patchFilePath: string
   reverse: boolean
-  packageDetails: PackageDetails
+  patchDetails: PackageDetails
   patchDir: string
 }): boolean {
-  const patch = readPatch({ patchFilePath, packageDetails, patchDir })
+  const patch = readPatch({
+    patchFilePath,
+    patchDetails,
+    patchDir,
+  })
   try {
     executeEffects(reverse ? reversePatch(patch) : patch, { dryRun: false })
   } catch (e) {

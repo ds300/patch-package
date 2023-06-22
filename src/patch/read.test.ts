@@ -28,7 +28,7 @@ describe(readPatch, () => {
   it("throws an error for basic packages", () => {
     readPatch({
       patchFilePath: "/test/root/patches/test+1.2.3.patch",
-      packageDetails: getPackageDetailsFromPatchFilename("test+1.2.3.patch")!,
+      patchDetails: getPackageDetailsFromPatchFilename("test+1.2.3.patch")!,
       patchDir: "patches/",
     })
 
@@ -56,7 +56,7 @@ describe(readPatch, () => {
   it("throws an error for scoped packages", () => {
     readPatch({
       patchFilePath: "/test/root/patches/@david+test+1.2.3.patch",
-      packageDetails: getPackageDetailsFromPatchFilename(
+      patchDetails: getPackageDetailsFromPatchFilename(
         "@david+test+1.2.3.patch",
       )!,
       patchDir: "patches/",
@@ -87,7 +87,7 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: "patches/",
     })
 
@@ -116,7 +116,7 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/.cruft/patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: ".cruft/patches",
     })
 
@@ -145,7 +145,7 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/packages/banana/patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: "patches/",
     })
 
@@ -178,7 +178,7 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/packages/banana/.patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: ".patches/",
     })
 

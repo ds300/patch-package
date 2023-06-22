@@ -9,7 +9,7 @@ exports[`Test apply-multiple-patches: patch-package fails when a patch in the se
 
   This error was caused because patch-package cannot apply the following patch file:
 
-    patches/left-pad+1.3.0+03+broken.patch
+    patches/left-pad+1.3.0+02+broken.patch
 
   Try removing node_modules and trying again. If that doesn't work, maybe there was
   an accidental change made to the patch file? Try recreating it by manually
@@ -33,6 +33,14 @@ exports[`Test apply-multiple-patches: patch-package happily applies both good pa
 patch-package 0.0.0
 Applying patches...
 left-pad@1.3.0 (1 hello) ✔
-left-pad@1.3.0 (2 world) ✔
+left-pad@1.3.0 (3 world) ✔
+END SNAPSHOT"
+`;
+
+exports[`Test apply-multiple-patches: patch-package only applies the first patch if the second of three is invalid 1`] = `
+"SNAPSHOT: patch-package only applies the first patch if the second of three is invalid
+patch-package 0.0.0
+Applying patches...
+left-pad@1.3.0 (1 hello) ✔
 END SNAPSHOT"
 `;

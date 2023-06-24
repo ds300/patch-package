@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test file-mode-changes: the patch file 1`] = `
+exports[`Test file-mode-changes: 00: the patch file 1`] = `
 "SNAPSHOT: the patch file
 diff --git a/node_modules/prettier/bin-prettier.js b/node_modules/prettier/bin-prettier.js
 old mode 100755

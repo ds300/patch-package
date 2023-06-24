@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test unexpected-patch-creation-failure: patch-package fails to parse a patch it created 1`] = `
+exports[`Test unexpected-patch-creation-failure: 00: patch-package fails to parse a patch it created 1`] = `
 "SNAPSHOT: patch-package fails to parse a patch it created
 
 ⛔️ ERROR

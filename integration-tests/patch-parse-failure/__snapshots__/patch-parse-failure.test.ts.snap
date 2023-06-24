@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test patch-parse-failure: patch parse failure message 1`] = `
+exports[`Test patch-parse-failure: 00: patch parse failure message 1`] = `
 "SNAPSHOT: patch parse failure message
 
 **ERROR** Failed to apply patch for package left-pad

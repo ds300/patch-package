@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test error-on-fail: at dev time patch-package fails but returns 0 1`] = `
+exports[`Test error-on-fail: 00: at dev time patch-package fails but returns 0 1`] = `
 "SNAPSHOT: at dev time patch-package fails but returns 0
 
 **ERROR** Failed to apply patch for package left-pad at path

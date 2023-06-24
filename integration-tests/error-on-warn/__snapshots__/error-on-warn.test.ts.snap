@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test error-on-warn: at dev time patch-package warns but returns 0 1`] = `
+exports[`Test error-on-warn: 00: at dev time patch-package warns but returns 0 1`] = `
 "SNAPSHOT: at dev time patch-package warns but returns 0
 
 Warning: patch-package detected a patch file version mismatch

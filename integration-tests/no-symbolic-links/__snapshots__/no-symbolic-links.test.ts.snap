@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test no-symbolic-links: patch-package fails to create a patch when there are symbolic links 1`] = `
+exports[`Test no-symbolic-links: 00: patch-package fails to create a patch when there are symbolic links 1`] = `
 "SNAPSHOT: patch-package fails to create a patch when there are symbolic links
 
 ⛔️ ERROR

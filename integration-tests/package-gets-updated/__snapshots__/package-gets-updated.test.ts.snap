@@ -1,6 +1,51 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test package-gets-updated: fail when the patch was not applied 1`] = `
+exports[`Test package-gets-updated: 00: left-pad should contain patch-package 1`] = `
+"SNAPSHOT: left-pad should contain patch-package
+    // devide \`len\` by 2, ditch the patch-package
+END SNAPSHOT"
+`;
+
+exports[`Test package-gets-updated: 01: left-pad should still contain patch-package 1`] = `
+"SNAPSHOT: left-pad should still contain patch-package
+    // devide \`len\` by 2, ditch the patch-package
+END SNAPSHOT"
+`;
+
+exports[`Test package-gets-updated: 02: warning when the patch was applied but version changed 1`] = `
+"SNAPSHOT: warning when the patch was applied but version changed
+
+Warning: patch-package detected a patch file version mismatch
+
+  Don't worry! This is probably fine. The patch was still applied
+  successfully. Here's the deets:
+
+  Patch file created for
+
+    left-pad@1.1.1
+
+  applied to
+
+    left-pad@1.1.2
+  
+  At path
+  
+    node_modules/left-pad
+
+  This warning is just to give you a heads-up. There is a small chance of
+  breakage even though the patch was applied successfully. Make sure the package
+  still behaves like you expect (you wrote tests, right?) and then run
+
+    patch-package left-pad
+
+  to update the version in the patch file name and make this warning go away.
+
+---
+patch-package finished with 1 warning(s).
+END SNAPSHOT"
+`;
+
+exports[`Test package-gets-updated: 03: fail when the patch was not applied 1`] = `
 "SNAPSHOT: fail when the patch was not applied
 warning left-pad@1.1.3: use String.prototype.padStart()
 
@@ -33,50 +78,5 @@ warning left-pad@1.1.3: use String.prototype.padStart()
 ---
 patch-package finished with 1 error(s).
 error Command failed with exit code 1.
-END SNAPSHOT"
-`;
-
-exports[`Test package-gets-updated: left-pad should contain patch-package 1`] = `
-"SNAPSHOT: left-pad should contain patch-package
-    // devide \`len\` by 2, ditch the patch-package
-END SNAPSHOT"
-`;
-
-exports[`Test package-gets-updated: left-pad should still contain patch-package 1`] = `
-"SNAPSHOT: left-pad should still contain patch-package
-    // devide \`len\` by 2, ditch the patch-package
-END SNAPSHOT"
-`;
-
-exports[`Test package-gets-updated: warning when the patch was applied but version changed 1`] = `
-"SNAPSHOT: warning when the patch was applied but version changed
-
-Warning: patch-package detected a patch file version mismatch
-
-  Don't worry! This is probably fine. The patch was still applied
-  successfully. Here's the deets:
-
-  Patch file created for
-
-    left-pad@1.1.1
-
-  applied to
-
-    left-pad@1.1.2
-  
-  At path
-  
-    node_modules/left-pad
-
-  This warning is just to give you a heads-up. There is a small chance of
-  breakage even though the patch was applied successfully. Make sure the package
-  still behaves like you expect (you wrote tests, right?) and then run
-
-    patch-package left-pad
-
-  to update the version in the patch file name and make this warning go away.
-
----
-patch-package finished with 1 warning(s).
 END SNAPSHOT"
 `;

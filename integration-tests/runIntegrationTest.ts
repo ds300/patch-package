@@ -69,12 +69,16 @@ export function runIntegrationTest({
         expect(snapshots && snapshots.length).toBeTruthy()
       })
       if (snapshots) {
-        snapshots.forEach((snapshot) => {
+        snapshots.forEach((snapshot, i) => {
           const snapshotDescriptionMatch = snapshot.match(/SNAPSHOT: (.*)/)
           if (snapshotDescriptionMatch) {
-            it(snapshotDescriptionMatch[1], () => {
-              expect(snapshot).toMatchSnapshot()
-            })
+            it(
+              `${i.toString().padStart(2, "0")}: ` +
+                snapshotDescriptionMatch[1],
+              () => {
+                expect(snapshot).toMatchSnapshot()
+              },
+            )
           } else {
             throw new Error("bad snapshot format")
           }

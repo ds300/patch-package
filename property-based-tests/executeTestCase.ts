@@ -1,5 +1,4 @@
 import * as tmp from "tmp"
-import * as path from "path"
 
 import { spawnSafeSync } from "../src/spawnSafe"
 import { executeEffects } from "../src/patch/apply"
@@ -8,6 +7,7 @@ import { reversePatch } from "../src/patch/reverse"
 
 import { TestCase, Files } from "./testCases"
 import { appendFileSync, existsSync, writeFileSync } from "fs"
+import { join, dirname } from "path"
 
 jest.mock("fs-extra", () => {
   let workingFiles: Files
@@ -24,7 +24,7 @@ jest.mock("fs-extra", () => {
     setWorkingFiles,
     getWorkingFiles,
     ensureDirSync: jest.fn(),
-    readFileSync: jest.fn(path => getWorkingFiles()[path].contents),
+    readFileSync: jest.fn((path) => getWorkingFiles()[path].contents),
     writeFileSync: jest.fn(
       (path: string, contents: string, opts?: { mode?: number }) => {
         getWorkingFiles()[path] = {
@@ -33,12 +33,12 @@ jest.mock("fs-extra", () => {
         }
       },
     ),
-    unlinkSync: jest.fn(path => delete getWorkingFiles()[path]),
+    unlinkSync: jest.fn((path) => delete getWorkingFiles()[path]),
     moveSync: jest.fn((from, to) => {
       getWorkingFiles()[to] = getWorkingFiles()[from]
       delete getWorkingFiles()[from]
     }),
-    statSync: jest.fn(path => getWorkingFiles()[path]),
+    statSync: jest.fn((path) => getWorkingFiles()[path]),
     chmodSync: jest.fn((path, mode) => {
       const { contents } = getWorkingFiles()[path]
       getWorkingFiles()[path] = { contents, mode }
@@ -49,10 +49,10 @@ jest.mock("fs-extra", () => {
 function writeFiles(cwd: string, files: Files): void {
   const mkdirpSync = require("fs-extra/lib/mkdirs/index.js").mkdirpSync
   const writeFileSync = require("fs").writeFileSync
-  Object.keys(files).forEach(filePath => {
+  Object.keys(files).forEach((filePath) => {
     if (!filePath.startsWith(".git/")) {
-      mkdirpSync(path.join(cwd, path.dirname(filePath)))
-      writeFileSync(path.join(cwd, filePath), files[filePath].contents, {
+      mkdirpSync(join(cwd, dirname(filePath)))
+      writeFileSync(join(cwd, filePath), files[filePath].contents, {
         mode: files[filePath].mode,
       })
     }
@@ -62,7 +62,7 @@ function writeFiles(cwd: string, files: Files): void {
 function removeLeadingSpaceOnBlankLines(patchFileContents: string): string {
   return patchFileContents
     .split("\n")
-    .map(line => (line === " " ? "" : line))
+    .map((line) => (line === " " ? "" : line))
     .join("\n")
 }
 

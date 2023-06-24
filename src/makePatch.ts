@@ -1,34 +1,36 @@
 import chalk from "chalk"
-import { join, dirname, resolve } from "./path"
-import { spawnSafeSync } from "./spawnSafe"
-import { PackageManager } from "./detectPackageManager"
-import { removeIgnoredFiles } from "./filterFiles"
+import { renameSync } from "fs"
 import {
-  writeFileSync,
+  copySync,
   existsSync,
-  mkdirSync,
-  unlinkSync,
   mkdirpSync,
+  mkdirSync,
   realpathSync,
+  unlinkSync,
+  writeFileSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
-import { copySync } from "fs-extra"
 import { dirSync } from "tmp"
-import { getPatchFiles } from "./patchFs"
-import {
-  getPatchDetailsFromCliString,
-  getPackageDetailsFromPatchFilename,
-  PackageDetails,
-} from "./PackageDetails"
-import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
-import { getPackageResolution } from "./getPackageResolution"
-import { parsePatchFile } from "./patch/parse"
 import { gzipSync } from "zlib"
-import { getPackageVersion } from "./getPackageVersion"
+import { applyPatch } from "./applyPatches"
 import {
   maybePrintIssueCreationPrompt,
   openIssueCreationLink,
 } from "./createIssue"
+import { PackageManager } from "./detectPackageManager"
+import { removeIgnoredFiles } from "./filterFiles"
+import { getPackageResolution } from "./getPackageResolution"
+import { getPackageVersion } from "./getPackageVersion"
+import {
+  getPatchDetailsFromCliString,
+  PackageDetails,
+  PatchedPackageDetails,
+} from "./PackageDetails"
+import { parsePatchFile } from "./patch/parse"
+import { getGroupedPatches } from "./patchFs"
+import { dirname, join, resolve } from "./path"
+import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
+import { spawnSafeSync } from "./spawnSafe"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -49,6 +51,7 @@ export function makePatch({
   excludePaths,
   patchDir,
   createIssue,
+  mode,
 }: {
   packagePathSpecifier: string
   appPath: string
@@ -57,6 +60,7 @@ export function makePatch({
   excludePaths: RegExp
   patchDir: string
   createIssue: boolean
+  mode: { type: "overwrite_last" } | { type: "append"; name?: string }
 }) {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
@@ -64,6 +68,12 @@ export function makePatch({
     console.error("No such package", packagePathSpecifier)
     return
   }
+
+  const existingPatches =
+    getGroupedPatches(patchDir).pathSpecifierToPatchFiles[
+      packageDetails.pathSpecifier
+    ] || []
+
   const appPackageJson = require(join(appPath, "package.json"))
   const packagePath = join(appPath, packageDetails.path)
   const packageJsonPath = join(packagePath, "package.json")
@@ -110,15 +120,15 @@ export function makePatch({
       join(resolve(packageDetails.path), "package.json"),
     )
 
-      // copy .npmrc/.yarnrc in case packages are hosted in private registry
-      // copy .yarn directory as well to ensure installations work in yarn 2
-      // tslint:disable-next-line:align
-      ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
-        const rcPath = join(appPath, rcFile)
-        if (existsSync(rcPath)) {
-          copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
-        }
-      })
+    // copy .npmrc/.yarnrc in case packages are hosted in private registry
+    // copy .yarn directory as well to ensure installations work in yarn 2
+    // tslint:disable-next-line:align
+    ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
+      const rcPath = join(appPath, rcFile)
+      if (existsSync(rcPath)) {
+        copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
+      }
+    })
 
     if (packageManager === "yarn") {
       console.info(
@@ -188,6 +198,26 @@ export function makePatch({
     // remove ignored files first
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
+    // apply all existing patches if appending
+    // otherwise apply all but the last
+    const patchesToApplyBeforeCommit =
+      mode.type === "append" ? existingPatches : existingPatches.slice(0, -1)
+    for (const patchDetails of patchesToApplyBeforeCommit) {
+      if (
+        !applyPatch({
+          patchDetails,
+          patchDir,
+          patchFilePath: join(appPath, patchDir, patchDetails.patchFilename),
+          reverse: false,
+          cwd: tmpRepo.name,
+        })
+      ) {
+        console.error(
+          `Failed to apply patch ${patchDetails.patchFilename} to ${packageDetails.pathSpecifier}`,
+        )
+        process.exit(1)
+      }
+    }
     git("add", "-f", packageDetails.path)
     git("commit", "--allow-empty", "-m", "init")
 
@@ -216,7 +246,7 @@ export function makePatch({
       "--ignore-space-at-eol",
       "--no-ext-diff",
       "--src-prefix=a/",
-      "--dst-prefix=b/"
+      "--dst-prefix=b/",
     )
 
     if (diffResult.stdout.length === 0) {
@@ -280,16 +310,52 @@ export function makePatch({
     }
 
     // maybe delete existing
-    getPatchFiles(patchDir).forEach((filename) => {
-      const deets = getPackageDetailsFromPatchFilename(filename)
-      if (deets && deets.path === packageDetails.path) {
-        unlinkSync(join(patchDir, filename))
+    if (mode.type === "overwrite_last") {
+      const prevPatch = existingPatches[existingPatches.length - 1] as
+        | PatchedPackageDetails
+        | undefined
+      if (prevPatch) {
+        const patchFilePath = join(appPath, patchDir, prevPatch.patchFilename)
+        try {
+          unlinkSync(patchFilePath)
+        } catch (e) {
+          // noop
+        }
       }
-    })
+    } else if (existingPatches.length === 1) {
+      // if we are appending to an existing patch that doesn't have a sequence number let's rename it
+      const prevPatch = existingPatches[0]
+      if (prevPatch.sequenceNumber === undefined) {
+        const newFileName = createPatchFileName({
+          packageDetails,
+          packageVersion,
+          sequenceNumber: 1,
+          sequenceName: prevPatch.sequenceName ?? "initial",
+        })
+        const oldPath = join(appPath, patchDir, prevPatch.patchFilename)
+        const newPath = join(appPath, patchDir, newFileName)
+        renameSync(oldPath, newPath)
+        prevPatch.sequenceNumber = 1
+        prevPatch.patchFilename = newFileName
+        prevPatch.sequenceName = prevPatch.sequenceName ?? "initial"
+      }
+    }
+
+    const lastPatch = existingPatches[existingPatches.length - 1] as
+      | PatchedPackageDetails
+      | undefined
+    const sequenceName =
+      mode.type === "append" ? mode.name : lastPatch?.sequenceName
+    const sequenceNumber =
+      mode.type === "append"
+        ? (lastPatch?.sequenceNumber ?? 0) + 1
+        : lastPatch?.sequenceNumber
 
     const patchFileName = createPatchFileName({
       packageDetails,
       packageVersion,
+      sequenceName,
+      sequenceNumber,
     })
 
     const patchPath = join(patchesDir, patchFileName)
@@ -321,13 +387,24 @@ export function makePatch({
 function createPatchFileName({
   packageDetails,
   packageVersion,
+  sequenceNumber,
+  sequenceName,
 }: {
   packageDetails: PackageDetails
   packageVersion: string
+  sequenceNumber?: number
+  sequenceName?: string
 }) {
   const packageNames = packageDetails.packageNames
     .map((name) => name.replace(/\//g, "+"))
     .join("++")
 
-  return `${packageNames}+${packageVersion}.patch`
+  const nameAndVersion = `${packageNames}+${packageVersion}`
+  const num =
+    sequenceNumber === undefined
+      ? ""
+      : `+${sequenceNumber.toString().padStart(3, "0")}`
+  const name = !sequenceName ? "" : `+${sequenceName}`
+
+  return `${nameAndVersion}${num}${name}.patch`
 }

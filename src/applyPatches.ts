@@ -1,31 +1,19 @@
 import chalk from "chalk"
-import { getPatchFiles } from "./patchFs"
-import { executeEffects } from "./patch/apply"
 import { existsSync } from "fs-extra"
-import { join, resolve, relative } from "./path"
 import { posix } from "path"
-import {
-  getPackageDetailsFromPatchFilename,
-  PackageDetails,
-  PatchedPackageDetails,
-} from "./PackageDetails"
-import { reversePatch } from "./patch/reverse"
 import semver from "semver"
-import { readPatch } from "./patch/read"
+import { PackageDetails } from "./PackageDetails"
 import { packageIsDevDependency } from "./packageIsDevDependency"
+import { executeEffects } from "./patch/apply"
+import { readPatch } from "./patch/read"
+import { reversePatch } from "./patch/reverse"
+import { getGroupedPatches } from "./patchFs"
+import { join, relative, resolve } from "./path"
 
 class PatchApplicationError extends Error {
   constructor(msg: string) {
     super(msg)
   }
-}
-
-function findPatchFiles(patchesDirectory: string): string[] {
-  if (!existsSync(patchesDirectory)) {
-    return []
-  }
-
-  return getPatchFiles(patchesDirectory) as string[]
 }
 
 function getInstalledPackageVersion({
@@ -94,43 +82,22 @@ export function applyPatchesForApp({
   shouldExitWithWarning: boolean
 }): void {
   const patchesDirectory = join(appPath, patchDir)
-  const files = findPatchFiles(patchesDirectory)
+  const groupedPatches = getGroupedPatches(patchesDirectory)
 
-  if (files.length === 0) {
+  if (groupedPatches.numPatchFiles === 0) {
     console.error(chalk.blueBright("No patch files found"))
     return
   }
 
   const errors: string[] = []
-  const warnings: string[] = []
+  const warnings: string[] = [...groupedPatches.warnings]
 
-  const groupedPatchFileDetails: Record<string, PatchedPackageDetails[]> = {}
-  for (const file of files) {
-    const details = getPackageDetailsFromPatchFilename(file)
-    if (!details) {
-      warnings.push(`Unrecognized patch file in patches directory ${file}`)
-      continue
-    }
-    if (!groupedPatchFileDetails[details.pathSpecifier]) {
-      groupedPatchFileDetails[details.pathSpecifier] = []
-    }
-    groupedPatchFileDetails[details.pathSpecifier].push(details)
-  }
-
-  for (const [_, details] of Object.entries(groupedPatchFileDetails)) {
-    details.sort((a, b) => {
-      return (a.sequenceNumber ?? 0) - (b.sequenceNumber ?? 0)
-    })
+  for (const [pathSpecifier, details] of Object.entries(
+    groupedPatches.pathSpecifierToPatchFiles,
+  )) {
     packageLoop: for (const patchDetails of details) {
       try {
-        const {
-          name,
-          version,
-          path,
-          pathSpecifier,
-          isDevOnly,
-          patchFilename,
-        } = patchDetails
+        const { name, version, path, isDevOnly, patchFilename } = patchDetails
 
         const installedPackageVersion = getInstalledPackageVersion({
           appPath,
@@ -162,6 +129,7 @@ export function applyPatchesForApp({
             reverse,
             patchDetails,
             patchDir,
+            cwd: process.cwd(),
           })
         ) {
           // yay patch was applied successfully
@@ -276,11 +244,13 @@ export function applyPatch({
   reverse,
   patchDetails,
   patchDir,
+  cwd,
 }: {
   patchFilePath: string
   reverse: boolean
   patchDetails: PackageDetails
   patchDir: string
+  cwd: string
 }): boolean {
   const patch = readPatch({
     patchFilePath,
@@ -288,10 +258,16 @@ export function applyPatch({
     patchDir,
   })
   try {
-    executeEffects(reverse ? reversePatch(patch) : patch, { dryRun: false })
+    executeEffects(reverse ? reversePatch(patch) : patch, {
+      dryRun: false,
+      cwd,
+    })
   } catch (e) {
     try {
-      executeEffects(reverse ? patch : reversePatch(patch), { dryRun: true })
+      executeEffects(reverse ? patch : reversePatch(patch), {
+        dryRun: true,
+        cwd,
+      })
     } catch (e) {
       return false
     }

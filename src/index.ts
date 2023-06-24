@@ -24,7 +24,7 @@ const argv = minimist(process.argv.slice(2), {
     "error-on-warn",
     "create-issue",
   ],
-  string: ["patch-dir"],
+  string: ["patch-dir", "append"],
 })
 const packageNames = argv._
 
@@ -70,6 +70,10 @@ if (argv.version || argv.v) {
         excludePaths,
         patchDir,
         createIssue,
+        mode:
+          "append" in argv
+            ? { type: "append", name: argv.append || undefined }
+            : { type: "overwrite_last" },
       })
     })
   } else {

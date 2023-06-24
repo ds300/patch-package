@@ -17,6 +17,7 @@
     "no-trailing-whitespace": [false],
     "object-literal-key-quotes": [false],
     "max-line-length": false,
+    "no-shadowed-variable": false,
     "no-default-export": true
   },
   "rulesDirectory": []

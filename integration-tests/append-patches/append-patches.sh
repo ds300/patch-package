@@ -6,7 +6,10 @@ npm install
 
 echo "add patch-package"
 npm add $1
-alias patch-package=./node_modules/.bin/patch-package
+
+function patch-package {
+  ./node_modules/.bin/patch-package "$@"
+}
 
 function replace {
   npx replace "$1" "$2" node_modules/left-pad/index.js

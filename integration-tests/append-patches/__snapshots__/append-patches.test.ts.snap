@@ -85,3 +85,9 @@ exports[`Test append-patches: 07: patch-package fails when a patch in the sequen
 Failed to apply patch left-pad+1.3.0+001+FirstPatch.patch to left-pad
 END SNAPSHOT"
 `;
+
+exports[`Test append-patches: 08: --append is not compatible with --create-issue 1`] = `
+"SNAPSHOT: --append is not compatible with --create-issue
+--create-issue is not compatible with --append.
+END SNAPSHOT"
+`;

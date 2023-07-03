@@ -14,8 +14,10 @@ import { dirSync } from "tmp"
 import { gzipSync } from "zlib"
 import { applyPatch } from "./applyPatches"
 import {
+  getPackageVCSDetails,
   maybePrintIssueCreationPrompt,
   openIssueCreationLink,
+  shouldRecommendIssue,
 } from "./createIssue"
 import { PackageManager } from "./detectPackageManager"
 import { removeIgnoredFiles } from "./filterFiles"
@@ -73,6 +75,19 @@ export function makePatch({
     getGroupedPatches(patchDir).pathSpecifierToPatchFiles[
       packageDetails.pathSpecifier
     ] || []
+
+  if (createIssue && mode.type === "append") {
+    console.error("--create-issue is not compatible with --append.")
+    process.exit(1)
+  }
+
+  const numPatchesAfterCreate =
+    mode.type === "append" ? existingPatches.length + 1 : existingPatches.length
+  const vcs = getPackageVCSDetails(packageDetails)
+  const canCreateIssue =
+    shouldRecommendIssue(vcs) &&
+    numPatchesAfterCreate === 1 &&
+    mode.type !== "append"
 
   const appPackageJson = require(join(appPath, "package.json"))
   const packagePath = join(appPath, packageDetails.path)
@@ -367,14 +382,16 @@ export function makePatch({
     console.log(
       `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
     )
-    if (createIssue) {
-      openIssueCreationLink({
-        packageDetails,
-        patchFileContents: diffResult.stdout.toString(),
-        packageVersion,
-      })
-    } else {
-      maybePrintIssueCreationPrompt(packageDetails, packageManager)
+    if (canCreateIssue) {
+      if (createIssue) {
+        openIssueCreationLink({
+          packageDetails,
+          patchFileContents: diffResult.stdout.toString(),
+          packageVersion,
+        })
+      } else {
+        maybePrintIssueCreationPrompt(vcs, packageDetails, packageManager)
+      }
     }
   } catch (e) {
     console.error(e)

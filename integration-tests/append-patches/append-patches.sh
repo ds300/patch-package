@@ -76,3 +76,9 @@ if patch-package left-pad --append 'Bananas' ; then
   exit 1
 fi
 (>&2 echo "END SNAPSHOT")
+
+(>&2 echo "SNAPSHOT: --append is not compatible with --create-issue")
+if patch-package left-pad --append 'Bananas' --create-issue ; then
+  exit 1
+fi
+(>&2 echo "END SNAPSHOT")

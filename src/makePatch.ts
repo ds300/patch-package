@@ -227,6 +227,7 @@ export function makePatch({
           cwd: tmpRepo.name,
         })
       ) {
+        // TODO: add better error message once --rebase is implemented
         console.error(
           `Failed to apply patch ${patchDetails.patchFilename} to ${packageDetails.pathSpecifier}`,
         )

@@ -15,3 +15,8 @@ fi
 echo "SNAPSHOT: adding --ignore-missing forces patch-package to return 0"
 patch-package --ignore-missing;
 echo "END SNAPSHOT"
+
+export PATCH_PACKAGE_IGNORE_MISSING=1
+echo "SNAPSHOT: setting PATCH_PACKAGE_IGNORE_MISSING=1 forces patch-package to return 0"
+patch-package;
+echo "END SNAPSHOT"

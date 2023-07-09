@@ -82,7 +82,9 @@ export function makePatch({
   }
 
   const numPatchesAfterCreate =
-    mode.type === "append" ? existingPatches.length + 1 : existingPatches.length
+    mode.type === "append" || existingPatches.length === 0
+      ? existingPatches.length + 1
+      : existingPatches.length
   const vcs = getPackageVCSDetails(packageDetails)
   const canCreateIssue =
     shouldRecommendIssue(vcs) &&

@@ -6,6 +6,7 @@ patch-package 0.0.0
 Applying patches...
 left-pad@1.3.0 (1 hello) ✔
 left-pad@1.3.0 (3 world) ✔
+left-pad@1.3.0 (4 goodbye) ✔
 END SNAPSHOT"
 `;
 
@@ -26,7 +27,7 @@ exports[`Test apply-multiple-patches: 02: patch-package fails when a patch in th
 
   This error was caused because patch-package cannot apply the following patch file:
 
-    patches/left-pad+1.3.0+02+broken.patch
+    patches/left-pad+1.3.0+002+broken.patch
 
   Try removing node_modules and trying again. If that doesn't work, maybe there was
   an accidental change made to the patch file? Try recreating it by manually

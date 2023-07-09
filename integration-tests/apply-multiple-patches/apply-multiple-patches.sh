@@ -12,6 +12,12 @@ echo "SNAPSHOT: patch-package happily applies both good patches"
 patch-package
 echo "END SNAPSHOT"
 
+echo "it should work if we apply them again even though they touch the same parts of the code"
+if ! patch-package
+then
+  exit 1
+fi
+
 cp *broken.patch patches/
 
 (>&2 echo "SNAPSHOT: patch-package fails when a patch in the sequence is invalid")

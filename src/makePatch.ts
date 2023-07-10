@@ -23,6 +23,7 @@ import { PackageManager } from "./detectPackageManager"
 import { removeIgnoredFiles } from "./filterFiles"
 import { getPackageResolution } from "./getPackageResolution"
 import { getPackageVersion } from "./getPackageVersion"
+import { hashFile } from "./hash"
 import {
   getPatchDetailsFromCliString,
   PackageDetails,
@@ -33,6 +34,12 @@ import { getGroupedPatches } from "./patchFs"
 import { dirname, join, resolve } from "./path"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { spawnSafeSync } from "./spawnSafe"
+import {
+  clearPatchApplicationState,
+  PatchState,
+  savePatchApplicationState,
+  STATE_FILE_NAME,
+} from "./stateFile"
 
 function printNoPackageFoundError(
   packageName: string,
@@ -204,6 +211,8 @@ export function makePatch({
     rimraf(join(tmpRepoPackagePath, "node_modules"))
     // remove .git just to be safe
     rimraf(join(tmpRepoPackagePath, ".git"))
+    // remove patch-package state file
+    rimraf(join(tmpRepoPackagePath, STATE_FILE_NAME))
 
     // commit the package
     console.info(chalk.grey("•"), "Diffing your files with clean files")
@@ -249,6 +258,8 @@ export function makePatch({
     rimraf(join(tmpRepoPackagePath, "node_modules"))
     // remove .git just to be safe
     rimraf(join(tmpRepoPackagePath, ".git"))
+    // remove patch-package state file
+    rimraf(join(tmpRepoPackagePath, STATE_FILE_NAME))
 
     // also remove ignored files like before
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
@@ -385,6 +396,29 @@ export function makePatch({
     console.log(
       `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
     )
+    const prevState: PatchState[] = (mode.type === "append"
+      ? existingPatches
+      : existingPatches.slice(0, -1)
+    ).map(
+      (p): PatchState => ({
+        patchFilename: p.patchFilename,
+        didApply: true,
+        patchContentHash: hashFile(join(appPath, patchDir, p.patchFilename)),
+      }),
+    )
+    const nextState: PatchState[] = [
+      ...prevState,
+      {
+        patchFilename: patchFileName,
+        didApply: true,
+        patchContentHash: hashFile(patchPath),
+      },
+    ]
+    if (nextState.length > 1) {
+      savePatchApplicationState(packageDetails, nextState)
+    } else {
+      clearPatchApplicationState(packageDetails)
+    }
     if (canCreateIssue) {
       if (createIssue) {
         openIssueCreationLink({

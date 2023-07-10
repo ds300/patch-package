@@ -2,13 +2,19 @@ import chalk from "chalk"
 import { existsSync } from "fs-extra"
 import { posix } from "path"
 import semver from "semver"
-import { PackageDetails } from "./PackageDetails"
+import { hashFile } from "./hash"
+import { PackageDetails, PatchedPackageDetails } from "./PackageDetails"
 import { packageIsDevDependency } from "./packageIsDevDependency"
 import { executeEffects } from "./patch/apply"
 import { readPatch } from "./patch/read"
 import { reversePatch } from "./patch/reverse"
 import { getGroupedPatches } from "./patchFs"
 import { join, relative, resolve } from "./path"
+import {
+  getPatchApplicationState,
+  PatchState,
+  savePatchApplicationState,
+} from "./stateFile"
 
 class PatchApplicationError extends Error {
   constructor(msg: string) {
@@ -68,6 +74,20 @@ function getInstalledPackageVersion({
   return result as string
 }
 
+function logPatchApplication(patchDetails: PatchedPackageDetails) {
+  const sequenceString =
+    patchDetails.sequenceNumber != null
+      ? ` (${patchDetails.sequenceNumber}${
+          patchDetails.sequenceName ? " " + patchDetails.sequenceName : ""
+        })`
+      : ""
+  console.log(
+    `${chalk.bold(patchDetails.pathSpecifier)}@${
+      patchDetails.version
+    }${sequenceString} ${chalk.green("✔")}`,
+  )
+}
+
 export function applyPatchesForApp({
   appPath,
   reverse,
@@ -92,10 +112,42 @@ export function applyPatchesForApp({
   const errors: string[] = []
   const warnings: string[] = [...groupedPatches.warnings]
 
-  for (const [pathSpecifier, details] of Object.entries(
+  for (const [pathSpecifier, patches] of Object.entries(
     groupedPatches.pathSpecifierToPatchFiles,
   )) {
-    packageLoop: for (const patchDetails of details) {
+    const state =
+      patches.length > 1 ? getPatchApplicationState(patches[0]) : null
+    const unappliedPatches = patches.slice(0)
+    const newState: PatchState[] | null = patches.length > 1 ? [] : null
+    // if there are multiple patches to apply, we can't rely on the reverse-patch-dry-run behavior to make this operation
+    // idempotent, so instead we need to check the state file to see whether we have already applied any of the patches
+    // todo: once this is battle tested we might want to use the same approach for single patches as well, but it's not biggie since the dry run thing is fast
+    if (unappliedPatches && state) {
+      for (let i = 0; i < state.patches.length; i++) {
+        const patchThatWasApplied = state.patches[i]
+        const patchToApply = unappliedPatches[0]
+        const currentPatchHash = hashFile(
+          join(appPath, patchDir, patchToApply.patchFilename),
+        )
+        if (patchThatWasApplied.patchContentHash === currentPatchHash) {
+          // this patch was applied we can skip it
+          unappliedPatches.shift()
+        } else {
+          console.error(
+            chalk.red("Error:"),
+            `The patches for ${chalk.bold(pathSpecifier)} have changed.`,
+            `You should reinstall your node_modules folder to make sure the package is up to date`,
+          )
+          process.exit(1)
+        }
+      }
+    }
+    if (unappliedPatches.length === 0) {
+      // all patches have already been applied
+      patches.forEach(logPatchApplication)
+      continue
+    }
+    packageLoop: for (const patchDetails of patches) {
       try {
         const { name, version, path, isDevOnly, patchFilename } = patchDetails
 
@@ -132,6 +184,11 @@ export function applyPatchesForApp({
             cwd: process.cwd(),
           })
         ) {
+          newState?.push({
+            patchFilename,
+            patchContentHash: hashFile(join(appPath, patchDir, patchFilename)),
+            didApply: true,
+          })
           // yay patch was applied successfully
           // print warning if version mismatch
           if (installedPackageVersion !== version) {
@@ -145,19 +202,7 @@ export function applyPatchesForApp({
               }),
             )
           }
-          const sequenceString =
-            patchDetails.sequenceNumber != null
-              ? ` (${patchDetails.sequenceNumber}${
-                  patchDetails.sequenceName
-                    ? " " + patchDetails.sequenceName
-                    : ""
-                })`
-              : ""
-          console.log(
-            `${chalk.bold(
-              pathSpecifier,
-            )}@${version}${sequenceString} ${chalk.green("✔")}`,
-          )
+          logPatchApplication(patchDetails)
         } else if (installedPackageVersion === version) {
           // completely failed to apply patch
           // TODO: propagate useful error messages from patch application
@@ -202,6 +247,10 @@ export function applyPatchesForApp({
         // because we don't want to apply more patches on top of the broken state
         break packageLoop
       }
+    }
+
+    if (newState) {
+      savePatchApplicationState(patches[0], newState)
     }
   }
 

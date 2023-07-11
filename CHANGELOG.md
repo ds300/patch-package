@@ -1,6 +1,8 @@
 # Changelog
 
-## 7.0.0
+## 7.0.1
+
+- Bump semver (contribution from @stianjensen in #466)
 
 ### Breaking changes
 

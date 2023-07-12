@@ -33,6 +33,7 @@ then
 fi
 (>&2 echo "END SNAPSHOT")
 
+
 echo "SNAPSHOT: patch-package only applies the first patch if the second of three is invalid"
 if patch-package
 then

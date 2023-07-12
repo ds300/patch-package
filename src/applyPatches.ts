@@ -13,7 +13,6 @@ import { join, relative, resolve } from "./path"
 import {
   clearPatchApplicationState,
   getPatchApplicationState,
-  PatchState,
   savePatchApplicationState,
 } from "./stateFile"
 
@@ -118,8 +117,8 @@ export function applyPatchesForApp({
   )) {
     const state =
       patches.length > 1 ? getPatchApplicationState(patches[0]) : null
-    let unappliedPatches = patches.slice(0)
-    const newState: PatchState[] | null = patches.length > 1 ? [] : null
+    const unappliedPatches = patches.slice(0)
+    const appliedPatches: PatchedPackageDetails[] = []
     // if there are multiple patches to apply, we can't rely on the reverse-patch-dry-run behavior to make this operation
     // idempotent, so instead we need to check the state file to see whether we have already applied any of the patches
     // todo: once this is battle tested we might want to use the same approach for single patches as well, but it's not biggie since the dry run thing is fast
@@ -132,7 +131,7 @@ export function applyPatchesForApp({
         )
         if (patchThatWasApplied.patchContentHash === currentPatchHash) {
           // this patch was applied we can skip it
-          unappliedPatches.shift()
+          appliedPatches.push(unappliedPatches.shift()!)
         } else {
           console.error(
             chalk.red("Error:"),
@@ -144,14 +143,21 @@ export function applyPatchesForApp({
       }
     }
 
-    if (reverse) {
-      unappliedPatches = patches
-        .slice(0, patches.length - unappliedPatches.length)
-        .reverse()
+    if (reverse && state) {
+      // if we are reversing the patches we need to make the unappliedPatches array
+      // be the reversed version of the appliedPatches array.
+      // The applied patches array should then be empty because it is used differently
+      // when outputting the state file.
+      unappliedPatches.length = 0
+      unappliedPatches.push(...appliedPatches)
+      unappliedPatches.reverse()
+      appliedPatches.length = 0
     }
-    if (unappliedPatches.length === 0) {
+    if (appliedPatches.length) {
       // all patches have already been applied
-      patches.forEach(logPatchApplication)
+      appliedPatches.forEach(logPatchApplication)
+    }
+    if (!unappliedPatches.length) {
       continue
     }
     packageLoop: for (const patchDetails of unappliedPatches) {
@@ -191,11 +197,7 @@ export function applyPatchesForApp({
             cwd: process.cwd(),
           })
         ) {
-          newState?.push({
-            patchFilename,
-            patchContentHash: hashFile(join(appPath, patchDir, patchFilename)),
-            didApply: true,
-          })
+          appliedPatches.push(patchDetails)
           // yay patch was applied successfully
           // print warning if version mismatch
           if (installedPackageVersion !== version) {
@@ -256,11 +258,53 @@ export function applyPatchesForApp({
       }
     }
 
-    if (newState) {
+    if (patches.length > 1) {
       if (reverse) {
-        clearPatchApplicationState(patches[0])
+        if (!state) {
+          throw new Error(
+            "unexpected state: no state file found while reversing",
+          )
+        }
+        // if we removed all the patches that were previously applied we can delete the state file
+        if (appliedPatches.length === patches.length) {
+          clearPatchApplicationState(patches[0])
+        } else {
+          // We failed while reversing patches and some are still in the applied state.
+          // We need to update the state file to reflect that.
+          // appliedPatches is currently the patches that were successfully reversed, in the order they were reversed
+          // So we need to find the index of the last reversed patch in the original patches array
+          // and then remove all the patches after that. Sorry for the confusing code.
+          const lastReversedPatchIndex = patches.indexOf(
+            appliedPatches[appliedPatches.length - 1],
+          )
+          if (lastReversedPatchIndex === -1) {
+            throw new Error(
+              "unexpected state: failed to find last reversed patch in original patches array",
+            )
+          }
+
+          savePatchApplicationState(
+            patches[0],
+            patches.slice(0, lastReversedPatchIndex).map((patch) => ({
+              didApply: true,
+              patchContentHash: hashFile(
+                join(appPath, patchDir, patch.patchFilename),
+              ),
+              patchFilename: patch.patchFilename,
+            })),
+          )
+        }
       } else {
-        savePatchApplicationState(patches[0], newState)
+        savePatchApplicationState(
+          patches[0],
+          appliedPatches.map((patch) => ({
+            didApply: true,
+            patchContentHash: hashFile(
+              join(appPath, patchDir, patch.patchFilename),
+            ),
+            patchFilename: patch.patchFilename,
+          })),
+        )
       }
     }
   }

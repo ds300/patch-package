@@ -26,8 +26,8 @@ left-pad@1.3.0 (3 goodbye) ✔
 END SNAPSHOT"
 `;
 
-exports[`Test reverse-multiple-patches: 03: if one of the patches fails then reverse only ondoes the ones that succeeded 1`] = `
-"SNAPSHOT: if one of the patches fails then reverse only ondoes the ones that succeeded
+exports[`Test reverse-multiple-patches: 03: if one of the patches fails then reverse only undoes the ones that succeeded 1`] = `
+"SNAPSHOT: if one of the patches fails then reverse only undoes the ones that succeeded
 patches/left-pad+1.3.0+003+goodbye.patch
  9: -'use schmorld';
  10: +'goodbye schmorld';

@@ -1,6 +1,7 @@
 import { readFileSync, unlinkSync, writeFileSync } from "fs"
 import { join } from "path"
 import { PackageDetails } from "./PackageDetails"
+import stringify from "json-stable-stringify"
 export interface PatchState {
   patchFilename: string
   patchContentHash: string
@@ -36,7 +37,7 @@ export function savePatchApplicationState(
 ) {
   const fileName = join(packageDetails.path, STATE_FILE_NAME)
 
-  writeFileSync(fileName, JSON.stringify({ version, patches }, null, 2), "utf8")
+  writeFileSync(fileName, stringify({ version, patches }, { space: 2 }), "utf8")
 }
 
 export function clearPatchApplicationState(packageDetails: PackageDetails) {

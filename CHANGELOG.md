@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.0.2
+
+- Bump semver again (contribution from @rsanchez in #477)
+
 ## 7.0.1
 
 - Bump semver (contribution from @stianjensen in #466)

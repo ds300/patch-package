@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test ignore-missing: patch-package returns 1 on missing package 1`] = `
+"SNAPSHOT: patch-package returns 1 on missing package
+Error: Patch file found for package missing-package which is not present at node_modules/missing-package
+---
+patch-package finished with 1 error(s).
+END SNAPSHOT"
+`;
+
+exports[`Test ignore-missing: adding --ignore-missing forces patch-package to return 0 1`] = `
+"SNAPSHOT: adding --ignore-missing forces patch-package to return 0
+patch-package 0.0.0
+Applying patches...
+left-pad@1.1.3 ✔
+Skipping missing missing-package@1.0.0 ✔
+END SNAPSHOT"
+`;
+
+exports[`Test ignore-missing: setting PATCH_PACKAGE_IGNORE_MISSING=1 forces patch-package to return 0 1`] = `
+"SNAPSHOT: setting PATCH_PACKAGE_IGNORE_MISSING=1 forces patch-package to return 0
+patch-package 0.0.0
+Applying patches...
+left-pad@1.1.3 ✔
+Skipping missing missing-package@1.0.0 ✔
+END SNAPSHOT"
+`;

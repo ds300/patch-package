@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test reverse-multiple-patches: 00: the patches were applied 1`] = `
+"SNAPSHOT: the patches were applied
+'goodbye world';
+END SNAPSHOT"
+`;
+
+exports[`Test reverse-multiple-patches: 01: --reverse undoes the patches 1`] = `
+"SNAPSHOT: --reverse undoes the patches
+patch-package 0.0.0
+Applying patches...
+left-pad@1.3.0 (3 goodbye) ✔
+left-pad@1.3.0 (2 world) ✔
+left-pad@1.3.0 (1 hello) ✔
+END SNAPSHOT"
+`;
+
+exports[`Test reverse-multiple-patches: 02: The patches can be reapplied 1`] = `
+"SNAPSHOT: The patches can be reapplied
+patch-package 0.0.0
+Applying patches...
+left-pad@1.3.0 (1 hello) ✔
+left-pad@1.3.0 (2 world) ✔
+left-pad@1.3.0 (3 goodbye) ✔
+END SNAPSHOT"
+`;
+
+exports[`Test reverse-multiple-patches: 03: if one of the patches fails then reverse only ondoes the ones that succeeded 1`] = `
+"SNAPSHOT: if one of the patches fails then reverse only ondoes the ones that succeeded
+patches/left-pad+1.3.0+003+goodbye.patch
+ 9: -'use schmorld';
+ 10: +'goodbye schmorld';
+apply broken
+patch-package 0.0.0
+Applying patches...
+left-pad@1.3.0 (1 hello) ✔
+left-pad@1.3.0 (2 world) ✔
+reverse all but broken
+patch-package 0.0.0
+Applying patches...
+left-pad@1.3.0 (2 world) ✔
+left-pad@1.3.0 (1 hello) ✔
+END SNAPSHOT"
+`;

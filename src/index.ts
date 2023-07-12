@@ -23,6 +23,7 @@ const argv = minimist(process.argv.slice(2), {
     "error-on-fail",
     "error-on-warn",
     "create-issue",
+    "",
   ],
   string: ["patch-dir", "append"],
 })

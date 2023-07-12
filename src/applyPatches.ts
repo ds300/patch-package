@@ -11,6 +11,7 @@ import { reversePatch } from "./patch/reverse"
 import { getGroupedPatches } from "./patchFs"
 import { join, relative, resolve } from "./path"
 import {
+  clearPatchApplicationState,
   getPatchApplicationState,
   PatchState,
   savePatchApplicationState,
@@ -117,7 +118,7 @@ export function applyPatchesForApp({
   )) {
     const state =
       patches.length > 1 ? getPatchApplicationState(patches[0]) : null
-    const unappliedPatches = patches.slice(0)
+    let unappliedPatches = patches.slice(0)
     const newState: PatchState[] | null = patches.length > 1 ? [] : null
     // if there are multiple patches to apply, we can't rely on the reverse-patch-dry-run behavior to make this operation
     // idempotent, so instead we need to check the state file to see whether we have already applied any of the patches
@@ -142,12 +143,18 @@ export function applyPatchesForApp({
         }
       }
     }
+
+    if (reverse) {
+      unappliedPatches = patches
+        .slice(0, patches.length - unappliedPatches.length)
+        .reverse()
+    }
     if (unappliedPatches.length === 0) {
       // all patches have already been applied
       patches.forEach(logPatchApplication)
       continue
     }
-    packageLoop: for (const patchDetails of patches) {
+    packageLoop: for (const patchDetails of unappliedPatches) {
       try {
         const { name, version, path, isDevOnly, patchFilename } = patchDetails
 
@@ -250,7 +257,11 @@ export function applyPatchesForApp({
     }
 
     if (newState) {
-      savePatchApplicationState(patches[0], newState)
+      if (reverse) {
+        clearPatchApplicationState(patches[0])
+      } else {
+        savePatchApplicationState(patches[0], newState)
+      }
     }
   }
 

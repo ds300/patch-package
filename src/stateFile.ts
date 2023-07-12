@@ -37,7 +37,12 @@ export function savePatchApplicationState(
 ) {
   const fileName = join(packageDetails.path, STATE_FILE_NAME)
 
-  writeFileSync(fileName, stringify({ version, patches }, { space: 2 }), "utf8")
+  const state: PatchApplicationState = {
+    patches,
+    version,
+  }
+
+  writeFileSync(fileName, stringify(state, { space: 4 }), "utf8")
 }
 
 export function clearPatchApplicationState(packageDetails: PackageDetails) {

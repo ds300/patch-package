@@ -13,24 +13,24 @@ END SNAPSHOT"
 exports[`Test apply-multiple-patches: 01: patch-package stores a state file to list the patches that have been applied 1`] = `
 "SNAPSHOT: patch-package stores a state file to list the patches that have been applied
 {
-  \\"version\\": 0,
-  \\"patches\\": [
-    {
-      \\"patchFilename\\": \\"left-pad+1.3.0+001+hello.patch\\",
-      \\"didApply\\": true,
-      \\"patchContentHash\\": \\"404c604ed830db6a0605f86cb9165ced136848f70986b23bf877bcf38968c1c9\\"
-    },
-    {
-      \\"patchFilename\\": \\"left-pad+1.3.0+002+world.patch\\",
-      \\"didApply\\": true,
-      \\"patchContentHash\\": \\"f2859c7193de8d9578bdde7e226de516adc8d972d6e76997cbe1f41b1a535359\\"
-    },
-    {
-      \\"patchFilename\\": \\"left-pad+1.3.0+003+goodbye.patch\\",
-      \\"didApply\\": true,
-      \\"patchContentHash\\": \\"946d4e578decc1e475ca9b0de07353791969312fd2bf5d9cfc5182b86d9804ad\\"
-    }
-  ]
+    \\"patches\\": [
+        {
+            \\"didApply\\": true,
+            \\"patchContentHash\\": \\"404c604ed830db6a0605f86cb9165ced136848f70986b23bf877bcf38968c1c9\\",
+            \\"patchFilename\\": \\"left-pad+1.3.0+001+hello.patch\\"
+        },
+        {
+            \\"didApply\\": true,
+            \\"patchContentHash\\": \\"f2859c7193de8d9578bdde7e226de516adc8d972d6e76997cbe1f41b1a535359\\",
+            \\"patchFilename\\": \\"left-pad+1.3.0+003+world.patch\\"
+        },
+        {
+            \\"didApply\\": true,
+            \\"patchContentHash\\": \\"946d4e578decc1e475ca9b0de07353791969312fd2bf5d9cfc5182b86d9804ad\\",
+            \\"patchFilename\\": \\"left-pad+1.3.0+004+goodbye.patch\\"
+        }
+    ],
+    \\"version\\": 0
 }END SNAPSHOT"
 `;
 
@@ -45,14 +45,14 @@ END SNAPSHOT"
 exports[`Test apply-multiple-patches: 03: patch-package stores a state file of only the first patch if there was an error 1`] = `
 "SNAPSHOT: patch-package stores a state file of only the first patch if there was an error
 {
-  \\"patches\\": [
-    {
-      \\"didApply\\": true,
-      \\"patchContentHash\\": \\"404c604ed830db6a0605f86cb9165ced136848f70986b23bf877bcf38968c1c9\\",
-      \\"patchFilename\\": \\"left-pad+1.3.0+001+hello.patch\\"
-    }
-  ],
-  \\"version\\": 0
+    \\"patches\\": [
+        {
+            \\"didApply\\": true,
+            \\"patchContentHash\\": \\"404c604ed830db6a0605f86cb9165ced136848f70986b23bf877bcf38968c1c9\\",
+            \\"patchFilename\\": \\"left-pad+1.3.0+001+hello.patch\\"
+        }
+    ],
+    \\"version\\": 0
 }END SNAPSHOT"
 `;
 

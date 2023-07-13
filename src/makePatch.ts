@@ -1,4 +1,5 @@
 import chalk from "chalk"
+import console from "console"
 import { renameSync } from "fs"
 import {
   copySync,
@@ -36,6 +37,7 @@ import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependenci
 import { spawnSafeSync } from "./spawnSafe"
 import {
   clearPatchApplicationState,
+  getPatchApplicationState,
   PatchState,
   savePatchApplicationState,
   STATE_FILE_NAME,
@@ -78,13 +80,44 @@ export function makePatch({
     return
   }
 
+  const state = getPatchApplicationState(packageDetails)
+  const isRebasing = state?.isRebasing ?? false
+  // TODO: verify applied patch hashes
+  // TODO: handle case for --rebase 0
+  // TODO: handle empty diffs while rebasing
+  if (
+    mode.type === "overwrite_last" &&
+    isRebasing &&
+    state?.patches.length === 0
+  ) {
+    mode = { type: "append", name: "initial" }
+  }
+
   const existingPatches =
     getGroupedPatches(patchDir).pathSpecifierToPatchFiles[
       packageDetails.pathSpecifier
     ] || []
 
+  // apply all existing patches if appending
+  // otherwise apply all but the last
+  const previouslyAppliedPatches = state?.patches.filter((p) => p.didApply)
+  const patchesToApplyBeforeDiffing: PatchedPackageDetails[] = isRebasing
+    ? mode.type === "append"
+      ? existingPatches.slice(0, previouslyAppliedPatches!.length)
+      : state!.patches[state!.patches.length - 1].didApply
+      ? existingPatches.slice(0, previouslyAppliedPatches!.length - 1)
+      : existingPatches.slice(0, previouslyAppliedPatches!.length)
+    : mode.type === "append"
+    ? existingPatches
+    : existingPatches.slice(0, -1)
+
   if (createIssue && mode.type === "append") {
     console.error("--create-issue is not compatible with --append.")
+    process.exit(1)
+  }
+
+  if (createIssue && isRebasing) {
+    console.error("--create-issue is not compatible with rebasing.")
     process.exit(1)
   }
 
@@ -94,6 +127,7 @@ export function makePatch({
       : existingPatches.length
   const vcs = getPackageVCSDetails(packageDetails)
   const canCreateIssue =
+    !isRebasing &&
     shouldRecommendIssue(vcs) &&
     numPatchesAfterCreate === 1 &&
     mode.type !== "append"
@@ -224,11 +258,7 @@ export function makePatch({
     // remove ignored files first
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
-    // apply all existing patches if appending
-    // otherwise apply all but the last
-    const patchesToApplyBeforeCommit =
-      mode.type === "append" ? existingPatches : existingPatches.slice(0, -1)
-    for (const patchDetails of patchesToApplyBeforeCommit) {
+    for (const patchDetails of patchesToApplyBeforeDiffing) {
       if (
         !applyPatch({
           patchDetails,
@@ -339,10 +369,10 @@ export function makePatch({
     }
 
     // maybe delete existing
-    if (mode.type === "overwrite_last") {
-      const prevPatch = existingPatches[existingPatches.length - 1] as
-        | PatchedPackageDetails
-        | undefined
+    if (!isRebasing && mode.type === "overwrite_last") {
+      const prevPatch = patchesToApplyBeforeDiffing[
+        patchesToApplyBeforeDiffing.length - 1
+      ] as PatchedPackageDetails | undefined
       if (prevPatch) {
         const patchFilePath = join(appPath, patchDir, prevPatch.patchFilename)
         try {
@@ -351,7 +381,7 @@ export function makePatch({
           // noop
         }
       }
-    } else if (existingPatches.length === 1) {
+    } else if (!isRebasing && existingPatches.length === 1) {
       // if we are appending to an existing patch that doesn't have a sequence number let's rename it
       const prevPatch = existingPatches[0]
       if (prevPatch.sequenceNumber === undefined) {
@@ -370,9 +400,9 @@ export function makePatch({
       }
     }
 
-    const lastPatch = existingPatches[existingPatches.length - 1] as
-      | PatchedPackageDetails
-      | undefined
+    const lastPatch = existingPatches[
+      state ? state.patches.length - 1 : existingPatches.length - 1
+    ] as PatchedPackageDetails | undefined
     const sequenceName =
       mode.type === "append" ? mode.name : lastPatch?.sequenceName
     const sequenceNumber =
@@ -396,10 +426,33 @@ export function makePatch({
     console.log(
       `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
     )
-    const prevState: PatchState[] = (mode.type === "append"
-      ? existingPatches
-      : existingPatches.slice(0, -1)
-    ).map(
+
+    // if we inserted a new patch into a sequence we may need to update the sequence numbers
+    if (isRebasing && mode.type === "append") {
+      const patchesToNudge = existingPatches.slice(state!.patches.length)
+      if (sequenceNumber === undefined) {
+        throw new Error("sequenceNumber is undefined while rebasing")
+      }
+      if (
+        patchesToNudge[0]?.sequenceNumber !== undefined &&
+        patchesToNudge[0].sequenceNumber <= sequenceNumber
+      ) {
+        let next = sequenceNumber + 1
+        for (const p of patchesToNudge) {
+          const newName = createPatchFileName({
+            packageDetails,
+            packageVersion,
+            sequenceName: p.sequenceName,
+            sequenceNumber: next++,
+          })
+          const oldPath = join(appPath, patchDir, p.patchFilename)
+          const newPath = join(appPath, patchDir, newName)
+          renameSync(oldPath, newPath)
+        }
+      }
+    }
+
+    const prevState: PatchState[] = patchesToApplyBeforeDiffing.map(
       (p): PatchState => ({
         patchFilename: p.patchFilename,
         didApply: true,
@@ -414,15 +467,61 @@ export function makePatch({
         patchContentHash: hashFile(patchPath),
       },
     ]
-    if (nextState.length > 1) {
+
+    // if any patches come after this one we just made, we should reapply them
+    let didFailWhileFinishingRebase = false
+    if (isRebasing) {
+      const previouslyUnappliedPatches = existingPatches.slice(
+        // if we overwrote a previously failing patch we should not include that in here
+        previouslyAppliedPatches!.length +
+          (mode.type === "overwrite_last" &&
+          !state?.patches[state.patches.length - 1].didApply
+            ? 1
+            : 0),
+      )
+      if (previouslyUnappliedPatches.length) {
+        console.log(`Fast forwarding...`)
+        for (const patch of previouslyUnappliedPatches) {
+          const patchFilePath = join(appPath, patchDir, patch.patchFilename)
+          if (
+            !applyPatch({
+              patchDetails: patch,
+              patchDir,
+              patchFilePath,
+              reverse: false,
+              cwd: tmpRepo.name,
+            })
+          ) {
+            didFailWhileFinishingRebase = true
+            logPatchSequenceError({ patchDetails: patch })
+            nextState.push({
+              patchFilename: patch.patchFilename,
+              didApply: false,
+              patchContentHash: hashFile(patchFilePath),
+            })
+            break
+          } else {
+            console.log(`  ${chalk.green("✔")} ${patch.patchFilename}`)
+            nextState.push({
+              patchFilename: patch.patchFilename,
+              didApply: true,
+              patchContentHash: hashFile(patchFilePath),
+            })
+          }
+        }
+      }
+    }
+
+    if (isRebasing || numPatchesAfterCreate > 1) {
       savePatchApplicationState({
         packageDetails,
         patches: nextState,
-        isRebasing: false,
+        isRebasing: didFailWhileFinishingRebase,
       })
     } else {
       clearPatchApplicationState(packageDetails)
     }
+
     if (canCreateIssue) {
       if (createIssue) {
         openIssueCreationLink({
@@ -465,4 +564,28 @@ function createPatchFileName({
   const name = !sequenceName ? "" : `+${sequenceName}`
 
   return `${nameAndVersion}${num}${name}.patch`
+}
+
+export function logPatchSequenceError({
+  patchDetails,
+}: {
+  patchDetails: PatchedPackageDetails
+}) {
+  console.log(`
+${chalk.red.bold("⛔ ERROR")}
+
+Failed to apply patch file ${chalk.bold(patchDetails.patchFilename)}.
+
+If this patch file is no longer useful, delete it and run
+
+  ${chalk.bold(`patch-package`)}
+  
+Otherwise you should open ${
+    patchDetails.path
+  }, manually apply the changes from the patch file, and run
+
+  ${chalk.bold(`patch-package ${patchDetails.pathSpecifier}`)}
+
+to update the patch file.
+`)
 }

@@ -3,6 +3,7 @@ import { existsSync } from "fs-extra"
 import { posix } from "path"
 import semver from "semver"
 import { hashFile } from "./hash"
+import { logPatchSequenceError } from "./makePatch"
 import { PackageDetails, PatchedPackageDetails } from "./PackageDetails"
 import { packageIsDevDependency } from "./packageIsDevDependency"
 import { executeEffects } from "./patch/apply"
@@ -13,6 +14,7 @@ import { join, relative } from "./path"
 import {
   clearPatchApplicationState,
   getPatchApplicationState,
+  PatchState,
   savePatchApplicationState,
 } from "./stateFile"
 
@@ -213,12 +215,13 @@ export function applyPatchesForPackage({
     appliedPatches.length = 0
   }
   if (appliedPatches.length) {
-    // all patches have already been applied
+    // some patches have already been applied
     appliedPatches.forEach(logPatchApplication)
   }
   if (!unappliedPatches.length) {
     return
   }
+  let failedPatch: PatchedPackageDetails | null = null
   packageLoop: for (const patchDetails of unappliedPatches) {
     try {
       const { name, version, path, isDevOnly, patchFilename } = patchDetails
@@ -271,6 +274,12 @@ export function applyPatchesForPackage({
           )
         }
         logPatchApplication(patchDetails)
+      } else if (patches.length > 1) {
+        logPatchSequenceError({ patchDetails })
+        // in case the package has multiple patches, we need to break out of this inner loop
+        // because we don't want to apply more patches on top of the broken state
+        failedPatch = patchDetails
+        break packageLoop
       } else if (installedPackageVersion === version) {
         // completely failed to apply patch
         // TODO: propagate useful error messages from patch application
@@ -282,8 +291,6 @@ export function applyPatchesForPackage({
             path,
           }),
         )
-        // in case the package has multiple patches, we need to break out of this inner loop
-        // because we don't want to apply more patches on top of the broken state
         break packageLoop
       } else {
         errors.push(
@@ -353,18 +360,29 @@ export function applyPatchesForPackage({
         })
       }
     } else {
-      const allPatchesSucceeded =
-        unappliedPatches.length === appliedPatches.length
-      savePatchApplicationState({
-        packageDetails: patches[0],
-        patches: appliedPatches.map((patch) => ({
+      const nextState = appliedPatches.map(
+        (patch): PatchState => ({
           didApply: true,
           patchContentHash: hashFile(
             join(appPath, patchDir, patch.patchFilename),
           ),
           patchFilename: patch.patchFilename,
-        })),
-        isRebasing: !allPatchesSucceeded,
+        }),
+      )
+
+      if (failedPatch) {
+        nextState.push({
+          didApply: false,
+          patchContentHash: hashFile(
+            join(appPath, patchDir, failedPatch.patchFilename),
+          ),
+          patchFilename: failedPatch.patchFilename,
+        })
+      }
+      savePatchApplicationState({
+        packageDetails: patches[0],
+        patches: nextState,
+        isRebasing: !!failedPatch,
       })
     }
   }
@@ -389,6 +407,10 @@ export function applyPatch({
     patchDir,
   })
   try {
+    executeEffects(reverse ? reversePatch(patch) : patch, {
+      dryRun: true,
+      cwd,
+    })
     executeEffects(reverse ? reversePatch(patch) : patch, {
       dryRun: false,
       cwd,

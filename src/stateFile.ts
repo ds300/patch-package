@@ -5,7 +5,7 @@ import stringify from "json-stable-stringify"
 export interface PatchState {
   patchFilename: string
   patchContentHash: string
-  didApply: true
+  didApply: boolean
 }
 
 const version = 1

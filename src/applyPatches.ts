@@ -9,7 +9,7 @@ import { executeEffects } from "./patch/apply"
 import { readPatch } from "./patch/read"
 import { reversePatch } from "./patch/reverse"
 import { getGroupedPatches } from "./patchFs"
-import { join, relative, resolve } from "./path"
+import { join, relative } from "./path"
 import {
   clearPatchApplicationState,
   getPatchApplicationState,
@@ -112,205 +112,17 @@ export function applyPatchesForApp({
   const errors: string[] = []
   const warnings: string[] = [...groupedPatches.warnings]
 
-  for (const [pathSpecifier, patches] of Object.entries(
+  for (const patches of Object.values(
     groupedPatches.pathSpecifierToPatchFiles,
   )) {
-    const state =
-      patches.length > 1 ? getPatchApplicationState(patches[0]) : null
-    const unappliedPatches = patches.slice(0)
-    const appliedPatches: PatchedPackageDetails[] = []
-    // if there are multiple patches to apply, we can't rely on the reverse-patch-dry-run behavior to make this operation
-    // idempotent, so instead we need to check the state file to see whether we have already applied any of the patches
-    // todo: once this is battle tested we might want to use the same approach for single patches as well, but it's not biggie since the dry run thing is fast
-    if (unappliedPatches && state) {
-      for (let i = 0; i < state.patches.length; i++) {
-        const patchThatWasApplied = state.patches[i]
-        const patchToApply = unappliedPatches[0]
-        const currentPatchHash = hashFile(
-          join(appPath, patchDir, patchToApply.patchFilename),
-        )
-        if (patchThatWasApplied.patchContentHash === currentPatchHash) {
-          // this patch was applied we can skip it
-          appliedPatches.push(unappliedPatches.shift()!)
-        } else {
-          console.error(
-            chalk.red("Error:"),
-            `The patches for ${chalk.bold(pathSpecifier)} have changed.`,
-            `You should reinstall your node_modules folder to make sure the package is up to date`,
-          )
-          process.exit(1)
-        }
-      }
-    }
-
-    if (reverse && state) {
-      // if we are reversing the patches we need to make the unappliedPatches array
-      // be the reversed version of the appliedPatches array.
-      // The applied patches array should then be empty because it is used differently
-      // when outputting the state file.
-      unappliedPatches.length = 0
-      unappliedPatches.push(...appliedPatches)
-      unappliedPatches.reverse()
-      appliedPatches.length = 0
-    }
-    if (appliedPatches.length) {
-      // all patches have already been applied
-      appliedPatches.forEach(logPatchApplication)
-    }
-    if (!unappliedPatches.length) {
-      continue
-    }
-    packageLoop: for (const patchDetails of unappliedPatches) {
-      try {
-        const { name, version, path, isDevOnly, patchFilename } = patchDetails
-
-        const installedPackageVersion = getInstalledPackageVersion({
-          appPath,
-          path,
-          pathSpecifier,
-          isDevOnly:
-            isDevOnly ||
-            // check for direct-dependents in prod
-            (process.env.NODE_ENV === "production" &&
-              packageIsDevDependency({
-                appPath,
-                patchDetails,
-              })),
-          patchFilename,
-        })
-        if (!installedPackageVersion) {
-          // it's ok we're in production mode and this is a dev only package
-          console.log(
-            `Skipping dev-only ${chalk.bold(
-              pathSpecifier,
-            )}@${version} ${chalk.blue("✔")}`,
-          )
-          continue
-        }
-
-        if (
-          applyPatch({
-            patchFilePath: resolve(patchesDirectory, patchFilename) as string,
-            reverse,
-            patchDetails,
-            patchDir,
-            cwd: process.cwd(),
-          })
-        ) {
-          appliedPatches.push(patchDetails)
-          // yay patch was applied successfully
-          // print warning if version mismatch
-          if (installedPackageVersion !== version) {
-            warnings.push(
-              createVersionMismatchWarning({
-                packageName: name,
-                actualVersion: installedPackageVersion,
-                originalVersion: version,
-                pathSpecifier,
-                path,
-              }),
-            )
-          }
-          logPatchApplication(patchDetails)
-        } else if (installedPackageVersion === version) {
-          // completely failed to apply patch
-          // TODO: propagate useful error messages from patch application
-          errors.push(
-            createBrokenPatchFileError({
-              packageName: name,
-              patchFilename,
-              pathSpecifier,
-              path,
-            }),
-          )
-          // in case the package has multiple patches, we need to break out of this inner loop
-          // because we don't want to apply more patches on top of the broken state
-          break packageLoop
-        } else {
-          errors.push(
-            createPatchApplicationFailureError({
-              packageName: name,
-              actualVersion: installedPackageVersion,
-              originalVersion: version,
-              patchFilename,
-              path,
-              pathSpecifier,
-            }),
-          )
-          // in case the package has multiple patches, we need to break out of this inner loop
-          // because we don't want to apply more patches on top of the broken state
-          break packageLoop
-        }
-      } catch (error) {
-        if (error instanceof PatchApplicationError) {
-          errors.push(error.message)
-        } else {
-          errors.push(
-            createUnexpectedError({
-              filename: patchDetails.patchFilename,
-              error: error as Error,
-            }),
-          )
-        }
-        // in case the package has multiple patches, we need to break out of this inner loop
-        // because we don't want to apply more patches on top of the broken state
-        break packageLoop
-      }
-    }
-
-    if (patches.length > 1) {
-      if (reverse) {
-        if (!state) {
-          throw new Error(
-            "unexpected state: no state file found while reversing",
-          )
-        }
-        // if we removed all the patches that were previously applied we can delete the state file
-        if (appliedPatches.length === patches.length) {
-          clearPatchApplicationState(patches[0])
-        } else {
-          // We failed while reversing patches and some are still in the applied state.
-          // We need to update the state file to reflect that.
-          // appliedPatches is currently the patches that were successfully reversed, in the order they were reversed
-          // So we need to find the index of the last reversed patch in the original patches array
-          // and then remove all the patches after that. Sorry for the confusing code.
-          const lastReversedPatchIndex = patches.indexOf(
-            appliedPatches[appliedPatches.length - 1],
-          )
-          if (lastReversedPatchIndex === -1) {
-            throw new Error(
-              "unexpected state: failed to find last reversed patch in original patches array",
-            )
-          }
-
-          savePatchApplicationState({
-            packageDetails: patches[0],
-            patches: patches.slice(0, lastReversedPatchIndex).map((patch) => ({
-              didApply: true,
-              patchContentHash: hashFile(
-                join(appPath, patchDir, patch.patchFilename),
-              ),
-              patchFilename: patch.patchFilename,
-            })),
-            isRebasing: false,
-          })
-        }
-      } else {
-        const allPatchesSucceeded =
-          unappliedPatches.length === appliedPatches.length
-        savePatchApplicationState({
-          packageDetails: patches[0],
-          patches: appliedPatches.map((patch) => ({
-            didApply: true,
-            patchContentHash: hashFile(
-              join(appPath, patchDir, patch.patchFilename),
-            ),
-            patchFilename: patch.patchFilename,
-          })),
-          isRebasing: !allPatchesSucceeded,
-        })
-      }
-    }
+    applyPatchesForPackage({
+      patches,
+      appPath,
+      patchDir,
+      reverse,
+      warnings,
+      errors,
+    })
   }
 
   for (const warning of warnings) {
@@ -345,6 +157,217 @@ export function applyPatchesForApp({
   }
 
   process.exit(0)
+}
+
+export function applyPatchesForPackage({
+  patches,
+  appPath,
+  patchDir,
+  reverse,
+  warnings,
+  errors,
+}: {
+  patches: PatchedPackageDetails[]
+  appPath: string
+  patchDir: string
+  reverse: boolean
+  warnings: string[]
+  errors: string[]
+}) {
+  const pathSpecifier = patches[0].pathSpecifier
+  const state = patches.length > 1 ? getPatchApplicationState(patches[0]) : null
+  const unappliedPatches = patches.slice(0)
+  const appliedPatches: PatchedPackageDetails[] = []
+  // if there are multiple patches to apply, we can't rely on the reverse-patch-dry-run behavior to make this operation
+  // idempotent, so instead we need to check the state file to see whether we have already applied any of the patches
+  // todo: once this is battle tested we might want to use the same approach for single patches as well, but it's not biggie since the dry run thing is fast
+  if (unappliedPatches && state) {
+    for (let i = 0; i < state.patches.length; i++) {
+      const patchThatWasApplied = state.patches[i]
+      const patchToApply = unappliedPatches[0]
+      const currentPatchHash = hashFile(
+        join(appPath, patchDir, patchToApply.patchFilename),
+      )
+      if (patchThatWasApplied.patchContentHash === currentPatchHash) {
+        // this patch was applied we can skip it
+        appliedPatches.push(unappliedPatches.shift()!)
+      } else {
+        console.error(
+          chalk.red("Error:"),
+          `The patches for ${chalk.bold(pathSpecifier)} have changed.`,
+          `You should reinstall your node_modules folder to make sure the package is up to date`,
+        )
+        process.exit(1)
+      }
+    }
+  }
+
+  if (reverse && state) {
+    // if we are reversing the patches we need to make the unappliedPatches array
+    // be the reversed version of the appliedPatches array.
+    // The applied patches array should then be empty because it is used differently
+    // when outputting the state file.
+    unappliedPatches.length = 0
+    unappliedPatches.push(...appliedPatches)
+    unappliedPatches.reverse()
+    appliedPatches.length = 0
+  }
+  if (appliedPatches.length) {
+    // all patches have already been applied
+    appliedPatches.forEach(logPatchApplication)
+  }
+  if (!unappliedPatches.length) {
+    return
+  }
+  packageLoop: for (const patchDetails of unappliedPatches) {
+    try {
+      const { name, version, path, isDevOnly, patchFilename } = patchDetails
+
+      const installedPackageVersion = getInstalledPackageVersion({
+        appPath,
+        path,
+        pathSpecifier,
+        isDevOnly:
+          isDevOnly ||
+          // check for direct-dependents in prod
+          (process.env.NODE_ENV === "production" &&
+            packageIsDevDependency({
+              appPath,
+              patchDetails,
+            })),
+        patchFilename,
+      })
+      if (!installedPackageVersion) {
+        // it's ok we're in production mode and this is a dev only package
+        console.log(
+          `Skipping dev-only ${chalk.bold(
+            pathSpecifier,
+          )}@${version} ${chalk.blue("✔")}`,
+        )
+        continue
+      }
+
+      if (
+        applyPatch({
+          patchFilePath: join(appPath, patchDir, patchFilename) as string,
+          reverse,
+          patchDetails,
+          patchDir,
+          cwd: process.cwd(),
+        })
+      ) {
+        appliedPatches.push(patchDetails)
+        // yay patch was applied successfully
+        // print warning if version mismatch
+        if (installedPackageVersion !== version) {
+          warnings.push(
+            createVersionMismatchWarning({
+              packageName: name,
+              actualVersion: installedPackageVersion,
+              originalVersion: version,
+              pathSpecifier,
+              path,
+            }),
+          )
+        }
+        logPatchApplication(patchDetails)
+      } else if (installedPackageVersion === version) {
+        // completely failed to apply patch
+        // TODO: propagate useful error messages from patch application
+        errors.push(
+          createBrokenPatchFileError({
+            packageName: name,
+            patchFilename,
+            pathSpecifier,
+            path,
+          }),
+        )
+        // in case the package has multiple patches, we need to break out of this inner loop
+        // because we don't want to apply more patches on top of the broken state
+        break packageLoop
+      } else {
+        errors.push(
+          createPatchApplicationFailureError({
+            packageName: name,
+            actualVersion: installedPackageVersion,
+            originalVersion: version,
+            patchFilename,
+            path,
+            pathSpecifier,
+          }),
+        )
+        // in case the package has multiple patches, we need to break out of this inner loop
+        // because we don't want to apply more patches on top of the broken state
+        break packageLoop
+      }
+    } catch (error) {
+      if (error instanceof PatchApplicationError) {
+        errors.push(error.message)
+      } else {
+        errors.push(
+          createUnexpectedError({
+            filename: patchDetails.patchFilename,
+            error: error as Error,
+          }),
+        )
+      }
+      // in case the package has multiple patches, we need to break out of this inner loop
+      // because we don't want to apply more patches on top of the broken state
+      break packageLoop
+    }
+  }
+
+  if (patches.length > 1) {
+    if (reverse) {
+      if (!state) {
+        throw new Error("unexpected state: no state file found while reversing")
+      }
+      // if we removed all the patches that were previously applied we can delete the state file
+      if (appliedPatches.length === patches.length) {
+        clearPatchApplicationState(patches[0])
+      } else {
+        // We failed while reversing patches and some are still in the applied state.
+        // We need to update the state file to reflect that.
+        // appliedPatches is currently the patches that were successfully reversed, in the order they were reversed
+        // So we need to find the index of the last reversed patch in the original patches array
+        // and then remove all the patches after that. Sorry for the confusing code.
+        const lastReversedPatchIndex = patches.indexOf(
+          appliedPatches[appliedPatches.length - 1],
+        )
+        if (lastReversedPatchIndex === -1) {
+          throw new Error(
+            "unexpected state: failed to find last reversed patch in original patches array",
+          )
+        }
+
+        savePatchApplicationState({
+          packageDetails: patches[0],
+          patches: patches.slice(0, lastReversedPatchIndex).map((patch) => ({
+            didApply: true,
+            patchContentHash: hashFile(
+              join(appPath, patchDir, patch.patchFilename),
+            ),
+            patchFilename: patch.patchFilename,
+          })),
+          isRebasing: false,
+        })
+      }
+    } else {
+      const allPatchesSucceeded =
+        unappliedPatches.length === appliedPatches.length
+      savePatchApplicationState({
+        packageDetails: patches[0],
+        patches: appliedPatches.map((patch) => ({
+          didApply: true,
+          patchContentHash: hashFile(
+            join(appPath, patchDir, patch.patchFilename),
+          ),
+          patchFilename: patch.patchFilename,
+        })),
+        isRebasing: !allPatchesSucceeded,
+      })
+    }
+  }
 }
 
 export function applyPatch({

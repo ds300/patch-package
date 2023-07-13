@@ -415,7 +415,11 @@ export function makePatch({
       },
     ]
     if (nextState.length > 1) {
-      savePatchApplicationState(packageDetails, nextState)
+      savePatchApplicationState({
+        packageDetails,
+        patches: nextState,
+        isRebasing: false,
+      })
     } else {
       clearPatchApplicationState(packageDetails)
     }

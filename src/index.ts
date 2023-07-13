@@ -11,6 +11,7 @@ import { join } from "./path"
 import { normalize, sep } from "path"
 import slash = require("slash")
 import { isCI } from "ci-info"
+import { rebase } from "./rebase"
 
 const appPath = getAppRootPath()
 const argv = minimist(process.argv.slice(2), {
@@ -25,7 +26,7 @@ const argv = minimist(process.argv.slice(2), {
     "create-issue",
     "",
   ],
-  string: ["patch-dir", "append"],
+  string: ["patch-dir", "append", "rebase"],
 })
 const packageNames = argv._
 
@@ -44,7 +45,30 @@ if (argv.version || argv.v) {
   if (patchDir.startsWith("/")) {
     throw new Error("--patch-dir must be a relative path")
   }
-  if (packageNames.length) {
+  if ("rebase" in argv) {
+    if (!argv.rebase) {
+      console.error(
+        chalk.red(
+          "You must specify a patch file name or number when rebasing patches",
+        ),
+      )
+      process.exit(1)
+    }
+    if (packageNames.length !== 1) {
+      console.error(
+        chalk.red(
+          "You must specify exactly one package name when rebasing patches",
+        ),
+      )
+      process.exit(1)
+    }
+    rebase({
+      appPath,
+      packagePathSpecifier: packageNames[0],
+      patchDir,
+      targetPatch: argv.rebase,
+    })
+  } else if (packageNames.length) {
     const includePaths = makeRegExp(
       argv.include,
       "include",

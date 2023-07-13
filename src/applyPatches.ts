@@ -283,28 +283,32 @@ export function applyPatchesForApp({
             )
           }
 
-          savePatchApplicationState(
-            patches[0],
-            patches.slice(0, lastReversedPatchIndex).map((patch) => ({
+          savePatchApplicationState({
+            packageDetails: patches[0],
+            patches: patches.slice(0, lastReversedPatchIndex).map((patch) => ({
               didApply: true,
               patchContentHash: hashFile(
                 join(appPath, patchDir, patch.patchFilename),
               ),
               patchFilename: patch.patchFilename,
             })),
-          )
+            isRebasing: false,
+          })
         }
       } else {
-        savePatchApplicationState(
-          patches[0],
-          appliedPatches.map((patch) => ({
+        const allPatchesSucceeded =
+          unappliedPatches.length === appliedPatches.length
+        savePatchApplicationState({
+          packageDetails: patches[0],
+          patches: appliedPatches.map((patch) => ({
             didApply: true,
             patchContentHash: hashFile(
               join(appPath, patchDir, patch.patchFilename),
             ),
             patchFilename: patch.patchFilename,
           })),
-        )
+          isRebasing: !allPatchesSucceeded,
+        })
       }
     }
   }

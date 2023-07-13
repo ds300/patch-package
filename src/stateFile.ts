@@ -8,10 +8,11 @@ export interface PatchState {
   didApply: true
 }
 
-const version = 0
+const version = 1
 export interface PatchApplicationState {
   version: number
   patches: PatchState[]
+  isRebasing: boolean
 }
 
 export const STATE_FILE_NAME = ".patch-package.json"
@@ -21,25 +22,39 @@ export function getPatchApplicationState(
 ): PatchApplicationState | null {
   const fileName = join(packageDetails.path, STATE_FILE_NAME)
 
+  let state: null | PatchApplicationState = null
   try {
-    const state = JSON.parse(readFileSync(fileName, "utf8"))
-    if (state.version !== version) {
-      return null
-    }
-    return state
+    state = JSON.parse(readFileSync(fileName, "utf8"))
   } catch (e) {
+    // noop
+  }
+  if (!state) {
     return null
   }
+  if (state.version !== version) {
+    console.error(
+      `You upgraded patch-package and need to fully reinstall node_modules to continue.`,
+    )
+    process.exit(1)
+  }
+  return state
 }
-export function savePatchApplicationState(
-  packageDetails: PackageDetails,
-  patches: PatchState[],
-) {
+
+export function savePatchApplicationState({
+  packageDetails,
+  patches,
+  isRebasing,
+}: {
+  packageDetails: PackageDetails
+  patches: PatchState[]
+  isRebasing: boolean
+}) {
   const fileName = join(packageDetails.path, STATE_FILE_NAME)
 
   const state: PatchApplicationState = {
     patches,
     version,
+    isRebasing,
   }
 
   writeFileSync(fileName, stringify(state, { space: 4 }), "utf8")

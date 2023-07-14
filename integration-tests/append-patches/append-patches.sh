@@ -71,14 +71,14 @@ echo "END SNAPSHOT"
 echo "if one of the patches in the sequence is invalid, the sequence is not applied"
 npx replace 'use strict' 'use bananas'  patches/*FirstPatch.patch
 
-(>&2 echo "SNAPSHOT: patch-package fails when a patch in the sequence is invalid")
+echo "SNAPSHOT: patch-package fails when a patch in the sequence is invalid"
 if patch-package left-pad --append 'Bananas' ; then
   exit 1
 fi
-(>&2 echo "END SNAPSHOT")
+echo "END SNAPSHOT"
 
-(>&2 echo "SNAPSHOT: --append is not compatible with --create-issue")
+echo "SNAPSHOT: --append is not compatible with --create-issue"
 if patch-package left-pad --append 'Bananas' --create-issue ; then
   exit 1
 fi
-(>&2 echo "END SNAPSHOT")
+echo "END SNAPSHOT"

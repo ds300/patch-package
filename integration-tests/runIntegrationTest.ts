@@ -59,7 +59,7 @@ export function runIntegrationTest({
     const output = result.stdout.toString() + "\n" + result.stderr.toString()
 
     if (result.status !== 0) {
-      console.error(output)
+      console.log(output)
     }
 
     it("should produce output", () => {

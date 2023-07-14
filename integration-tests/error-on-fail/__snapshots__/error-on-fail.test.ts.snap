@@ -2,6 +2,8 @@
 
 exports[`Test error-on-fail: 00: at dev time patch-package fails but returns 0 1`] = `
 "SNAPSHOT: at dev time patch-package fails but returns 0
+patch-package 0.0.0
+Applying patches...
 
 **ERROR** Failed to apply patch for package left-pad at path
   

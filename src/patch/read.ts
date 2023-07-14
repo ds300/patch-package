@@ -40,7 +40,7 @@ export function readPatch({
       )
     }
 
-    console.error(`
+    console.log(`
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
       `Failed to apply patch for package ${chalk.bold(
         patchDetails.humanReadablePathSpecifier,

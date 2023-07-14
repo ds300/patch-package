@@ -47,7 +47,7 @@ if (argv.version || argv.v) {
   }
   if ("rebase" in argv) {
     if (!argv.rebase) {
-      console.error(
+      console.log(
         chalk.red(
           "You must specify a patch file name or number when rebasing patches",
         ),
@@ -55,7 +55,7 @@ if (argv.version || argv.v) {
       process.exit(1)
     }
     if (packageNames.length !== 1) {
-      console.error(
+      console.log(
         chalk.red(
           "You must specify exactly one package name when rebasing patches",
         ),

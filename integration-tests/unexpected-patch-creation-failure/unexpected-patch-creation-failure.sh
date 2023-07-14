@@ -17,12 +17,12 @@ then
   exit 1
 fi
 
-(>&2 echo "SNAPSHOT: patch-package fails to parse a patch it created")
+echo "SNAPSHOT: patch-package fails to parse a patch it created"
 if patch-package left-pad
 then
   exit 1
 fi
-(>&2 echo "END SNAPSHOT")
+echo "END SNAPSHOT"
 
 echo "there is now an error log file"
 ls ./patch-package-error.json.gz

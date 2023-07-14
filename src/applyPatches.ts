@@ -107,7 +107,7 @@ export function applyPatchesForApp({
   const groupedPatches = getGroupedPatches(patchesDirectory)
 
   if (groupedPatches.numPatchFiles === 0) {
-    console.error(chalk.blueBright("No patch files found"))
+    console.log(chalk.blueBright("No patch files found"))
     return
   }
 
@@ -128,10 +128,10 @@ export function applyPatchesForApp({
   }
 
   for (const warning of warnings) {
-    console.warn(warning)
+    console.log(warning)
   }
   for (const error of errors) {
-    console.error(error)
+    console.log(error)
   }
 
   const problemsSummary = []
@@ -143,11 +143,8 @@ export function applyPatchesForApp({
   }
 
   if (problemsSummary.length) {
-    console.error("---")
-    console.error(
-      "patch-package finished with",
-      problemsSummary.join(", ") + ".",
-    )
+    console.log("---")
+    console.log("patch-package finished with", problemsSummary.join(", ") + ".")
   }
 
   if (errors.length && shouldExitWithError) {
@@ -186,6 +183,9 @@ export function applyPatchesForPackage({
   if (unappliedPatches && state) {
     for (let i = 0; i < state.patches.length; i++) {
       const patchThatWasApplied = state.patches[i]
+      if (!patchThatWasApplied.didApply) {
+        break
+      }
       const patchToApply = unappliedPatches[0]
       const currentPatchHash = hashFile(
         join(appPath, patchDir, patchToApply.patchFilename),
@@ -194,7 +194,7 @@ export function applyPatchesForPackage({
         // this patch was applied we can skip it
         appliedPatches.push(unappliedPatches.shift()!)
       } else {
-        console.error(
+        console.log(
           chalk.red("Error:"),
           `The patches for ${chalk.bold(pathSpecifier)} have changed.`,
           `You should reinstall your node_modules folder to make sure the package is up to date`,
@@ -384,6 +384,9 @@ export function applyPatchesForPackage({
         patches: nextState,
         isRebasing: !!failedPatch,
       })
+    }
+    if (failedPatch) {
+      process.exit(1)
     }
   }
 }

@@ -26,12 +26,12 @@ cp *broken.patch patches/
 
 rm -rf node_modules
 npm install
-(>&2 echo "SNAPSHOT: patch-package fails when a patch in the sequence is invalid")
+echo "SNAPSHOT: patch-package fails when a patch in the sequence is invalid"
 if patch-package
 then
   exit 1
 fi
-(>&2 echo "END SNAPSHOT")
+echo "END SNAPSHOT"
 
 
 echo "SNAPSHOT: patch-package only applies the first patch if the second of three is invalid"
@@ -47,9 +47,9 @@ echo "END SNAPSHOT"
 
 
 rm patches/*hello.patch
-(>&2 echo "SNAPSHOT: patch-package fails when a patch file is removed")
+echo "SNAPSHOT: patch-package fails when a patch file is removed"
 if patch-package
 then
   exit 1
 fi
-(>&2 echo "END SNAPSHOT")
+echo "END SNAPSHOT"

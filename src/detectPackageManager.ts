@@ -7,7 +7,7 @@ import findWorkspaceRoot from "find-yarn-workspace-root"
 export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
 
 function printNoYarnLockfileError() {
-  console.error(`
+  console.log(`
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
     `The --use-yarn option was specified but there is no yarn.lock file`,
   )}
@@ -15,7 +15,7 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 }
 
 function printNoLockfilesError() {
-  console.error(`
+  console.log(`
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
     `No package-lock.json, npm-shrinkwrap.json, or yarn.lock file.
 

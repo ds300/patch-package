@@ -25,14 +25,14 @@ export function rebase({
   const groupedPatches = getGroupedPatches(patchesDirectory)
 
   if (groupedPatches.numPatchFiles === 0) {
-    console.error(chalk.blueBright("No patch files found"))
+    console.log(chalk.blueBright("No patch files found"))
     process.exit(1)
   }
 
   const packagePatches =
     groupedPatches.pathSpecifierToPatchFiles[packagePathSpecifier]
   if (!packagePatches) {
-    console.error(
+    console.log(
       chalk.blueBright("No patch files found for package"),
       packagePathSpecifier,
     )
@@ -42,7 +42,7 @@ export function rebase({
   const state = getPatchApplicationState(packagePatches[0])
 
   if (!state) {
-    console.error(
+    console.log(
       chalk.blueBright("No patch state found"),
       "Did you forget to run",
       chalk.bold("patch-package"),
@@ -51,7 +51,7 @@ export function rebase({
     process.exit(1)
   }
   if (state.isRebasing) {
-    console.error(
+    console.log(
       chalk.blueBright("Already rebasing"),
       "Make changes to the files in",
       chalk.bold(packagePatches[0].path),
@@ -64,13 +64,13 @@ export function rebase({
             packagePatches[packagePatches.length - 1].patchFilename
           } file`,
     )
-    console.error(
+    console.log(
       `💡 To remove a broken patch file, delete it and reinstall node_modules`,
     )
     process.exit(1)
   }
   if (state.patches.length !== packagePatches.length) {
-    console.error(
+    console.log(
       chalk.blueBright("Some patches have not been applied."),
       "Reinstall node_modules and try again.",
     )
@@ -83,7 +83,7 @@ export function rebase({
       packagePatches[i].patchFilename,
     )
     if (!existsSync(fullPatchPath)) {
-      console.error(
+      console.log(
         chalk.blueBright("Expected patch file"),
         fullPatchPath,
         "to exist but it is missing. Try completely reinstalling node_modules first.",
@@ -91,7 +91,7 @@ export function rebase({
       process.exit(1)
     }
     if (patch.patchContentHash !== hashFile(fullPatchPath)) {
-      console.error(
+      console.log(
         chalk.blueBright("Patch file"),
         fullPatchPath,
         "has changed since it was applied. Try completely reinstalling node_modules first.",
@@ -148,14 +148,14 @@ to insert a new patch file.
   })
 
   if (!target) {
-    console.error(
+    console.log(
       chalk.red("Could not find target patch file"),
       chalk.bold(targetPatch),
     )
-    console.error()
-    console.error("The list of available patch files is:")
+    console.log()
+    console.log("The list of available patch files is:")
     packagePatches.forEach((p) => {
-      console.error(`  - ${p.patchFilename}`)
+      console.log(`  - ${p.patchFilename}`)
     })
 
     process.exit(1)
@@ -166,12 +166,12 @@ to insert a new patch file.
     (p) => p.patchContentHash === currentHash,
   )
   if (!prevApplication) {
-    console.error(
+    console.log(
       chalk.red("Could not find previous application of patch file"),
       chalk.bold(target.patchFilename),
     )
-    console.error()
-    console.error("You should reinstall node_modules and try again.")
+    console.log()
+    console.log("You should reinstall node_modules and try again.")
     process.exit(1)
   }
 
@@ -232,7 +232,7 @@ function unApplyPatches({
         cwd: process.cwd(),
       })
     ) {
-      console.error(
+      console.log(
         chalk.red("Failed to un-apply patch file"),
         chalk.bold(patch.patchFilename),
         "Try completely reinstalling node_modules.",

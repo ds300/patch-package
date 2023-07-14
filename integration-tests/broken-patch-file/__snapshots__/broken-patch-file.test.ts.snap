@@ -2,6 +2,8 @@
 
 exports[`Test broken-patch-file: 00: patch-package fails when patch file is invalid 1`] = `
 "SNAPSHOT: patch-package fails when patch file is invalid
+patch-package 0.0.0
+Applying patches...
 
 **ERROR** Failed to apply patch for package left-pad at path
   

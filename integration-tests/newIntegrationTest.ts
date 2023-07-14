@@ -5,8 +5,8 @@ import { spawnSafeSync } from "../src/spawnSafe"
 const testName = process.argv[2]
 
 if (!testName || !testName.match(/[0-9a-zA-Z\-]+/)) {
-  console.error(`invalid name format '${testName}'`)
-  console.error("try something like this: blah-and-so-forth")
+  console.log(`invalid name format '${testName}'`)
+  console.log("try something like this: blah-and-so-forth")
 }
 
 console.log("making an integration test called", testName)

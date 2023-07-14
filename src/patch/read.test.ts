@@ -16,14 +16,16 @@ jest.mock("./parse", () => ({
   }),
 }))
 
-const error = jest.fn()
-console.error = error
+const log = jest.fn()
+console.log = log
 process.cwd = jest.fn(() => "/test/root")
 process.exit = jest.fn() as any
 
+const lastLog = () => log.mock.calls[log.mock.calls.length - 1][0]
+
 describe(readPatch, () => {
   beforeEach(() => {
-    error.mockReset()
+    log.mockReset()
   })
   it("throws an error for basic packages", () => {
     readPatch({
@@ -32,7 +34,7 @@ describe(readPatch, () => {
       patchDir: "patches/",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package test
     
@@ -62,7 +64,7 @@ describe(readPatch, () => {
       patchDir: "patches/",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test
     
@@ -91,7 +93,7 @@ describe(readPatch, () => {
       patchDir: "patches/",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     
@@ -120,7 +122,7 @@ describe(readPatch, () => {
       patchDir: ".cruft/patches",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     
@@ -151,7 +153,7 @@ describe(readPatch, () => {
 
     expect(process.cwd).toHaveBeenCalled()
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     
@@ -184,7 +186,7 @@ describe(readPatch, () => {
 
     expect(process.cwd).toHaveBeenCalled()
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     

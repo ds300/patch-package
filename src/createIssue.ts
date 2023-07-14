@@ -89,7 +89,7 @@ export function openIssueCreationLink({
   const vcs = getPackageVCSDetails(packageDetails)
 
   if (!vcs) {
-    console.error(
+    console.log(
       `Error: Couldn't find VCS details for ${packageDetails.pathSpecifier}`,
     )
     process.exit(1)

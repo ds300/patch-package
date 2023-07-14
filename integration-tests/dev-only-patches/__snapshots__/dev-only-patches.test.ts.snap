@@ -9,18 +9,12 @@ Skipping dev-only slash@3.0.0 ✔
 END SNAPSHOT"
 `;
 
-exports[`Test dev-only-patches: 01: fake-package should be skipped 1`] = `
-"SNAPSHOT: fake-package should be skipped
+exports[`Test dev-only-patches: 01: patch-package fails to find fake-package 1`] = `
+"SNAPSHOT: patch-package fails to find fake-package
 patch-package 0.0.0
 Applying patches...
-Skipping dev-only fake-package@3.0.0 ✔
 left-pad@1.3.0 ✔
 Skipping dev-only slash@3.0.0 ✔
-END SNAPSHOT"
-`;
-
-exports[`Test dev-only-patches: 02: patch-package fails to find fake-package 1`] = `
-"SNAPSHOT: patch-package fails to find fake-package
 Error: Patch file found for package fake-package which is not present at node_modules/fake-package
 
   If this package is a dev dependency, rename the patch file to
@@ -29,5 +23,15 @@ Error: Patch file found for package fake-package which is not present at node_mo
 
 ---
 patch-package finished with 1 error(s).
+END SNAPSHOT"
+`;
+
+exports[`Test dev-only-patches: 02: fake-package should be skipped 1`] = `
+"SNAPSHOT: fake-package should be skipped
+patch-package 0.0.0
+Applying patches...
+Skipping dev-only fake-package@3.0.0 ✔
+left-pad@1.3.0 ✔
+Skipping dev-only slash@3.0.0 ✔
 END SNAPSHOT"
 `;

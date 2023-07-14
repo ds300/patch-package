@@ -7,7 +7,6 @@ import {
   mkdirpSync,
   mkdirSync,
   realpathSync,
-  unlinkSync,
   writeFileSync,
 } from "fs-extra"
 import { sync as rimraf } from "rimraf"
@@ -47,7 +46,7 @@ function printNoPackageFoundError(
   packageName: string,
   packageJsonPath: string,
 ) {
-  console.error(
+  console.log(
     `No such package ${packageName}
 
   File not found: ${packageJsonPath}`,
@@ -76,7 +75,7 @@ export function makePatch({
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
   if (!packageDetails) {
-    console.error("No such package", packagePathSpecifier)
+    console.log("No such package", packagePathSpecifier)
     return
   }
 
@@ -112,12 +111,12 @@ export function makePatch({
     : existingPatches.slice(0, -1)
 
   if (createIssue && mode.type === "append") {
-    console.error("--create-issue is not compatible with --append.")
+    console.log("--create-issue is not compatible with --append.")
     process.exit(1)
   }
 
   if (createIssue && isRebasing) {
-    console.error("--create-issue is not compatible with rebasing.")
+    console.log("--create-issue is not compatible with rebasing.")
     process.exit(1)
   }
 
@@ -269,7 +268,7 @@ export function makePatch({
         })
       ) {
         // TODO: add better error message once --rebase is implemented
-        console.error(
+        console.log(
           `Failed to apply patch ${patchDetails.patchFilename} to ${packageDetails.pathSpecifier}`,
         )
         process.exit(1)
@@ -309,10 +308,10 @@ export function makePatch({
     )
 
     if (diffResult.stdout.length === 0) {
-      console.warn(
+      console.log(
         `⁉️  Not creating patch file for package '${packagePathSpecifier}'`,
       )
-      console.warn(`⁉️  There don't appear to be any changes.`)
+      console.log(`⁉️  There don't appear to be any changes.`)
       process.exit(1)
       return
     }
@@ -323,7 +322,7 @@ export function makePatch({
       if (
         (e as Error).message.includes("Unexpected file mode string: 120000")
       ) {
-        console.error(`
+        console.log(`
 ⛔️ ${chalk.red.bold("ERROR")}
 
   Your changes involve creating symlinks. patch-package does not yet support
@@ -345,7 +344,7 @@ export function makePatch({
             }),
           ),
         )
-        console.error(`
+        console.log(`
 ⛔️ ${chalk.red.bold("ERROR")}
         
   patch-package was unable to read the patch-file made by git. This should not
@@ -369,19 +368,7 @@ export function makePatch({
     }
 
     // maybe delete existing
-    if (!isRebasing && mode.type === "overwrite_last") {
-      const prevPatch = patchesToApplyBeforeDiffing[
-        patchesToApplyBeforeDiffing.length - 1
-      ] as PatchedPackageDetails | undefined
-      if (prevPatch) {
-        const patchFilePath = join(appPath, patchDir, prevPatch.patchFilename)
-        try {
-          unlinkSync(patchFilePath)
-        } catch (e) {
-          // noop
-        }
-      }
-    } else if (!isRebasing && existingPatches.length === 1) {
+    if (mode.type === "append" && !isRebasing && existingPatches.length === 1) {
       // if we are appending to an existing patch that doesn't have a sequence number let's rename it
       const prevPatch = existingPatches[0]
       if (prevPatch.sequenceNumber === undefined) {
@@ -445,6 +432,12 @@ export function makePatch({
             sequenceName: p.sequenceName,
             sequenceNumber: next++,
           })
+          console.log(
+            "Renaming",
+            chalk.bold(p.patchFilename),
+            "to",
+            chalk.bold(newName),
+          )
           const oldPath = join(appPath, patchDir, p.patchFilename)
           const newPath = join(appPath, patchDir, newName)
           renameSync(oldPath, newPath)
@@ -530,7 +523,7 @@ export function makePatch({
       }
     }
   } catch (e) {
-    console.error(e)
+    console.log(e)
     throw e
   } finally {
     tmpRepo.removeCallback()

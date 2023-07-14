@@ -2,6 +2,7 @@
 
 exports[`Test ignores-scripts-when-making-patch: 00: the patch creation output should look normal 1`] = `
 "SNAPSHOT: the patch creation output should look normal
+SNAPSHOT: there should be no stderr
 patch-package 0.0.0
 • Creating temporary folder
 • Installing naughty-package@1.0.0 with yarn
@@ -23,10 +24,5 @@ index 3784520..c4af29c 100755
  
  # if we're running in the main repo is ok
  if ls ../patch-package ;
-END SNAPSHOT"
-`;
-
-exports[`Test ignores-scripts-when-making-patch: 02: there should be no stderr 1`] = `
-"SNAPSHOT: there should be no stderr
 END SNAPSHOT"
 `;

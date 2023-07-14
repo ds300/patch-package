@@ -42,7 +42,7 @@ export function getPackageResolution({
       try {
         appLockFile = yaml.parse(lockFileString)
       } catch (e) {
-        console.error(e)
+        console.log(e)
         throw new Error("Could not parse yarn v2 lock file")
       }
     }
@@ -70,7 +70,7 @@ export function getPackageResolution({
     }
 
     if (new Set(resolutions).size !== 1) {
-      console.warn(
+      console.log(
         `Ambigious lockfile entries for ${packageDetails.pathSpecifier}. Using version ${installedVersion}`,
       )
       return installedVersion
@@ -125,7 +125,7 @@ export function getPackageResolution({
 if (require.main === module) {
   const packageDetails = getPatchDetailsFromCliString(process.argv[2])
   if (!packageDetails) {
-    console.error(`Can't find package ${process.argv[2]}`)
+    console.log(`Can't find package ${process.argv[2]}`)
     process.exit(1)
   }
   console.log(

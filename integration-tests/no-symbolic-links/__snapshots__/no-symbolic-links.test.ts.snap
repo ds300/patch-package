@@ -2,6 +2,10 @@
 
 exports[`Test no-symbolic-links: 00: patch-package fails to create a patch when there are symbolic links 1`] = `
 "SNAPSHOT: patch-package fails to create a patch when there are symbolic links
+patch-package 0.0.0
+• Creating temporary folder
+• Installing left-pad@1.3.0 with yarn
+• Diffing your files with clean files
 
 ⛔️ ERROR
 

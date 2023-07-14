@@ -2,6 +2,9 @@
 
 exports[`Test error-on-warn: 00: at dev time patch-package warns but returns 0 1`] = `
 "SNAPSHOT: at dev time patch-package warns but returns 0
+patch-package 0.0.0
+Applying patches...
+left-pad@1.1.2 ✔
 
 Warning: patch-package detected a patch file version mismatch
 

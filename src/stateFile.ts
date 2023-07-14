@@ -32,7 +32,7 @@ export function getPatchApplicationState(
     return null
   }
   if (state.version !== version) {
-    console.error(
+    console.log(
       `You upgraded patch-package and need to fully reinstall node_modules to continue.`,
     )
     process.exit(1)

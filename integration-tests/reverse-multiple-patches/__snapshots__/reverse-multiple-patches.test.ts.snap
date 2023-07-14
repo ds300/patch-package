@@ -36,6 +36,21 @@ patch-package 0.0.0
 Applying patches...
 left-pad@1.3.0 (1 hello) ✔
 left-pad@1.3.0 (2 world) ✔
+
+⛔ ERROR
+
+Failed to apply patch file left-pad+1.3.0+003+goodbye.patch.
+
+If this patch file is no longer useful, delete it and run
+
+  patch-package
+  
+Otherwise you should open node_modules/left-pad, manually apply the changes from the patch file, and run
+
+  patch-package left-pad
+
+to update the patch file.
+
 reverse all but broken
 patch-package 0.0.0
 Applying patches...

@@ -66,7 +66,7 @@ export const executeEffects = (
             (!isExecutable(eff.newMode) && !isExecutable(currentMode))) &&
           dryRun
         ) {
-          console.warn(
+          console.log(
             `Mode change is not required for file ${humanReadable(eff.path)}`,
           )
         }

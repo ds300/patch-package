@@ -49,6 +49,7 @@ patch-package 0.0.0
 • Diffing your files with clean files
 ✔ Created file patches/left-pad+1.3.0+003+some-stuff.patch
 
+Renaming left-pad+1.3.0+003+goodbye.patch to left-pad+1.3.0+004+goodbye.patch
 Fast forwarding...
   ✔ left-pad+1.3.0+004+goodbye.patch
 ls patches

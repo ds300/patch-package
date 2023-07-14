@@ -16,12 +16,12 @@ echo "END SNAPSHOT"
 echo "create fake-package+3.0.0.patch"
 cp patches/slash+3.0.0.patch patches/fake-package+3.0.0.patch
 
-(>&2 echo "SNAPSHOT: patch-package fails to find fake-package")
+echo "SNAPSHOT: patch-package fails to find fake-package"
 if patch-package
 then
   exit 1
 fi
-(>&2 echo "END SNAPSHOT")
+echo "END SNAPSHOT"
 
 echo "rename fake-package patch file to .dev.patch"
 mv patches/fake-package+3.0.0.patch patches/fake-package+3.0.0.dev.patch

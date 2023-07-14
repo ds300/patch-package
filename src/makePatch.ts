@@ -471,14 +471,10 @@ export function makePatch({
     // if any patches come after this one we just made, we should reapply them
     let didFailWhileFinishingRebase = false
     if (isRebasing) {
-      const previouslyUnappliedPatches = existingPatches.slice(
-        // if we overwrote a previously failing patch we should not include that in here
-        previouslyAppliedPatches!.length +
-          (mode.type === "overwrite_last" &&
-          !state?.patches[state.patches.length - 1].didApply
-            ? 1
-            : 0),
-      )
+      const currentPatches = getGroupedPatches(join(appPath, patchDir))
+        .pathSpecifierToPatchFiles[packageDetails.pathSpecifier]
+
+      const previouslyUnappliedPatches = currentPatches.slice(nextState.length)
       if (previouslyUnappliedPatches.length) {
         console.log(`Fast forwarding...`)
         for (const patch of previouslyUnappliedPatches) {

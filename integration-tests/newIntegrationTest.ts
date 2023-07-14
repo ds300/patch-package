@@ -30,7 +30,7 @@ fs.writeFileSync(
 `,
 )
 
-spawnSafeSync("yarn", [], { cwd: testDir })
+spawnSafeSync("npm", ["i"], { cwd: testDir })
 
 // create shell script boilerplate
 fs.writeFileSync(

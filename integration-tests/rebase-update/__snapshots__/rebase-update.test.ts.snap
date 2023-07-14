@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test rebase-update: 00: update the second patch and fast forward to the end 1`] = `
+"SNAPSHOT: update the second patch and fast forward to the end
+patch-package 0.0.0
+• Creating temporary folder
+• Installing left-pad@1.3.0 with npm
+• Diffing your files with clean files
+✔ Created file patches/left-pad+1.3.0+002+world.patch
+
+Fast forwarding...
+  ✔ left-pad+1.3.0+003+goodbye.patch
+ls patches
+left-pad+1.3.0+001+hello.patch
+left-pad+1.3.0+002+world.patch
+left-pad+1.3.0+003+goodbye.patch
+END SNAPSHOT"
+`;
+
+exports[`Test rebase-update: 01: the state file should show three patches applied and isRebasing: false 1`] = `
+"SNAPSHOT: the state file should show three patches applied and isRebasing: false
+{
+    \\"isRebasing\\": false,
+    \\"patches\\": [
+        {
+            \\"didApply\\": true,
+            \\"patchContentHash\\": \\"404c604ed830db6a0605f86cb9165ced136848f70986b23bf877bcf38968c1c9\\",
+            \\"patchFilename\\": \\"left-pad+1.3.0+001+hello.patch\\"
+        },
+        {
+            \\"didApply\\": true,
+            \\"patchContentHash\\": \\"62e558409525a1e09ede02c3ec23a6ce784ba23ce62b813a9b5db44b0a10ea18\\",
+            \\"patchFilename\\": \\"left-pad+1.3.0+002+world.patch\\"
+        },
+        {
+            \\"didApply\\": true,
+            \\"patchContentHash\\": \\"a0e432bbacdaaf527665fdc224772280cd69e994db738b2c6ac422bc16eda53e\\",
+            \\"patchFilename\\": \\"left-pad+1.3.0+003+goodbye.patch\\"
+        }
+    ],
+    \\"version\\": 1
+}END SNAPSHOT"
+`;
+
+exports[`Test rebase-update: 02: The patch file was updated with the new bits 1`] = `
+"SNAPSHOT: The patch file was updated with the new bits
+diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
+index 1a2ec5f..8b88742 100644
+--- a/node_modules/left-pad/index.js
++++ b/node_modules/left-pad/index.js
+@@ -3,7 +3,7 @@
+      * and/or modify it under the terms of the Do What The Fuck You Want
+      * To Public License, Version 2, as published by Sam Hocevar. See
+      * http://www.wtfpl.net/ for more details. */
+-'use hello';
++'use world';
+ module.exports = leftPad;
+ 
+ var cache = [
+@@ -50,3 +50,4 @@ function leftPad (str, len, ch) {
+   // pad \`str\`!
+   return pad + str;
+ }
++'some stuff'
+END SNAPSHOT"
+`;

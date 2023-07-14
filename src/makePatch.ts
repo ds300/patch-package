@@ -84,6 +84,7 @@ export function makePatch({
   // TODO: verify applied patch hashes
   // TODO: handle case for --rebase 0
   // TODO: handle empty diffs while rebasing
+  // TODO: handle case where rebase appending and the name is the same as the next one in the sequence
   if (
     mode.type === "overwrite_last" &&
     isRebasing &&

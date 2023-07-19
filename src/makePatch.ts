@@ -93,7 +93,6 @@ export function makePatch({
   }
 
   // TODO: verify applied patch hashes
-  // TODO: handle empty diffs while rebasing
   // TODO: handle case where rebase appending and the name is the same as the next one in the sequence
   if (
     mode.type === "overwrite_last" &&
@@ -323,6 +322,11 @@ export function makePatch({
         `⁉️  Not creating patch file for package '${packagePathSpecifier}'`,
       )
       console.log(`⁉️  There don't appear to be any changes.`)
+      if (isRebasing && mode.type === "overwrite_last") {
+        console.log(
+          "\n💡 To remove a patch file, delete it and then reinstall node_modules from scratch.",
+        )
+      }
       process.exit(1)
       return
     }

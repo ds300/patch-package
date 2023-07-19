@@ -1,5 +1,4 @@
 import chalk from "chalk"
-import { existsSync } from "fs"
 import { join, resolve } from "path"
 import { applyPatch } from "./applyPatches"
 import { hashFile } from "./hash"
@@ -8,6 +7,7 @@ import { getGroupedPatches } from "./patchFs"
 import {
   getPatchApplicationState,
   savePatchApplicationState,
+  verifyAppliedPatches,
 } from "./stateFile"
 
 export function rebase({
@@ -76,28 +76,7 @@ export function rebase({
     )
   }
   // check hashes
-  for (let i = 0; i < state.patches.length; i++) {
-    const patch = state.patches[i]
-    const fullPatchPath = join(
-      patchesDirectory,
-      packagePatches[i].patchFilename,
-    )
-    if (!existsSync(fullPatchPath)) {
-      console.log(
-        chalk.blueBright("Expected patch file"),
-        fullPatchPath,
-        "to exist but it is missing. Try completely reinstalling node_modules first.",
-      )
-      process.exit(1)
-    }
-    if (patch.patchContentHash !== hashFile(fullPatchPath)) {
-      console.log(
-        chalk.blueBright("Patch file"),
-        fullPatchPath,
-        "has changed since it was applied. Try completely reinstalling node_modules first.",
-      )
-    }
-  }
+  verifyAppliedPatches({ appPath, patchDir, state })
 
   if (targetPatch === "0") {
     // unapply all

@@ -40,6 +40,7 @@ import {
   PatchState,
   savePatchApplicationState,
   STATE_FILE_NAME,
+  verifyAppliedPatches,
 } from "./stateFile"
 
 function printNoPackageFoundError(
@@ -92,8 +93,10 @@ export function makePatch({
     mode = { type: "append", name: "initial" }
   }
 
-  // TODO: verify applied patch hashes
-  // TODO: handle case where rebase appending and the name is the same as the next one in the sequence
+  if (isRebasing && state) {
+    verifyAppliedPatches({ appPath, patchDir, state })
+  }
+
   if (
     mode.type === "overwrite_last" &&
     isRebasing &&
@@ -424,12 +427,8 @@ export function makePatch({
       // scoped package
       mkdirSync(dirname(patchPath))
     }
-    writeFileSync(patchPath, diffResult.stdout)
-    console.log(
-      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
-    )
 
-    // if we inserted a new patch into a sequence we may need to update the sequence numbers
+    // if we are inserting a new patch into a sequence we most likely need to update the sequence numbers
     if (isRebasing && mode.type === "append") {
       const patchesToNudge = existingPatches.slice(state!.patches.length)
       if (sequenceNumber === undefined) {
@@ -459,6 +458,11 @@ export function makePatch({
         }
       }
     }
+
+    writeFileSync(patchPath, diffResult.stdout)
+    console.log(
+      `${chalk.green("✔")} Created file ${join(patchDir, patchFileName)}\n`,
+    )
 
     const prevState: PatchState[] = patchesToApplyBeforeDiffing.map(
       (p): PatchState => ({

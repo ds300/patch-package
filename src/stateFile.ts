@@ -1,7 +1,9 @@
-import { readFileSync, unlinkSync, writeFileSync } from "fs"
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs"
 import { join } from "path"
 import { PackageDetails } from "./PackageDetails"
 import stringify from "json-stable-stringify"
+import { hashFile } from "./hash"
+import chalk from "chalk"
 export interface PatchState {
   patchFilename: string
   patchContentHash: string
@@ -67,5 +69,39 @@ export function clearPatchApplicationState(packageDetails: PackageDetails) {
     unlinkSync(fileName)
   } catch (e) {
     // noop
+  }
+}
+
+export function verifyAppliedPatches({
+  appPath,
+  patchDir,
+  state,
+}: {
+  appPath: string
+  patchDir: string
+  state: PatchApplicationState
+}) {
+  const patchesDirectory = join(appPath, patchDir)
+  for (const patch of state.patches) {
+    if (!patch.didApply) {
+      break
+    }
+    const fullPatchPath = join(patchesDirectory, patch.patchFilename)
+    if (!existsSync(fullPatchPath)) {
+      console.log(
+        chalk.blueBright("Expected patch file"),
+        fullPatchPath,
+        "to exist but it is missing. Try removing and reinstalling node_modules first.",
+      )
+      process.exit(1)
+    }
+    if (patch.patchContentHash !== hashFile(fullPatchPath)) {
+      console.log(
+        chalk.blueBright("Patch file"),
+        fullPatchPath,
+        "has changed since it was applied. Try removing and reinstalling node_modules first.",
+      )
+      process.exit(1)
+    }
   }
 }

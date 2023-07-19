@@ -81,8 +81,18 @@ export function makePatch({
 
   const state = getPatchApplicationState(packageDetails)
   const isRebasing = state?.isRebasing ?? false
+
+  // If we are rebasing and no patches have been applied, --append is the only valid option because
+  // there are no previous patches to overwrite/update
+  if (
+    isRebasing &&
+    state?.patches.filter((p) => p.didApply).length === 0 &&
+    mode.type === "overwrite_last"
+  ) {
+    mode = { type: "append", name: "initial" }
+  }
+
   // TODO: verify applied patch hashes
-  // TODO: handle case for --rebase 0
   // TODO: handle empty diffs while rebasing
   // TODO: handle case where rebase appending and the name is the same as the next one in the sequence
   if (
@@ -479,7 +489,7 @@ export function makePatch({
               patchDir,
               patchFilePath,
               reverse: false,
-              cwd: tmpRepo.name,
+              cwd: process.cwd(),
             })
           ) {
             didFailWhileFinishingRebase = true

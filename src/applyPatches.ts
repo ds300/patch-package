@@ -409,18 +409,15 @@ export function applyPatch({
     patchDetails,
     patchDir,
   })
+
+  const forward = reverse ? reversePatch(patch) : patch
   try {
-    executeEffects(reverse ? reversePatch(patch) : patch, {
-      dryRun: true,
-      cwd,
-    })
-    executeEffects(reverse ? reversePatch(patch) : patch, {
-      dryRun: false,
-      cwd,
-    })
+    executeEffects(forward, { dryRun: true, cwd })
+    executeEffects(forward, { dryRun: false, cwd })
   } catch (e) {
     try {
-      executeEffects(reverse ? patch : reversePatch(patch), {
+      const backward = reverse ? patch : reversePatch(patch)
+      executeEffects(backward, {
         dryRun: true,
         cwd,
       })

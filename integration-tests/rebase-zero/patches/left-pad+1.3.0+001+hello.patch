@@ -1,13 +1,13 @@
 diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
-index 5aa41be..5ee751b 100644
+index e90aec3..1a2ec5f 100644
 --- a/node_modules/left-pad/index.js
 +++ b/node_modules/left-pad/index.js
 @@ -3,7 +3,7 @@
       * and/or modify it under the terms of the Do What The Fuck You Want
       * To Public License, Version 2, as published by Sam Hocevar. See
       * http://www.wtfpl.net/ for more details. */
--'use world';
-+'goodbye world';
+-'use strict';
++'use hello';
  module.exports = leftPad;
  
  var cache = [

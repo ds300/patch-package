@@ -239,6 +239,6 @@ function unApplyPatches({
       )
       process.exit(1)
     }
-    console.log(chalk.green("Un-applied patch file"), patch.patchFilename)
+    console.log(chalk.cyan.bold("Un-applied"), patch.patchFilename)
   }
 }

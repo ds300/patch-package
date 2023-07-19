@@ -1,0 +1,12 @@
+{
+  "name": "rebase-zero",
+  "version": "1.0.0",
+  "description": "integration test for patch-package",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "left-pad": "^1.3.0",
+    "replace": "^1.2.2"
+  }
+}

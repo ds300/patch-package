@@ -7,7 +7,7 @@ index 5aa41be..5ee751b 100644
       * To Public License, Version 2, as published by Sam Hocevar. See
       * http://www.wtfpl.net/ for more details. */
 -'use world';
-+'goodye world';
++'goodbye world';
  module.exports = leftPad;
  
  var cache = [

@@ -49,6 +49,7 @@ export function makePatch({
   excludePaths,
   patchDir,
   createIssue,
+  ignoreNewFiles,
 }: {
   packagePathSpecifier: string
   appPath: string
@@ -57,6 +58,7 @@ export function makePatch({
   excludePaths: RegExp
   patchDir: string
   createIssue: boolean
+  ignoreNewFiles: boolean
 }) {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
@@ -205,8 +207,12 @@ export function makePatch({
     // also remove ignored files like before
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 
-    // stage all files
-    git("add", "-f", packageDetails.path)
+    // stage updated/all files
+    if (ignoreNewFiles) {
+      git("add", "-f", "-u", packageDetails.path)
+    } else {
+      git("add", "-f", packageDetails.path)
+    }
 
     // get diff of changes
     const diffResult = git(

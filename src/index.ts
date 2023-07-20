@@ -23,6 +23,7 @@ const argv = minimist(process.argv.slice(2), {
     "error-on-fail",
     "error-on-warn",
     "create-issue",
+    "ignore-new-files",
   ],
   string: ["patch-dir"],
 })
@@ -61,6 +62,7 @@ if (argv.version || argv.v) {
       argv["use-yarn"] ? "yarn" : null,
     )
     const createIssue = argv["create-issue"]
+    const ignoreNewFiles = argv["ignore-new-files"]
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({
         packagePathSpecifier,
@@ -70,6 +72,7 @@ if (argv.version || argv.v) {
         excludePaths,
         patchDir,
         createIssue,
+        ignoreNewFiles,
       })
     })
   } else {
@@ -192,5 +195,13 @@ Usage:
     ${chalk.bold("--patch-dir")}
 
         Specify the name for the directory in which to put the patch files.
+
+    ${chalk.bold("--ignore-new-files")}
+
+        By default, patch-package includes all files present in the package
+        folder. If you specify this option, it will only include changes to
+        files that already existed in the original package. That is useful for
+        example if you linked the patched package with 'npm link', so it also
+        contains source files or build artifacts.
 `)
 }

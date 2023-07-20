@@ -24,11 +24,11 @@ patch-package 0.0.0
 • Creating temporary folder
 • Installing left-pad@1.3.0 with npm
 • Diffing your files with clean files
-✔ Created file patches/left-pad+1.3.0+001+WhileOne.patch
-
 Renaming left-pad+1.3.0+001+hello.patch to left-pad+1.3.0+002+hello.patch
 Renaming left-pad+1.3.0+002+world.patch to left-pad+1.3.0+003+world.patch
 Renaming left-pad+1.3.0+003+goodbye.patch to left-pad+1.3.0+004+goodbye.patch
+✔ Created file patches/left-pad+1.3.0+001+WhileOne.patch
+
 Fast forwarding...
   ✔ left-pad+1.3.0+002+hello.patch
   ✔ left-pad+1.3.0+003+world.patch
@@ -144,12 +144,12 @@ patch-package 0.0.0
 • Creating temporary folder
 • Installing left-pad@1.3.0 with npm
 • Diffing your files with clean files
-✔ Created file patches/left-pad+1.3.0+001+initial.patch
-
 Renaming left-pad+1.3.0+001+WhileOne.patch to left-pad+1.3.0+002+WhileOne.patch
 Renaming left-pad+1.3.0+002+hello.patch to left-pad+1.3.0+003+hello.patch
 Renaming left-pad+1.3.0+003+world.patch to left-pad+1.3.0+004+world.patch
 Renaming left-pad+1.3.0+004+goodbye.patch to left-pad+1.3.0+005+goodbye.patch
+✔ Created file patches/left-pad+1.3.0+001+initial.patch
+
 Fast forwarding...
   ✔ left-pad+1.3.0+002+WhileOne.patch
   ✔ left-pad+1.3.0+003+hello.patch

@@ -214,7 +214,7 @@ export function makePatch({
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
-        // an implicit context which we havn't reproduced
+        // an implicit context which we haven't reproduced
         spawnSafeSync(
           `yarn`,
           ["install", "--ignore-engines", "--ignore-scripts"],
@@ -238,7 +238,7 @@ export function makePatch({
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
-        // an implicit context which we havn't reproduced
+        // an implicit context which we haven't reproduced
         spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
           cwd: tmpRepoNpmRoot,
           stdio: "ignore",
@@ -278,6 +278,7 @@ export function makePatch({
           patchFilePath: join(appPath, patchDir, patchDetails.patchFilename),
           reverse: false,
           cwd: tmpRepo.name,
+          bestEffort: false,
         })
       ) {
         // TODO: add better error message once --rebase is implemented
@@ -498,6 +499,7 @@ export function makePatch({
               patchFilePath,
               reverse: false,
               cwd: process.cwd(),
+              bestEffort: false,
             })
           ) {
             didFailWhileFinishingRebase = true
@@ -587,10 +589,14 @@ Failed to apply patch file ${chalk.bold(patchDetails.patchFilename)}.
 If this patch file is no longer useful, delete it and run
 
   ${chalk.bold(`patch-package`)}
-  
-Otherwise you should open ${
+
+To partially apply the patch (if possible) and output a log of errors to fix, run
+
+  ${chalk.bold(`patch-package --partial`)}
+
+After which you should make any required changes inside ${
     patchDetails.path
-  }, manually apply the changes from the patch file, and run
+  }, and finally run
 
   ${chalk.bold(`patch-package ${patchDetails.pathSpecifier}`)}
 

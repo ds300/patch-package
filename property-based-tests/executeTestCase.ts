@@ -132,7 +132,7 @@ export function executeTestCase(testCase: TestCase) {
     fs.setWorkingFiles({ ...testCase.cleanFiles })
     reportingFailures(() => {
       const effects = parsePatchFile(patchFileContents)
-      executeEffects(effects, { dryRun: false })
+      executeEffects(effects, { dryRun: false, bestEffort: false })
       expect(fs.getWorkingFiles()).toEqual(testCase.modifiedFiles)
     })
   })
@@ -141,7 +141,7 @@ export function executeTestCase(testCase: TestCase) {
     fs.setWorkingFiles({ ...testCase.modifiedFiles })
     reportingFailures(() => {
       const effects = reversePatch(parsePatchFile(patchFileContents))
-      executeEffects(effects, { dryRun: false })
+      executeEffects(effects, { dryRun: false, bestEffort: false })
       expect(fs.getWorkingFiles()).toEqual(testCase.cleanFiles)
     })
   })

@@ -1,4 +1,5 @@
 import chalk from "chalk"
+import { writeFileSync } from "fs"
 import { existsSync } from "fs-extra"
 import { posix } from "path"
 import semver from "semver"
@@ -96,12 +97,14 @@ export function applyPatchesForApp({
   patchDir,
   shouldExitWithError,
   shouldExitWithWarning,
+  bestEffort,
 }: {
   appPath: string
   reverse: boolean
   patchDir: string
   shouldExitWithError: boolean
   shouldExitWithWarning: boolean
+  bestEffort: boolean
 }): void {
   const patchesDirectory = join(appPath, patchDir)
   const groupedPatches = getGroupedPatches(patchesDirectory)
@@ -124,6 +127,7 @@ export function applyPatchesForApp({
       reverse,
       warnings,
       errors,
+      bestEffort,
     })
   }
 
@@ -165,6 +169,7 @@ export function applyPatchesForPackage({
   reverse,
   warnings,
   errors,
+  bestEffort,
 }: {
   patches: PatchedPackageDetails[]
   appPath: string
@@ -172,6 +177,7 @@ export function applyPatchesForPackage({
   reverse: boolean
   warnings: string[]
   errors: string[]
+  bestEffort: boolean
 }) {
   const pathSpecifier = patches[0].pathSpecifier
   const state = patches.length > 1 ? getPatchApplicationState(patches[0]) : null
@@ -257,6 +263,7 @@ export function applyPatchesForPackage({
           patchDetails,
           patchDir,
           cwd: process.cwd(),
+          bestEffort,
         })
       ) {
         appliedPatches.push(patchDetails)
@@ -397,12 +404,14 @@ export function applyPatch({
   patchDetails,
   patchDir,
   cwd,
+  bestEffort,
 }: {
   patchFilePath: string
   reverse: boolean
   patchDetails: PackageDetails
   patchDir: string
   cwd: string
+  bestEffort: boolean
 }): boolean {
   const patch = readPatch({
     patchFilePath,
@@ -412,14 +421,26 @@ export function applyPatch({
 
   const forward = reverse ? reversePatch(patch) : patch
   try {
-    executeEffects(forward, { dryRun: true, cwd })
-    executeEffects(forward, { dryRun: false, cwd })
+    if (!bestEffort) {
+      executeEffects(forward, { dryRun: true, cwd, bestEffort: false })
+    }
+    const errors: string[] | undefined = bestEffort ? [] : undefined
+    executeEffects(forward, { dryRun: false, cwd, bestEffort, errors })
+    if (errors?.length) {
+      console.log(
+        "Saving errors to",
+        chalk.cyan.bold("./patch-package-errors.log"),
+      )
+      writeFileSync("patch-package-errors.log", errors.join("\n\n"))
+      process.exit(0)
+    }
   } catch (e) {
     try {
       const backward = reverse ? patch : reversePatch(patch)
       executeEffects(backward, {
         dryRun: true,
         cwd,
+        bestEffort: false,
       })
     } catch (e) {
       return false

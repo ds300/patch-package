@@ -209,6 +209,7 @@ function unApplyPatches({
         patchDetails: patch,
         patchDir,
         cwd: process.cwd(),
+        bestEffort: false,
       })
     ) {
       console.log(

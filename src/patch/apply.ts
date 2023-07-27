@@ -5,7 +5,12 @@ import { assertNever } from "../assertNever"
 
 export const executeEffects = (
   effects: ParsedPatchFile,
-  { dryRun, cwd }: { dryRun: boolean; cwd?: string },
+  {
+    dryRun,
+    bestEffort,
+    errors,
+    cwd,
+  }: { dryRun: boolean; cwd?: string; errors?: string[]; bestEffort: boolean },
 ) => {
   const inCwd = (path: string) => (cwd ? join(cwd, path) : path)
   const humanReadable = (path: string) => relative(process.cwd(), inCwd(path))
@@ -21,7 +26,15 @@ export const executeEffects = (
           }
         } else {
           // TODO: integrity checks
-          fs.unlinkSync(inCwd(eff.path))
+          try {
+            fs.unlinkSync(inCwd(eff.path))
+          } catch (e) {
+            if (bestEffort) {
+              errors?.push(`Failed to delete file ${eff.path}`)
+            } else {
+              throw e
+            }
+          }
         }
         break
       case "rename":
@@ -34,7 +47,17 @@ export const executeEffects = (
             )
           }
         } else {
-          fs.moveSync(inCwd(eff.fromPath), inCwd(eff.toPath))
+          try {
+            fs.moveSync(inCwd(eff.fromPath), inCwd(eff.toPath))
+          } catch (e) {
+            if (bestEffort) {
+              errors?.push(
+                `Failed to rename file ${eff.fromPath} to ${eff.toPath}`,
+              )
+            } else {
+              throw e
+            }
+          }
         }
         break
       case "file creation":
@@ -52,12 +75,20 @@ export const executeEffects = (
               (eff.hunk.parts[0].noNewlineAtEndOfFile ? "" : "\n")
             : ""
           const path = inCwd(eff.path)
-          fs.ensureDirSync(dirname(path))
-          fs.writeFileSync(path, fileContents, { mode: eff.mode })
+          try {
+            fs.ensureDirSync(dirname(path))
+            fs.writeFileSync(path, fileContents, { mode: eff.mode })
+          } catch (e) {
+            if (bestEffort) {
+              errors?.push(`Failed to create new file ${eff.path}`)
+            } else {
+              throw e
+            }
+          }
         }
         break
       case "patch":
-        applyPatch(eff, { dryRun, cwd })
+        applyPatch(eff, { dryRun, cwd, bestEffort, errors })
         break
       case "mode change":
         const currentMode = fs.statSync(inCwd(eff.path)).mode
@@ -112,7 +143,12 @@ function linesAreEqual(a: string, b: string) {
 
 function applyPatch(
   { hunks, path }: FilePatch,
-  { dryRun, cwd }: { dryRun: boolean; cwd?: string },
+  {
+    dryRun,
+    cwd,
+    bestEffort,
+    errors,
+  }: { dryRun: boolean; cwd?: string; bestEffort: boolean; errors?: string[] },
 ): void {
   path = cwd ? resolve(cwd, path) : path
   // modifying the file in place
@@ -121,7 +157,7 @@ function applyPatch(
 
   const fileLines: string[] = fileContents.split(/\n/)
 
-  const result: Modificaiton[][] = []
+  const result: Modification[][] = []
 
   for (const hunk of hunks) {
     let fuzzingOffset = 0
@@ -136,12 +172,18 @@ function applyPatch(
         fuzzingOffset < 0 ? fuzzingOffset * -1 : fuzzingOffset * -1 - 1
 
       if (Math.abs(fuzzingOffset) > 20) {
-        throw new Error(
-          `Cant apply hunk ${hunks.indexOf(hunk)} for file ${relative(
-            process.cwd(),
-            path,
-          )}`,
-        )
+        const message = `Cannot apply hunk ${hunks.indexOf(
+          hunk,
+        )} for file ${relative(process.cwd(), path)}\n\`\`\`diff\n${
+          hunk.source
+        }\n\`\`\`\n`
+
+        if (bestEffort) {
+          errors?.push(message)
+          break
+        } else {
+          throw new Error(message)
+        }
       }
     }
   }
@@ -176,7 +218,15 @@ function applyPatch(
     }
   }
 
-  fs.writeFileSync(path, fileLines.join("\n"), { mode })
+  try {
+    fs.writeFileSync(path, fileLines.join("\n"), { mode })
+  } catch (e) {
+    if (bestEffort) {
+      errors?.push(`Failed to write file ${path}`)
+    } else {
+      throw e
+    }
+  }
 }
 
 interface Push {
@@ -193,14 +243,14 @@ interface Splice {
   linesToInsert: string[]
 }
 
-type Modificaiton = Push | Pop | Splice
+type Modification = Push | Pop | Splice
 
 function evaluateHunk(
   hunk: Hunk,
   fileLines: string[],
   fuzzingOffset: number,
-): Modificaiton[] | null {
-  const result: Modificaiton[] = []
+): Modification[] | null {
+  const result: Modification[] = []
   let contextIndex = hunk.header.original.start - 1 + fuzzingOffset
   // do bounds checks for index
   if (contextIndex < 0) {

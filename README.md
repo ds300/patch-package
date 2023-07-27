@@ -107,7 +107,8 @@ Then, update your hash key to include a checksum of that file:
 ```yaml
 - restore_cache:
     key:
-      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
+      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash"
+      }}
 ```
 
 As well as the save_cache
@@ -115,7 +116,8 @@ As well as the save_cache
 ```yaml
 - save_cache:
     key:
-      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
+      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash"
+      }}
     paths:
       - ./node_modules
 ```
@@ -341,6 +343,21 @@ To delete a sequenced patch file, just delete it, then remove and reinstall your
 If you deleted one of the patch files other than the last one, you don't need to
 update the sequence numbers in the successive patch file names, but you might
 want to do so to keep things tidy.
+
+#### Partially applying a broken patch file
+
+Normally patch application is atomic per patch file. i.e. if a patch file
+contains an error anywhere then none of the changes in the patch file will be
+applied and saved to disk.
+
+This can be problematic if you have a patch with many changes and you want to
+keep some of them and update others.
+
+In this case you can use the `--partial` option. Patch-package will apply as
+many of the changes as it can and then leave it to you to fix the rest.
+
+Any errors encountered will be written to a file `./patch-package-errors.log` to
+help you keep track of what needs fixing.
 
 ## Benefits of patching over forking
 

@@ -24,6 +24,7 @@ const argv = minimist(process.argv.slice(2), {
     "error-on-fail",
     "error-on-warn",
     "create-issue",
+    "partial",
     "",
   ],
   string: ["patch-dir", "append", "rebase"],
@@ -120,6 +121,7 @@ if (argv.version || argv.v) {
       patchDir,
       shouldExitWithError,
       shouldExitWithWarning,
+      bestEffort: argv.partial,
     })
   }
 }

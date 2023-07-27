@@ -1,39 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test include-exclude-paths: exclude all but flip 1`] = `
-"SNAPSHOT: exclude all but flip
-diff --git a/node_modules/lodash/flip.js b/node_modules/lodash/flip.js
-index c28dd78..584b377 100644
---- a/node_modules/lodash/flip.js
-+++ b/node_modules/lodash/flip.js
-@@ -25,4 +25,4 @@ function flip(func) {
-   return createWrap(func, WRAP_FLIP_FLAG);
- }
- 
--module.exports = flip;
-+module.patchPackage = flip;
+exports[`Test include-exclude-paths: 00: only __.js being deleted 1`] = `
+"SNAPSHOT: only __.js being deleted
+diff --git a/node_modules/lodash/fp/__.js b/node_modules/lodash/fp/__.js
+deleted file mode 100644
+index 4af98de..0000000
+--- a/node_modules/lodash/fp/__.js
++++ /dev/null
+@@ -1 +0,0 @@
+-module.exports = require('./placeholder');
 END SNAPSHOT"
 `;
 
-exports[`Test include-exclude-paths: modified package.json 1`] = `
-"SNAPSHOT: modified package.json
-diff --git a/node_modules/lodash/package.json b/node_modules/lodash/package.json
-index 028960d..7d346f3 100644
---- a/node_modules/lodash/package.json
-+++ b/node_modules/lodash/package.json
-@@ -1,7 +1,7 @@
- {
-   \\"name\\": \\"lodash\\",
-   \\"version\\": \\"4.17.4\\",
--  \\"description\\": \\"Lodash modular utilities.\\",
-+  \\"patchPackageRulezLol\\": \\"Lodash modular utilities.\\",
-   \\"keywords\\": \\"modules, stdlib, util\\",
-   \\"homepage\\": \\"https://lodash.com/\\",
-   \\"repository\\": \\"lodash/lodash\\",
-END SNAPSHOT"
-`;
-
-exports[`Test include-exclude-paths: no base files 1`] = `
+exports[`Test include-exclude-paths: 01: no base files 1`] = `
 "SNAPSHOT: no base files
 diff --git a/node_modules/lodash/flip.js b/node_modules/lodash/flip.js
 index c28dd78..584b377 100644
@@ -62,19 +41,7 @@ index 0000000..3b2aed8
 END SNAPSHOT"
 `;
 
-exports[`Test include-exclude-paths: only __.js being deleted 1`] = `
-"SNAPSHOT: only __.js being deleted
-diff --git a/node_modules/lodash/fp/__.js b/node_modules/lodash/fp/__.js
-deleted file mode 100644
-index 4af98de..0000000
---- a/node_modules/lodash/fp/__.js
-+++ /dev/null
-@@ -1 +0,0 @@
--module.exports = require('./placeholder');
-END SNAPSHOT"
-`;
-
-exports[`Test include-exclude-paths: only base files, no clone files 1`] = `
+exports[`Test include-exclude-paths: 02: only base files, no clone files 1`] = `
 "SNAPSHOT: only base files, no clone files
 diff --git a/node_modules/lodash/_baseClamp.js b/node_modules/lodash/_baseClamp.js
 index a1c5692..c52e38e 100644
@@ -86,5 +53,38 @@ index a1c5692..c52e38e 100644
  
 -module.exports = baseClamp;
 +module.patchPackage = baseClamp;
+END SNAPSHOT"
+`;
+
+exports[`Test include-exclude-paths: 03: exclude all but flip 1`] = `
+"SNAPSHOT: exclude all but flip
+diff --git a/node_modules/lodash/flip.js b/node_modules/lodash/flip.js
+index c28dd78..584b377 100644
+--- a/node_modules/lodash/flip.js
++++ b/node_modules/lodash/flip.js
+@@ -25,4 +25,4 @@ function flip(func) {
+   return createWrap(func, WRAP_FLIP_FLAG);
+ }
+ 
+-module.exports = flip;
++module.patchPackage = flip;
+END SNAPSHOT"
+`;
+
+exports[`Test include-exclude-paths: 04: modified package.json 1`] = `
+"SNAPSHOT: modified package.json
+diff --git a/node_modules/lodash/package.json b/node_modules/lodash/package.json
+index 028960d..7d346f3 100644
+--- a/node_modules/lodash/package.json
++++ b/node_modules/lodash/package.json
+@@ -1,7 +1,7 @@
+ {
+   \\"name\\": \\"lodash\\",
+   \\"version\\": \\"4.17.4\\",
+-  \\"description\\": \\"Lodash modular utilities.\\",
++  \\"patchPackageRulezLol\\": \\"Lodash modular utilities.\\",
+   \\"keywords\\": \\"modules, stdlib, util\\",
+   \\"homepage\\": \\"https://lodash.com/\\",
+   \\"repository\\": \\"lodash/lodash\\",
 END SNAPSHOT"
 `;

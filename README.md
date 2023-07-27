@@ -61,13 +61,15 @@ files.
 
 ### yarn v2+
 
-yarn 2+ have native support for patching dependencies via [`yarn patch`](https://yarnpkg.com/cli/patch).
-You do not need to use patch-package on these projects.
+yarn 2+ have native support for patching dependencies via
+[`yarn patch`](https://yarnpkg.com/cli/patch). You do not need to use
+patch-package on these projects.
 
 ### pnpm
 
-pnpm has native support for patching dependencies via [`pnpm patch`](https://pnpm.io/cli/patch).
-You do not need to use patch-package on these projects.
+pnpm has native support for patching dependencies via
+[`pnpm patch`](https://pnpm.io/cli/patch). You do not need to use patch-package
+on these projects.
 
 ### Heroku
 
@@ -88,9 +90,12 @@ details.
   Otherwise if you update a patch then the change may not be reflected on
   subsequent CI runs.
 
-  
 ### CircleCI
-Create a hash of your patches before loading/saving your cache. If using a Linux machine, run `md5sum patches/* > patches.hash`. If running on a macOS machine,  use `md5 patches/* > patches.hash`
+
+Create a hash of your patches before loading/saving your cache. If using a Linux
+machine, run `md5sum patches/* > patches.hash`. If running on a macOS machine,
+use `md5 patches/* > patches.hash`
+
 ```yaml
 - run:
     name: patch-package hash
@@ -98,19 +103,24 @@ Create a hash of your patches before loading/saving your cache. If using a Linux
 ```
 
 Then, update your hash key to include a checksum of that file:
+
 ```yaml
 - restore_cache:
-    key: app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
-```  
+    key:
+      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash"
+      }}
+```
 
 As well as the save_cache
+
 ```yaml
 - save_cache:
-    key: app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash" }}
+    key:
+      app-node_modules-v1-{{ checksum "yarn.lock" }}-{{ checksum "patches.hash"
+      }}
     paths:
       - ./node_modules
 ```
-
 
 ## Usage
 
@@ -247,6 +257,107 @@ to
 
 This will allow those patch files to be safely ignored when
 `NODE_ENV=production`.
+
+### Creating multiple patches for the same package
+
+_💡 This is an advanced feature and is not recommended unless you really, really
+need it._
+
+Let's say you have a patch for react-native called
+
+- `patches/react-native+0.72.0.patch`
+
+If you want to add another patch file to `react-native`, you can use the
+`--append` flag while supplying a name for the patch.
+
+Just make you changes inside `node_modules/react-native` then run e.g.
+
+    npx patch-package react-native --append 'fix-touchable-opacity'
+
+This will create a new patch file while renaming the old patch file so that you
+now have:
+
+- `patches/react-native+0.72.0+001+initial.patch`
+- `patches/react-native+0.72.0+002+fix-touchable-opacity.patch`
+
+The patches are ordered in a sequence, so that they can build on each other if
+necessary. **Think of these as commits in a git history**.
+
+#### Updating a sequenced patch file
+
+If the patch file is the last one in the sequence, you can just make your
+changes inside e.g. `node_modules/react-native` and then run
+
+    npx patch-package react-native
+
+This will update the last patch file in the sequence.
+
+If the patch file is not the last one in the sequence **you need to use the
+`--rebase` feature** to un-apply the succeeding patch files first.
+
+Using the example above, let's say you want to update the `001+initial` patch
+but leave the other patch alone. You can run
+
+    npx patch-package react-native --rebase patches/react-native+0.72.0+001+initial.patch
+
+This will undo the `002-fix-touchable-opacity` patch file. You can then make
+your changes and run
+
+    npx patch-package react-native
+
+to finish the rebase by updating the `001+initial` patch file and re-apply the
+`002-fix-touchable-opacity` patch file, leaving you with all patches applied and
+up-to-date.
+
+#### Inserting a new patch file in the middle of an existing sequence
+
+Using the above example, let's say you want to insert a new patch file between
+the `001+initial` and `002+fix-touchable-opacity` patch files. You can run
+
+    npx patch-package react-native --rebase patches/react-native+0.72.0+001+initial.patch
+
+This will undo the `002-fix-touchable-opacity` patch file. You can then make any
+changes you want to insert in a new patch file and run
+
+    npx patch-package react-native --append 'fix-console-warnings'
+
+This will create a new patch file while renaming any successive patches to
+maintain the sequence order, leaving you with
+
+- `patches/react-native+0.72.0+001+initial.patch`
+- `patches/react-native+0.72.0+002+fix-console-warnings.patch`
+- `patches/react-native+0.72.0+003+fix-touchable-opacity.patch`
+
+To insert a new patch file at the start of the sequence, you can run
+
+    npx patch-package react-native --rebase 0
+
+Which will un-apply all patch files in the sequence. Then follow the process
+above to create a new patch file numbered `001`.
+
+#### Deleting a sequenced patch file
+
+To delete a sequenced patch file, just delete it, then remove and reinstall your
+`node_modules` folder.
+
+If you deleted one of the patch files other than the last one, you don't need to
+update the sequence numbers in the successive patch file names, but you might
+want to do so to keep things tidy.
+
+#### Partially applying a broken patch file
+
+Normally patch application is atomic per patch file. i.e. if a patch file
+contains an error anywhere then none of the changes in the patch file will be
+applied and saved to disk.
+
+This can be problematic if you have a patch with many changes and you want to
+keep some of them and update others.
+
+In this case you can use the `--partial` option. Patch-package will apply as
+many of the changes as it can and then leave it to you to fix the rest.
+
+Any errors encountered will be written to a file `./patch-package-errors.log` to
+help you keep track of what needs fixing.
 
 ## Benefits of patching over forking
 

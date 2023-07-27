@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test happy-path-yarn: making patch 1`] = `
+exports[`Test happy-path-yarn: 00: making patch 1`] = `
 "SNAPSHOT: making patch
 patch-package 0.0.0
 • Creating temporary folder
@@ -15,7 +15,7 @@ patch-package 0.0.0
 END SNAPSHOT"
 `;
 
-exports[`Test happy-path-yarn: the patch looks like this 1`] = `
+exports[`Test happy-path-yarn: 01: the patch looks like this 1`] = `
 "SNAPSHOT: the patch looks like this
 diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
 index 26f73ff..b083802 100644

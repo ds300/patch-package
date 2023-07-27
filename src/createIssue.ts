@@ -29,7 +29,7 @@ function parseRepoString(
   return { org, repo, provider: "GitHub" }
 }
 
-function getPackageVCSDetails(packageDetails: PackageDetails) {
+export function getPackageVCSDetails(packageDetails: PackageDetails) {
   const repository = require(resolve(join(packageDetails.path, "package.json")))
     .repository as undefined | string | { url: string }
 
@@ -61,11 +61,11 @@ export function shouldRecommendIssue(
 }
 
 export function maybePrintIssueCreationPrompt(
+  vcs: ReturnType<typeof getPackageVCSDetails>,
   packageDetails: PackageDetails,
   packageManager: PackageManager,
 ) {
-  const vcs = getPackageVCSDetails(packageDetails)
-  if (vcs && shouldRecommendIssue(vcs)) {
+  if (vcs) {
     console.log(`💡 ${chalk.bold(packageDetails.name)} is on ${
       vcs.provider
     }! To draft an issue based on your patch run
@@ -89,7 +89,7 @@ export function openIssueCreationLink({
   const vcs = getPackageVCSDetails(packageDetails)
 
   if (!vcs) {
-    console.error(
+    console.log(
       `Error: Couldn't find VCS details for ${packageDetails.pathSpecifier}`,
     )
     process.exit(1)

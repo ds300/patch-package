@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test nested-scoped-packages: create the patch 1`] = `
+exports[`Test nested-scoped-packages: 00: create the patch 1`] = `
 "SNAPSHOT: create the patch
 patch-package 0.0.0
 • Creating temporary folder
@@ -11,7 +11,7 @@ patch-package 0.0.0
 END SNAPSHOT"
 `;
 
-exports[`Test nested-scoped-packages: run patch-package 1`] = `
+exports[`Test nested-scoped-packages: 01: run patch-package 1`] = `
 "SNAPSHOT: run patch-package
 patch-package 0.0.0
 Applying patches...

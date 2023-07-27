@@ -1,7 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test unexpected-patch-creation-failure: patch-package fails to parse a patch it created 1`] = `
+exports[`Test unexpected-patch-creation-failure: 00: patch-package fails to parse a patch it created 1`] = `
 "SNAPSHOT: patch-package fails to parse a patch it created
+patch-package 0.0.0
+• Creating temporary folder
+• Installing left-pad@1.3.0 with yarn
+• Diffing your files with clean files
 
 ⛔️ ERROR
         

@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test scoped-package: add.d.ts should contain patch-package 1`] = `
-"SNAPSHOT: add.d.ts should contain patch-package
-import { patch-package } from \\"./index\\";
-export = patch-package;
+exports[`Test scoped-package: 00: left-pad typings should contain patch-package 1`] = `
+"SNAPSHOT: left-pad typings should contain patch-package
+// Definitions by: Zlatko patch-package <https://github.com/Goldsmith42/>
 END SNAPSHOT"
 `;
 
-exports[`Test scoped-package: left-pad typings should contain patch-package 1`] = `
-"SNAPSHOT: left-pad typings should contain patch-package
-// Definitions by: Zlatko patch-package <https://github.com/Goldsmith42/>
+exports[`Test scoped-package: 01: add.d.ts should contain patch-package 1`] = `
+"SNAPSHOT: add.d.ts should contain patch-package
+import { patch-package } from \\"./index\\";
+export = patch-package;
 END SNAPSHOT"
 `;

@@ -1,17 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test collate-errors: left-pad, lodash, and zfs apply 1`] = `
+exports[`Test collate-errors: 00: left-pad, lodash, and zfs apply 1`] = `
 "SNAPSHOT: left-pad, lodash, and zfs apply
+SNAPSHOT: underscore does not apply, left-pad warns
 patch-package 0.0.0
 Applying patches...
 left-pad@1.1.1 ✔
 lodash@4.17.21 ✔
 zfs@1.3.0 ✔
-END SNAPSHOT"
-`;
-
-exports[`Test collate-errors: underscore does not apply, left-pad warns 1`] = `
-"SNAPSHOT: underscore does not apply, left-pad warns
 
 Warning: patch-package detected a patch file version mismatch
 

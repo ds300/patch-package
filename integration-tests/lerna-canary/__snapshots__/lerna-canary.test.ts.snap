@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test lerna-canary: making patch 1`] = `
+exports[`Test lerna-canary: 00: making patch 1`] = `
 "SNAPSHOT: making patch
 patch-package 0.0.0
 • Creating temporary folder
@@ -15,15 +15,7 @@ patch-package 0.0.0
 END SNAPSHOT"
 `;
 
-exports[`Test lerna-canary: the patch applies 1`] = `
-"SNAPSHOT: the patch applies
-patch-package 0.0.0
-Applying patches...
-@parcel/codeframe@2.0.0-nightly.137 ✔
-END SNAPSHOT"
-`;
-
-exports[`Test lerna-canary: the patch looks like this 1`] = `
+exports[`Test lerna-canary: 01: the patch looks like this 1`] = `
 "SNAPSHOT: the patch looks like this
 diff --git a/node_modules/@parcel/codeframe/src/codeframe.js b/node_modules/@parcel/codeframe/src/codeframe.js
 index 2bf2c1c..ef0695b 100644
@@ -38,5 +30,13 @@ index 2bf2c1c..ef0695b 100644
    code: string,
    highlights: Array<DiagnosticCodeHighlight>,
    // $FlowFixMe
+END SNAPSHOT"
+`;
+
+exports[`Test lerna-canary: 02: the patch applies 1`] = `
+"SNAPSHOT: the patch applies
+patch-package 0.0.0
+Applying patches...
+@parcel/codeframe@2.0.0-nightly.137 ✔
 END SNAPSHOT"
 `;

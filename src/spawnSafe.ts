@@ -22,9 +22,9 @@ export const spawnSafeSync = (
   if (result.error || result.status !== 0) {
     if (mergedOptions.logStdErrOnError) {
       if (result.stderr) {
-        console.error(result.stderr.toString())
+        console.log(result.stderr.toString())
       } else if (result.error) {
-        console.error(result.error)
+        console.log(result.error)
       }
     }
     if (mergedOptions.throwOnError) {

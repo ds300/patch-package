@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test fails-when-no-package: no package present failure 1`] = `
+exports[`Test fails-when-no-package: 00: no package present failure 1`] = `
 "SNAPSHOT: no package present failure
+patch-package 0.0.0
+Applying patches...
 Error: Patch file found for package left-pad which is not present at node_modules/left-pad
 ---
 patch-package finished with 1 error(s).

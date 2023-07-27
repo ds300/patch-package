@@ -13,32 +13,76 @@ export interface PatchedPackageDetails extends PackageDetails {
   version: string
   patchFilename: string
   isDevOnly: boolean
+  sequenceName?: string
+  sequenceNumber?: number
 }
 
-function parseNameAndVersion(
-  s: string,
+export function parseNameAndVersion(
+  str: string,
 ): {
-  name: string
+  packageName: string
   version?: string
+  sequenceName?: string
+  sequenceNumber?: number
 } | null {
-  const parts = s.split("+")
-  switch (parts.length) {
+  const parts = str
+    .split("+")
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (parts.length === 0) {
+    return null
+  }
+  if (parts.length === 1) {
+    return { packageName: str }
+  }
+  const versionIndex = parts.findIndex((part) =>
+    part.match(/^\d+\.\d+\.\d+.*$/),
+  )
+  if (versionIndex === -1) {
+    const [scope, name] = parts
+    return { packageName: `${scope}/${name}` }
+  }
+  const nameParts = parts.slice(0, versionIndex)
+  let packageName
+  switch (nameParts.length) {
+    case 0:
+      return null
+    case 1:
+      packageName = nameParts[0]
+      break
+    case 2:
+      const [scope, name] = nameParts
+      packageName = `${scope}/${name}`
+      break
+    default:
+      return null
+  }
+
+  const version = parts[versionIndex]
+  const sequenceParts = parts.slice(versionIndex + 1)
+  if (sequenceParts.length === 0) {
+    return { packageName, version }
+  }
+
+  // expect sequenceParts[0] to be a number, strip leading 0s
+  const sequenceNumber = parseInt(sequenceParts[0].replace(/^0+/, ""), 10)
+  if (isNaN(sequenceNumber)) {
+    return null
+  }
+  switch (sequenceParts.length) {
     case 1: {
-      return { name: parts[0] }
+      return { packageName, version, sequenceNumber }
     }
     case 2: {
-      const [nameOrScope, versionOrName] = parts
-      if (versionOrName.match(/^\d+/)) {
-        return {
-          name: nameOrScope,
-          version: versionOrName,
-        }
+      return {
+        packageName,
+        version,
+        sequenceName: sequenceParts[1],
+        sequenceNumber,
       }
-      return { name: `${nameOrScope}/${versionOrName}` }
     }
-    case 3: {
-      const [scope, name, version] = parts
-      return { name: `${scope}/${name}`, version }
+    default: {
+      return null
     }
   }
   return null
@@ -47,27 +91,6 @@ function parseNameAndVersion(
 export function getPackageDetailsFromPatchFilename(
   patchFilename: string,
 ): PatchedPackageDetails | null {
-  const legacyMatch = patchFilename.match(
-    /^([^+=]+?)(:|\+)(\d+\.\d+\.\d+.*?)(\.dev)?\.patch$/,
-  )
-
-  if (legacyMatch) {
-    const name = legacyMatch[1]
-    const version = legacyMatch[3]
-
-    return {
-      packageNames: [name],
-      pathSpecifier: name,
-      humanReadablePathSpecifier: name,
-      path: join("node_modules", name),
-      name,
-      version,
-      isNested: false,
-      patchFilename,
-      isDevOnly: patchFilename.endsWith(".dev.patch"),
-    }
-  }
-
   const parts = patchFilename
     .replace(/(\.dev)?\.patch$/, "")
     .split("++")
@@ -85,18 +108,22 @@ export function getPackageDetailsFromPatchFilename(
   }
 
   return {
-    name: lastPart.name,
+    name: lastPart.packageName,
     version: lastPart.version,
     path: join(
       "node_modules",
-      parts.map(({ name }) => name).join("/node_modules/"),
+      parts.map(({ packageName: name }) => name).join("/node_modules/"),
     ),
     patchFilename,
-    pathSpecifier: parts.map(({ name }) => name).join("/"),
-    humanReadablePathSpecifier: parts.map(({ name }) => name).join(" => "),
+    pathSpecifier: parts.map(({ packageName: name }) => name).join("/"),
+    humanReadablePathSpecifier: parts
+      .map(({ packageName: name }) => name)
+      .join(" => "),
     isNested: parts.length > 1,
-    packageNames: parts.map(({ name }) => name),
+    packageNames: parts.map(({ packageName: name }) => name),
     isDevOnly: patchFilename.endsWith(".dev.patch"),
+    sequenceName: lastPart.sequenceName,
+    sequenceNumber: lastPart.sequenceNumber,
   }
 }
 

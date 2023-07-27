@@ -1,6 +1,6 @@
 {
   "name": "patch-package",
-  "version": "7.0.2",
+  "version": "8.0.0",
   "description": "Fix broken node modules with no fuss",
   "main": "dist/index.js",
   "repository": "github:ds300/patch-package",
@@ -52,6 +52,7 @@
     "@types/cross-spawn": "^6.0.0",
     "@types/fs-extra": "^9.0.0",
     "@types/jest": "^24.0.11",
+    "@types/json-stable-stringify": "^1.0.34",
     "@types/minimist": "^1.2.2",
     "@types/node": "^12.0.0",
     "@types/rimraf": "^2.0.2",
@@ -75,6 +76,7 @@
     "cross-spawn": "^7.0.3",
     "find-yarn-workspace-root": "^2.0.0",
     "fs-extra": "^9.0.0",
+    "json-stable-stringify": "^1.0.2",
     "klaw-sync": "^6.0.0",
     "minimist": "^1.2.6",
     "open": "^7.4.2",

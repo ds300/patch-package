@@ -1,30 +1,28 @@
 import chalk from "chalk"
-import { getPatchFiles } from "./patchFs"
-import { executeEffects } from "./patch/apply"
+import { writeFileSync } from "fs"
 import { existsSync } from "fs-extra"
-import { join, resolve, relative } from "./path"
 import { posix } from "path"
-import {
-  getPackageDetailsFromPatchFilename,
-  PackageDetails,
-} from "./PackageDetails"
-import { reversePatch } from "./patch/reverse"
 import semver from "semver"
-import { readPatch } from "./patch/read"
+import { hashFile } from "./hash"
+import { logPatchSequenceError } from "./makePatch"
+import { PackageDetails, PatchedPackageDetails } from "./PackageDetails"
 import { packageIsDevDependency } from "./packageIsDevDependency"
+import { executeEffects } from "./patch/apply"
+import { readPatch } from "./patch/read"
+import { reversePatch } from "./patch/reverse"
+import { getGroupedPatches } from "./patchFs"
+import { join, relative } from "./path"
+import {
+  clearPatchApplicationState,
+  getPatchApplicationState,
+  PatchState,
+  savePatchApplicationState,
+} from "./stateFile"
 
 class PatchApplicationError extends Error {
   constructor(msg: string) {
     super(msg)
   }
-}
-
-function findPatchFiles(patchesDirectory: string): string[] {
-  if (!existsSync(patchesDirectory)) {
-    return []
-  }
-
-  return getPatchFiles(patchesDirectory) as string[]
 }
 
 function getInstalledPackageVersion({
@@ -79,49 +77,160 @@ function getInstalledPackageVersion({
   return result as string
 }
 
+function logPatchApplication(patchDetails: PatchedPackageDetails) {
+  const sequenceString =
+    patchDetails.sequenceNumber != null
+      ? ` (${patchDetails.sequenceNumber}${
+          patchDetails.sequenceName ? " " + patchDetails.sequenceName : ""
+        })`
+      : ""
+  console.log(
+    `${chalk.bold(patchDetails.pathSpecifier)}@${
+      patchDetails.version
+    }${sequenceString} ${chalk.green("✔")}`,
+  )
+}
+
 export function applyPatchesForApp({
   appPath,
   reverse,
   patchDir,
   shouldExitWithError,
   shouldExitWithWarning,
+  bestEffort,
 }: {
   appPath: string
   reverse: boolean
   patchDir: string
   shouldExitWithError: boolean
   shouldExitWithWarning: boolean
+  bestEffort: boolean
 }): void {
   const patchesDirectory = join(appPath, patchDir)
-  const files = findPatchFiles(patchesDirectory)
+  const groupedPatches = getGroupedPatches(patchesDirectory)
 
-  if (files.length === 0) {
-    console.error(chalk.blueBright("No patch files found"))
+  if (groupedPatches.numPatchFiles === 0) {
+    console.log(chalk.blueBright("No patch files found"))
     return
   }
 
   const errors: string[] = []
-  const warnings: string[] = []
+  const warnings: string[] = [...groupedPatches.warnings]
 
-  for (const filename of files) {
-    try {
-      const packageDetails = getPackageDetailsFromPatchFilename(filename)
+  for (const patches of Object.values(
+    groupedPatches.pathSpecifierToPatchFiles,
+  )) {
+    applyPatchesForPackage({
+      patches,
+      appPath,
+      patchDir,
+      reverse,
+      warnings,
+      errors,
+      bestEffort,
+    })
+  }
 
-      if (!packageDetails) {
-        warnings.push(
-          `Unrecognized patch file in patches directory ${filename}`,
-        )
-        continue
+  for (const warning of warnings) {
+    console.log(warning)
+  }
+  for (const error of errors) {
+    console.log(error)
+  }
+
+  const problemsSummary = []
+  if (warnings.length) {
+    problemsSummary.push(chalk.yellow(`${warnings.length} warning(s)`))
+  }
+  if (errors.length) {
+    problemsSummary.push(chalk.red(`${errors.length} error(s)`))
+  }
+
+  if (problemsSummary.length) {
+    console.log("---")
+    console.log("patch-package finished with", problemsSummary.join(", ") + ".")
+  }
+
+  if (errors.length && shouldExitWithError) {
+    process.exit(1)
+  }
+
+  if (warnings.length && shouldExitWithWarning) {
+    process.exit(1)
+  }
+
+  process.exit(0)
+}
+
+export function applyPatchesForPackage({
+  patches,
+  appPath,
+  patchDir,
+  reverse,
+  warnings,
+  errors,
+  bestEffort,
+}: {
+  patches: PatchedPackageDetails[]
+  appPath: string
+  patchDir: string
+  reverse: boolean
+  warnings: string[]
+  errors: string[]
+  bestEffort: boolean
+}) {
+  const pathSpecifier = patches[0].pathSpecifier
+  const state = patches.length > 1 ? getPatchApplicationState(patches[0]) : null
+  const unappliedPatches = patches.slice(0)
+  const appliedPatches: PatchedPackageDetails[] = []
+  // if there are multiple patches to apply, we can't rely on the reverse-patch-dry-run behavior to make this operation
+  // idempotent, so instead we need to check the state file to see whether we have already applied any of the patches
+  // todo: once this is battle tested we might want to use the same approach for single patches as well, but it's not biggie since the dry run thing is fast
+  if (unappliedPatches && state) {
+    for (let i = 0; i < state.patches.length; i++) {
+      const patchThatWasApplied = state.patches[i]
+      if (!patchThatWasApplied.didApply) {
+        break
       }
+      const patchToApply = unappliedPatches[0]
+      const currentPatchHash = hashFile(
+        join(appPath, patchDir, patchToApply.patchFilename),
+      )
+      if (patchThatWasApplied.patchContentHash === currentPatchHash) {
+        // this patch was applied we can skip it
+        appliedPatches.push(unappliedPatches.shift()!)
+      } else {
+        console.log(
+          chalk.red("Error:"),
+          `The patches for ${chalk.bold(pathSpecifier)} have changed.`,
+          `You should reinstall your node_modules folder to make sure the package is up to date`,
+        )
+        process.exit(1)
+      }
+    }
+  }
 
-      const {
-        name,
-        version,
-        path,
-        pathSpecifier,
-        isDevOnly,
-        patchFilename,
-      } = packageDetails
+  if (reverse && state) {
+    // if we are reversing the patches we need to make the unappliedPatches array
+    // be the reversed version of the appliedPatches array.
+    // The applied patches array should then be empty because it is used differently
+    // when outputting the state file.
+    unappliedPatches.length = 0
+    unappliedPatches.push(...appliedPatches)
+    unappliedPatches.reverse()
+    appliedPatches.length = 0
+  }
+  if (appliedPatches.length) {
+    // some patches have already been applied
+    appliedPatches.forEach(logPatchApplication)
+  }
+  if (!unappliedPatches.length) {
+    return
+  }
+  let failedPatch: PatchedPackageDetails | null = null
+  packageLoop: for (const patchDetails of unappliedPatches) {
+    try {
+      const { name, version, path, isDevOnly, patchFilename } = patchDetails
 
       const installedPackageVersion = getInstalledPackageVersion({
         appPath,
@@ -131,7 +240,10 @@ export function applyPatchesForApp({
           isDevOnly ||
           // check for direct-dependents in prod
           (process.env.NODE_ENV === "production" &&
-            packageIsDevDependency({ appPath, packageDetails })),
+            packageIsDevDependency({
+              appPath,
+              patchDetails,
+            })),
         patchFilename,
       })
       if (!installedPackageVersion) {
@@ -146,12 +258,15 @@ export function applyPatchesForApp({
 
       if (
         applyPatch({
-          patchFilePath: resolve(patchesDirectory, filename) as string,
+          patchFilePath: join(appPath, patchDir, patchFilename) as string,
           reverse,
-          packageDetails,
+          patchDetails,
           patchDir,
+          cwd: process.cwd(),
+          bestEffort,
         })
       ) {
+        appliedPatches.push(patchDetails)
         // yay patch was applied successfully
         // print warning if version mismatch
         if (installedPackageVersion !== version) {
@@ -165,92 +280,168 @@ export function applyPatchesForApp({
             }),
           )
         }
-        console.log(
-          `${chalk.bold(pathSpecifier)}@${version} ${chalk.green("✔")}`,
-        )
+        logPatchApplication(patchDetails)
+      } else if (patches.length > 1) {
+        logPatchSequenceError({ patchDetails })
+        // in case the package has multiple patches, we need to break out of this inner loop
+        // because we don't want to apply more patches on top of the broken state
+        failedPatch = patchDetails
+        break packageLoop
       } else if (installedPackageVersion === version) {
         // completely failed to apply patch
         // TODO: propagate useful error messages from patch application
         errors.push(
           createBrokenPatchFileError({
             packageName: name,
-            patchFileName: filename,
+            patchFilename,
             pathSpecifier,
             path,
           }),
         )
+        break packageLoop
       } else {
         errors.push(
-          createPatchApplictionFailureError({
+          createPatchApplicationFailureError({
             packageName: name,
             actualVersion: installedPackageVersion,
             originalVersion: version,
-            patchFileName: filename,
+            patchFilename,
             path,
             pathSpecifier,
           }),
         )
+        // in case the package has multiple patches, we need to break out of this inner loop
+        // because we don't want to apply more patches on top of the broken state
+        break packageLoop
       }
     } catch (error) {
       if (error instanceof PatchApplicationError) {
         errors.push(error.message)
       } else {
-        errors.push(createUnexpectedError({ filename, error }))
+        errors.push(
+          createUnexpectedError({
+            filename: patchDetails.patchFilename,
+            error: error as Error,
+          }),
+        )
       }
+      // in case the package has multiple patches, we need to break out of this inner loop
+      // because we don't want to apply more patches on top of the broken state
+      break packageLoop
     }
   }
 
-  for (const warning of warnings) {
-    console.warn(warning)
-  }
-  for (const error of errors) {
-    console.error(error)
-  }
+  if (patches.length > 1) {
+    if (reverse) {
+      if (!state) {
+        throw new Error("unexpected state: no state file found while reversing")
+      }
+      // if we removed all the patches that were previously applied we can delete the state file
+      if (appliedPatches.length === patches.length) {
+        clearPatchApplicationState(patches[0])
+      } else {
+        // We failed while reversing patches and some are still in the applied state.
+        // We need to update the state file to reflect that.
+        // appliedPatches is currently the patches that were successfully reversed, in the order they were reversed
+        // So we need to find the index of the last reversed patch in the original patches array
+        // and then remove all the patches after that. Sorry for the confusing code.
+        const lastReversedPatchIndex = patches.indexOf(
+          appliedPatches[appliedPatches.length - 1],
+        )
+        if (lastReversedPatchIndex === -1) {
+          throw new Error(
+            "unexpected state: failed to find last reversed patch in original patches array",
+          )
+        }
 
-  const problemsSummary = []
-  if (warnings.length) {
-    problemsSummary.push(chalk.yellow(`${warnings.length} warning(s)`))
-  }
-  if (errors.length) {
-    problemsSummary.push(chalk.red(`${errors.length} error(s)`))
-  }
+        savePatchApplicationState({
+          packageDetails: patches[0],
+          patches: patches.slice(0, lastReversedPatchIndex).map((patch) => ({
+            didApply: true,
+            patchContentHash: hashFile(
+              join(appPath, patchDir, patch.patchFilename),
+            ),
+            patchFilename: patch.patchFilename,
+          })),
+          isRebasing: false,
+        })
+      }
+    } else {
+      const nextState = appliedPatches.map(
+        (patch): PatchState => ({
+          didApply: true,
+          patchContentHash: hashFile(
+            join(appPath, patchDir, patch.patchFilename),
+          ),
+          patchFilename: patch.patchFilename,
+        }),
+      )
 
-  if (problemsSummary.length) {
-    console.error("---")
-    console.error(
-      "patch-package finished with",
-      problemsSummary.join(", ") + ".",
-    )
+      if (failedPatch) {
+        nextState.push({
+          didApply: false,
+          patchContentHash: hashFile(
+            join(appPath, patchDir, failedPatch.patchFilename),
+          ),
+          patchFilename: failedPatch.patchFilename,
+        })
+      }
+      savePatchApplicationState({
+        packageDetails: patches[0],
+        patches: nextState,
+        isRebasing: !!failedPatch,
+      })
+    }
+    if (failedPatch) {
+      process.exit(1)
+    }
   }
-
-  if (errors.length && shouldExitWithError) {
-    process.exit(1)
-  }
-
-  if (warnings.length && shouldExitWithWarning) {
-    process.exit(1)
-  }
-
-  process.exit(0)
 }
 
 export function applyPatch({
   patchFilePath,
   reverse,
-  packageDetails,
+  patchDetails,
   patchDir,
+  cwd,
+  bestEffort,
 }: {
   patchFilePath: string
   reverse: boolean
-  packageDetails: PackageDetails
+  patchDetails: PackageDetails
   patchDir: string
+  cwd: string
+  bestEffort: boolean
 }): boolean {
-  const patch = readPatch({ patchFilePath, packageDetails, patchDir })
+  const patch = readPatch({
+    patchFilePath,
+    patchDetails,
+    patchDir,
+  })
+
+  const forward = reverse ? reversePatch(patch) : patch
   try {
-    executeEffects(reverse ? reversePatch(patch) : patch, { dryRun: false })
+    if (!bestEffort) {
+      executeEffects(forward, { dryRun: true, cwd, bestEffort: false })
+    }
+    const errors: string[] | undefined = bestEffort ? [] : undefined
+    executeEffects(forward, { dryRun: false, cwd, bestEffort, errors })
+    if (errors?.length) {
+      console.log(
+        "Saving errors to",
+        chalk.cyan.bold("./patch-package-errors.log"),
+      )
+      writeFileSync("patch-package-errors.log", errors.join("\n\n"))
+      process.exit(0)
+    }
   } catch (e) {
     try {
-      executeEffects(reverse ? patch : reversePatch(patch), { dryRun: true })
+      const backward = reverse ? patch : reversePatch(patch)
+      executeEffects(backward, {
+        dryRun: true,
+        cwd,
+        bestEffort: false,
+      })
     } catch (e) {
       return false
     }
@@ -302,12 +493,12 @@ ${chalk.yellow("Warning:")} patch-package detected a patch file version mismatch
 
 function createBrokenPatchFileError({
   packageName,
-  patchFileName,
+  patchFilename,
   path,
   pathSpecifier,
 }: {
   packageName: string
-  patchFileName: string
+  patchFilename: string
   path: string
   pathSpecifier: string
 }) {
@@ -320,7 +511,7 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 
   This error was caused because patch-package cannot apply the following patch file:
 
-    patches/${patchFileName}
+    patches/${patchFilename}
 
   Try removing node_modules and trying again. If that doesn't work, maybe there was
   an accidental change made to the patch file? Try recreating it by manually
@@ -336,18 +527,18 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 `
 }
 
-function createPatchApplictionFailureError({
+function createPatchApplicationFailureError({
   packageName,
   actualVersion,
   originalVersion,
-  patchFileName,
+  patchFilename,
   path,
   pathSpecifier,
 }: {
   packageName: string
   actualVersion: string
   originalVersion: string
-  patchFileName: string
+  patchFilename: string
   path: string
   pathSpecifier: string
 }) {
@@ -376,7 +567,7 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
     patch-package ${pathSpecifier}
 
   Info:
-    Patch file: patches/${patchFileName}
+    Patch file: patches/${patchFilename}
     Patch was made for version: ${chalk.green.bold(originalVersion)}
     Installed version: ${chalk.red.bold(actualVersion)}
 `

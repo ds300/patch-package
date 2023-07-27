@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test delete-scripts: a patch file got produced 1`] = `
+exports[`Test delete-scripts: 00: a patch file got produced 1`] = `
 "SNAPSHOT: a patch file got produced
 diff --git a/node_modules/left-pad/index.js b/node_modules/left-pad/index.js
 index e90aec3..f2b8b0a 100644

@@ -17,8 +17,12 @@ Failed to apply patch file left-pad+1.3.0+003+goodbye.patch.
 If this patch file is no longer useful, delete it and run
 
   patch-package
-  
-Otherwise you should open node_modules/left-pad, manually apply the changes from the patch file, and run
+
+To partially apply the patch (if possible) and output a log of errors to fix, run
+
+  patch-package --partial
+
+After which you should make any required changes inside node_modules/left-pad, and finally run
 
   patch-package left-pad
 

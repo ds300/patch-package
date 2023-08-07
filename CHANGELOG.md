@@ -4,6 +4,10 @@
 
 - Add support for multiple patch files for a single package. #474
 
+### Breaking Changes
+
+- Removed support for some very old legacy filename format stuff (pre-2019).
+
 ## 7.0.2
 
 - Bump semver again (contribution from @rsanchez in #477)

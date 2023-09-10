@@ -77,7 +77,12 @@ export const detectPackageManager = (
   } else if (yarnLockExists) {
     return "yarn"
   } else if (bunLockbExists) {
-    return "bun"
+    if (overridePackageManager === "yarn") {
+      printNoYarnLockfileError()
+      process.exit(1)
+    } else {
+      return "bun"
+    }
   } else {
     printNoLockfilesError()
     process.exit(1)

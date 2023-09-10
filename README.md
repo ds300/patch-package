@@ -165,7 +165,8 @@ team.
 
 - `--use-bun`
 
-  Similar to --use-yarn, but for bun.
+  Similar to --use-yarn, but for bun. If both --use-yarn and --use-bun are
+  specified, --use-yarn takes precedence.
 
 - `--exclude <regexp>`
 

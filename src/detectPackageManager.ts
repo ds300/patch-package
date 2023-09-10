@@ -48,7 +48,7 @@ export const detectPackageManager = (
     join(appRootPath, "npm-shrinkwrap.json"),
   )
   const yarnLockExists = fs.existsSync(
-    join(findWorkspaceRoot() ?? appRootPath, "pnpm-lock.yaml"),
+    join(findWorkspaceRoot() ?? appRootPath, "yarn.lock"),
   )
   // Bun workspaces seem to work the same as yarn workspaces - https://bun.sh/docs/install/workspaces
   const bunLockbExists = fs.existsSync(

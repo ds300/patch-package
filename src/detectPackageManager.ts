@@ -29,7 +29,7 @@ function printSelectingDefaultMessage() {
   console.info(
     `${chalk.bold(
       "patch-package",
-    )}: you have both yarn.lock and package-lock.json
+    )}: you have multiple lockfiles, e.g. yarn.lock and package-lock.json
 Defaulting to using ${chalk.bold("npm")}
 You can override this setting by passing --use-yarn or deleting
 package-lock.json if you don't need it
@@ -54,7 +54,13 @@ export const detectPackageManager = (
   const bunLockbExists = fs.existsSync(
     join(findWorkspaceRoot() ?? appRootPath, "bun.lockb"),
   )
-  if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
+  if (
+    [
+      packageLockExists || shrinkWrapExists,
+      yarnLockExists,
+      bunLockbExists,
+    ].filter(Boolean).length > 1
+  ) {
     if (overridePackageManager) {
       return overridePackageManager
     } else {

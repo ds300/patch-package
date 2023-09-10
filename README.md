@@ -152,9 +152,9 @@ team.
 
 - `--use-yarn`
 
-  By default, patch-package checks whether you use npm or yarn based on which
-  lockfile you have. If you have both, it uses npm by default. Set this option
-  to override that default and always use yarn.
+  By default, patch-package checks whether you use npm, yarn or bun based on
+  which lockfile you have. If you have multiple lockfiles, it uses npm by
+  default. Set this option to override that default and always use yarn.
 
 - `--exclude <regexp>`
 

@@ -4,7 +4,7 @@ import chalk from "chalk"
 import process from "process"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 
-export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
+export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap" | "bun"
 
 function printNoYarnLockfileError() {
   console.log(`
@@ -17,9 +17,9 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 function printNoLockfilesError() {
   console.log(`
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
-    `No package-lock.json, npm-shrinkwrap.json, or yarn.lock file.
+    `No package-lock.json, npm-shrinkwrap.json, yarn.lock, or bun.lockb file.
 
-You must use either npm@>=5, yarn, or npm-shrinkwrap to manage this project's
+You must use either npm@>=5, yarn, npm-shrinkwrap, or bun to manage this project's
 dependencies.`,
   )}
 `)
@@ -47,7 +47,13 @@ export const detectPackageManager = (
   const shrinkWrapExists = fs.existsSync(
     join(appRootPath, "npm-shrinkwrap.json"),
   )
-  const yarnLockExists = fs.existsSync(join(appRootPath, "yarn.lock"))
+  const yarnLockExists = fs.existsSync(
+    join(findWorkspaceRoot() ?? appRootPath, "pnpm-lock.yaml"),
+  )
+  // Bun workspaces seem to work the same as yarn workspaces - https://bun.sh/docs/install/workspaces
+  const bunLockbExists = fs.existsSync(
+    join(findWorkspaceRoot() ?? appRootPath, "bun.lockb"),
+  )
   if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
     if (overridePackageManager) {
       return overridePackageManager
@@ -62,8 +68,10 @@ export const detectPackageManager = (
     } else {
       return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
     }
-  } else if (yarnLockExists || findWorkspaceRoot()) {
+  } else if (yarnLockExists) {
     return "yarn"
+  } else if (bunLockbExists) {
+    return "bun"
   } else {
     printNoLockfilesError()
     process.exit(1)

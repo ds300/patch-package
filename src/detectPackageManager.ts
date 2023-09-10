@@ -45,6 +45,18 @@ deleting the conflicting lockfile if you don't need it
   )
 }
 
+function printSelectingDefaultYarnMessage() {
+  console.info(
+    `${chalk.bold(
+      "patch-package",
+    )}: you have both yarn.lock and bun.lockb lockfiles
+Defaulting to using ${chalk.bold("yarn")}
+You can override this setting by passing --use-bun, or
+deleting yarn.lock if you don't need it
+`,
+  )
+}
+
 function checkForYarnOverride(overridePackageManager: PackageManager | null) {
   if (overridePackageManager === "yarn") {
     printNoYarnLockfileError()
@@ -85,6 +97,11 @@ export const detectPackageManager = (
   ) {
     if (overridePackageManager) {
       return overridePackageManager
+    }
+    if (!packageLockExists && !shrinkWrapExists) {
+      // The only case where we don't want to default to npm is when we have both yarn and bun lockfiles.
+      printSelectingDefaultYarnMessage()
+      return "yarn"
     }
     printSelectingDefaultMessage()
     return shrinkWrapExists ? "npm-shrinkwrap" : "npm"

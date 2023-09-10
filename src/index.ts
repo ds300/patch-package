@@ -200,7 +200,8 @@ Usage:
 
         By default, patch-package checks whether you use npm, yarn or bun based on
         which lockfile you have. If you have multiple lockfiles, it uses npm by
-        default. Set this option to override that default and always use yarn.
+        default (in cases where npm is not available, it will resort to yarn). Set 
+        this option to override that default and always use yarn.
         
     ${chalk.bold("--use-bun")}
     

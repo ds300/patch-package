@@ -163,6 +163,10 @@ team.
   which lockfile you have. If you have multiple lockfiles, it uses npm by
   default. Set this option to override that default and always use yarn.
 
+- `--use-bun`
+
+  Similar to --use-yarn, but for bun.
+
 - `--exclude <regexp>`
 
   Ignore paths matching the regexp when creating patch files. Paths are relative

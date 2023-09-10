@@ -84,7 +84,7 @@ if (argv.version || argv.v) {
     )
     const packageManager = detectPackageManager(
       appPath,
-      argv["use-yarn"] ? "yarn" : null,
+      argv["use-yarn"] ? "yarn" : argv["use-bun"] ? "bun" : null,
     )
     const createIssue = argv["create-issue"]
     packageNames.forEach((packagePathSpecifier: string) => {
@@ -198,9 +198,13 @@ Usage:
 
     ${chalk.bold("--use-yarn")}
 
-        By default, patch-package checks whether you use npm or yarn based on
-        which lockfile you have. If you have both, it uses npm by default.
-        Set this option to override that default and always use yarn.
+        By default, patch-package checks whether you use npm, yarn or bun based on
+        which lockfile you have. If you have multiple lockfiles, it uses npm by
+        default. Set this option to override that default and always use yarn.
+        
+    ${chalk.bold("--use-bun")}
+    
+        Similar to --use-yarn, but for bun.
 
     ${chalk.bold("--exclude <regexp>")}
 

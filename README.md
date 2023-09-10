@@ -65,6 +65,13 @@ yarn 2+ have native support for patching dependencies via
 [`yarn patch`](https://yarnpkg.com/cli/patch). You do not need to use
 patch-package on these projects.
 
+### bun
+
+    bun add patch-package
+
+You can use `--dev` if you don't need to run bun in production, e.g. if you're
+making a web frontend.
+
 ### pnpm
 
 pnpm has native support for patching dependencies via

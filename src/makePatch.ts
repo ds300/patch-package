@@ -524,10 +524,9 @@ export function makePatch({
 
     if (isRebasing || numPatchesAfterCreate > 1) {
       savePatchApplicationState({
-        isRebasing: didFailWhileFinishingRebase,
         packageDetails,
         patches: nextState,
-        // patchFileContents: diffResult.stdout.toString(),
+        isRebasing: didFailWhileFinishingRebase,
       })
     } else {
       clearPatchApplicationState(packageDetails)

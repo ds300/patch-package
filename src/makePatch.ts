@@ -423,7 +423,7 @@ export function makePatch({
       sequenceNumber,
     })
 
-    const patchPath = join(patchesDir, patchFileName)
+    const patchPath: string = join(patchesDir, patchFileName)
     if (!existsSync(dirname(patchPath))) {
       // scoped package
       mkdirSync(dirname(patchPath))
@@ -524,12 +524,10 @@ export function makePatch({
 
     if (isRebasing || numPatchesAfterCreate > 1) {
       savePatchApplicationState({
-        packageDetails,
-        patchFileContents: diffResult.stdout.toString(),
-        packageVersion,
-        patchPath,
-        patches: nextState,
         isRebasing: didFailWhileFinishingRebase,
+        packageDetails,
+        patches: nextState,
+        // patchFileContents: diffResult.stdout.toString(),
       })
     } else {
       clearPatchApplicationState(packageDetails)
@@ -541,6 +539,7 @@ export function makePatch({
           packageDetails,
           patchFileContents: diffResult.stdout.toString(),
           packageVersion,
+          patchPath,
         })
       } else {
         maybePrintIssueCreationPrompt(vcs, packageDetails, packageManager)

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Test create-issue: patching left-pad prompts to submit an issue 1`] = `
+exports[`Test create-issue: 00: patching left-pad prompts to submit an issue 1`] = `
 "SNAPSHOT: patching left-pad prompts to submit an issue
 patch-package 0.0.0
 • Creating temporary folder
@@ -15,7 +15,7 @@ patch-package 0.0.0
 END SNAPSHOT"
 `;
 
-exports[`Test create-issue: patching left-pad with --create-issue opens the url 1`] = `
+exports[`Test create-issue: 01: patching left-pad with --create-issue opens the url 1`] = `
 "SNAPSHOT: patching left-pad with --create-issue opens the url
 patch-package 0.0.0
 • Creating temporary folder

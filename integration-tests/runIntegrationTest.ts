@@ -3,6 +3,7 @@ import { join, resolve } from "../src/path"
 import * as tmp from "tmp"
 import { spawnSafeSync } from "../src/spawnSafe"
 import { resolveRelativeFileDependencies } from "../src/resolveRelativeFileDependencies"
+import rimraf from "rimraf"
 
 export const patchPackageTarballPath = resolve(
   fs
@@ -22,6 +23,9 @@ export function runIntegrationTest({
     fs.copySync(join(__dirname, projectName), tmpDir.name, {
       recursive: true,
     })
+
+    // remove node_modules folder when running locally, to avoid leaking state from source dir
+    rimraf.sync(join(tmpDir.name, "node_modules"))
 
     const packageJson = require(join(tmpDir.name, "package.json"))
     packageJson.dependencies = resolveRelativeFileDependencies(
@@ -55,7 +59,7 @@ export function runIntegrationTest({
     const output = result.stdout.toString() + "\n" + result.stderr.toString()
 
     if (result.status !== 0) {
-      console.error(output)
+      console.log(output)
     }
 
     it("should produce output", () => {
@@ -69,12 +73,16 @@ export function runIntegrationTest({
         expect(snapshots && snapshots.length).toBeTruthy()
       })
       if (snapshots) {
-        snapshots.forEach((snapshot) => {
+        snapshots.forEach((snapshot, i) => {
           const snapshotDescriptionMatch = snapshot.match(/SNAPSHOT: (.*)/)
           if (snapshotDescriptionMatch) {
-            it(snapshotDescriptionMatch[1], () => {
-              expect(snapshot).toMatchSnapshot()
-            })
+            it(
+              `${i.toString().padStart(2, "0")}: ` +
+                snapshotDescriptionMatch[1],
+              () => {
+                expect(snapshot).toMatchSnapshot()
+              },
+            )
           } else {
             throw new Error("bad snapshot format")
           }

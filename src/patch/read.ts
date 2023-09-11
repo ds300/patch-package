@@ -7,11 +7,11 @@ import { parsePatchFile, PatchFilePart } from "./parse"
 
 export function readPatch({
   patchFilePath,
-  packageDetails,
+  patchDetails,
   patchDir,
 }: {
   patchFilePath: string
-  packageDetails: PackageDetails
+  patchDetails: PackageDetails
   patchDir: string
 }): PatchFilePart[] {
   try {
@@ -33,17 +33,17 @@ export function readPatch({
         relativePatchFilePath.indexOf(patchDir),
       )}`,
     )
-    fixupSteps.push(`npx patch-package ${packageDetails.pathSpecifier}`)
+    fixupSteps.push(`npx patch-package ${patchDetails.pathSpecifier}`)
     if (patchBaseDir) {
       fixupSteps.push(
         `cd ${relative(resolve(process.cwd(), patchBaseDir), process.cwd())}`,
       )
     }
 
-    console.error(`
+    console.log(`
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
       `Failed to apply patch for package ${chalk.bold(
-        packageDetails.humanReadablePathSpecifier,
+        patchDetails.humanReadablePathSpecifier,
       )}`,
     )}
     

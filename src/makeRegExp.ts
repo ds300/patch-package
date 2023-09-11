@@ -12,7 +12,7 @@ export const makeRegExp = (
     try {
       return new RegExp(reString, caseSensitive ? "" : "i")
     } catch (_) {
-      console.error(`${chalk.red.bold("***ERROR***")}
+      console.log(`${chalk.red.bold("***ERROR***")}
 Invalid format for option --${name}
 
   Unable to convert the string ${JSON.stringify(

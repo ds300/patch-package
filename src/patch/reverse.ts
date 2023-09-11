@@ -51,6 +51,7 @@ function reverseHunk(hunk: Hunk): Hunk {
   const result: Hunk = {
     header,
     parts,
+    source: hunk.source,
   }
 
   verifyHunkIntegrity(result)

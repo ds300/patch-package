@@ -109,6 +109,7 @@ interface FileDeets {
 export interface Hunk {
   header: HunkHeader
   parts: PatchMutationPart[]
+  source: string
 }
 
 const emptyFilePatch = (): FileDeets => ({
@@ -130,6 +131,7 @@ const emptyFilePatch = (): FileDeets => ({
 const emptyHunk = (headerLine: string): Hunk => ({
   header: parseHunkHeaderLine(headerLine),
   parts: [],
+  source: "",
 })
 
 const hunkLinetypes: {
@@ -154,20 +156,22 @@ function parsePatchLines(
   let state: State = "parsing header"
   let currentHunk: Hunk | null = null
   let currentHunkMutationPart: PatchMutationPart | null = null
+  let hunkStartLineIndex = 0
 
-  function commitHunk() {
+  function commitHunk(i: number) {
     if (currentHunk) {
       if (currentHunkMutationPart) {
         currentHunk.parts.push(currentHunkMutationPart)
         currentHunkMutationPart = null
       }
+      currentHunk.source = lines.slice(hunkStartLineIndex, i).join("\n")
       currentFilePatch.hunks!.push(currentHunk)
       currentHunk = null
     }
   }
 
-  function commitFilePatch() {
-    commitHunk()
+  function commitFilePatch(i: number) {
+    commitHunk(i)
     result.push(currentFilePatch)
     currentFilePatch = emptyFilePatch()
   }
@@ -177,12 +181,13 @@ function parsePatchLines(
 
     if (state === "parsing header") {
       if (line.startsWith("@@")) {
+        hunkStartLineIndex = i
         state = "parsing hunks"
         currentFilePatch.hunks = []
         i--
       } else if (line.startsWith("diff --git ")) {
         if (currentFilePatch && currentFilePatch.diffLineFromPath) {
-          commitFilePatch()
+          commitFilePatch(i)
         }
         const match = line.match(/^diff --git a\/(.*?) b\/(.*?)\s*$/)
         if (!match) {
@@ -221,7 +226,7 @@ function parsePatchLines(
     } else {
       if (supportLegacyDiffs && line.startsWith("--- a/")) {
         state = "parsing header"
-        commitFilePatch()
+        commitFilePatch(i)
         i--
         continue
       }
@@ -229,13 +234,13 @@ function parsePatchLines(
       const lineType = hunkLinetypes[line[0]] || null
       switch (lineType) {
         case "header":
-          commitHunk()
+          commitHunk(i)
           currentHunk = emptyHunk(line)
           break
         case null:
           // unrecognized, bail out
           state = "parsing header"
-          commitFilePatch()
+          commitFilePatch(i)
           i--
           break
         case "pragma":
@@ -280,7 +285,7 @@ function parsePatchLines(
     }
   }
 
-  commitFilePatch()
+  commitFilePatch(lines.length)
 
   for (const { hunks } of result) {
     if (hunks) {

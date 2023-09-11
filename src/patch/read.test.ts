@@ -16,23 +16,25 @@ jest.mock("./parse", () => ({
   }),
 }))
 
-const error = jest.fn()
-console.error = error
+const log = jest.fn()
+console.log = log
 process.cwd = jest.fn(() => "/test/root")
 process.exit = jest.fn() as any
 
+const lastLog = () => log.mock.calls[log.mock.calls.length - 1][0]
+
 describe(readPatch, () => {
   beforeEach(() => {
-    error.mockReset()
+    log.mockReset()
   })
   it("throws an error for basic packages", () => {
     readPatch({
       patchFilePath: "/test/root/patches/test+1.2.3.patch",
-      packageDetails: getPackageDetailsFromPatchFilename("test+1.2.3.patch")!,
+      patchDetails: getPackageDetailsFromPatchFilename("test+1.2.3.patch")!,
       patchDir: "patches/",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package test
     
@@ -56,13 +58,13 @@ describe(readPatch, () => {
   it("throws an error for scoped packages", () => {
     readPatch({
       patchFilePath: "/test/root/patches/@david+test+1.2.3.patch",
-      packageDetails: getPackageDetailsFromPatchFilename(
+      patchDetails: getPackageDetailsFromPatchFilename(
         "@david+test+1.2.3.patch",
       )!,
       patchDir: "patches/",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test
     
@@ -87,11 +89,11 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: "patches/",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     
@@ -116,11 +118,11 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/.cruft/patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: ".cruft/patches",
     })
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     
@@ -145,13 +147,13 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/packages/banana/patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: "patches/",
     })
 
     expect(process.cwd).toHaveBeenCalled()
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     
@@ -178,13 +180,13 @@ describe(readPatch, () => {
     const patchFileName = "@david+test++react-native+1.2.3.patch"
     readPatch({
       patchFilePath: `/test/root/packages/banana/.patches/${patchFileName}`,
-      packageDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
+      patchDetails: getPackageDetailsFromPatchFilename(patchFileName)!,
       patchDir: ".patches/",
     })
 
     expect(process.cwd).toHaveBeenCalled()
 
-    expect(removeAnsiCodes(error.mock.calls[0][0])).toMatchInlineSnapshot(`
+    expect(removeAnsiCodes(lastLog())).toMatchInlineSnapshot(`
 "
 **ERROR** Failed to apply patch for package @david/test => react-native
     

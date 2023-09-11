@@ -4,15 +4,17 @@ import { existsSync } from "fs"
 
 export function packageIsDevDependency({
   appPath,
-  packageDetails,
+  patchDetails,
 }: {
   appPath: string
-  packageDetails: PatchedPackageDetails
+  patchDetails: PatchedPackageDetails
 }) {
   const packageJsonPath = join(appPath, "package.json")
   if (!existsSync(packageJsonPath)) {
     return false
   }
   const { devDependencies } = require(packageJsonPath)
-  return Boolean(devDependencies && devDependencies[packageDetails.packageNames[0]])
+  return Boolean(
+    devDependencies && devDependencies[patchDetails.packageNames[0]],
+  )
 }

@@ -9,12 +9,12 @@ echo "add random bits of whitespace"
 node add-whitespace.js
 
 echo "try to make patch file (should be empty)"
-(>&2 echo "SNAPSHOT: empty changeset when adding whitespace")
+echo "SNAPSHOT: empty changeset when adding whitespace"
 if patch-package alphabet
 then
   exit 1
 fi
-(>&2 echo "END SNAPSHOT")
+echo "END SNAPSHOT"
 
 echo "make a change to line a"
 node strip-whitespace.js

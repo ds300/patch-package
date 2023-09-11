@@ -1,6 +1,20 @@
 # Changelog
 
-## 7.0.0
+## 8.0.0
+
+- Add support for multiple patch files for a single package. #474
+
+### Breaking Changes
+
+- Removed support for some very old legacy filename format stuff (pre-2019).
+
+## 7.0.2
+
+- Bump semver again (contribution from @rsanchez in #477)
+
+## 7.0.1
+
+- Bump semver (contribution from @stianjensen in #466)
 
 ### Breaking changes
 

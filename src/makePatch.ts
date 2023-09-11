@@ -423,7 +423,7 @@ export function makePatch({
       sequenceNumber,
     })
 
-    const patchPath = join(patchesDir, patchFileName)
+    const patchPath: string = join(patchesDir, patchFileName)
     if (!existsSync(dirname(patchPath))) {
       // scoped package
       mkdirSync(dirname(patchPath))
@@ -538,6 +538,7 @@ export function makePatch({
           packageDetails,
           patchFileContents: diffResult.stdout.toString(),
           packageVersion,
+          patchPath,
         })
       } else {
         maybePrintIssueCreationPrompt(vcs, packageDetails, packageManager)

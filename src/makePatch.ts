@@ -191,9 +191,15 @@ export function makePatch({
     )
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    // copy .yarn directory as well to ensure installations work in yarn 2
+    // copy portions of .yarn directory as well to ensure installations work in yarn 2
     // tslint:disable-next-line:align
-    ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
+    ;[
+      ".npmrc",
+      ".yarnrc",
+      ".yarnrc.yml",
+      ".yarn/releases",
+      ".yarn/plugins",
+    ].forEach((rcFile) => {
       const rcPath = join(appPath, rcFile)
       if (existsSync(rcPath)) {
         copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
@@ -205,23 +211,30 @@ export function makePatch({
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with yarn`,
       )
+      const yarnArgs = ["install"]
+
+      // add --ignore-engines flag only for yarn 1
+      const yarnVersionCmd = spawnSafeSync(`yarn`, ["--version"], {
+        cwd: tmpRepoNpmRoot,
+        logStdErrOnError: false,
+      })
+      if (yarnVersionCmd.stdout.toString().startsWith("1.")) {
+        yarnArgs.push("--ignore-engines")
+      }
+
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
+        spawnSafeSync(`yarn`, yarnArgs, {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we haven't reproduced
-        spawnSafeSync(
-          `yarn`,
-          ["install", "--ignore-engines", "--ignore-scripts"],
-          {
-            cwd: tmpRepoNpmRoot,
-          },
-        )
+        spawnSafeSync(`yarn`, [...yarnArgs, "--ignore-scripts"], {
+          cwd: tmpRepoNpmRoot,
+        })
       }
     } else {
       console.info(
@@ -332,7 +345,6 @@ export function makePatch({
         )
       }
       process.exit(1)
-      return
     }
 
     try {
@@ -383,7 +395,6 @@ export function makePatch({
 `)
       }
       process.exit(1)
-      return
     }
 
     // maybe delete existing

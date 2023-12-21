@@ -30,7 +30,14 @@ export function getPackageResolution({
       throw new Error("Can't find yarn.lock file")
     }
     const lockFileString = readFileSync(lockFilePath).toString()
-    let appLockFile
+    let appLockFile: Record<
+      string,
+      {
+        version: string
+        resolution?: string
+        resolved?: string
+      }
+    >
     if (lockFileString.includes("yarn lockfile v1")) {
       const parsedYarnLockFile = parseYarnLockFile(lockFileString)
       if (parsedYarnLockFile.type !== "success") {
@@ -59,7 +66,6 @@ export function getPackageResolution({
     )
 
     const resolutions = entries.map(([_, v]) => {
-      // @ts-ignore
       return v.resolved
     })
 
@@ -71,7 +77,7 @@ export function getPackageResolution({
 
     if (new Set(resolutions).size !== 1) {
       console.log(
-        `Ambigious lockfile entries for ${packageDetails.pathSpecifier}. Using version ${installedVersion}`,
+        `Ambiguous lockfile entries for ${packageDetails.pathSpecifier}. Using version ${installedVersion}`,
       )
       return installedVersion
     }
@@ -80,18 +86,25 @@ export function getPackageResolution({
       return resolutions[0]
     }
 
-    const resolution = entries[0][0].slice(packageDetails.name.length + 1)
+    const packageName = packageDetails.name
+
+    const resolutionVersion = entries[0][1].version
+
+    // `@backstage/integration@npm:^1.5.0, @backstage/integration@npm:^1.7.0, @backstage/integration@npm:^1.7.2`
+    // ->
+    // `^1.5.0 ^1.7.0 ^1.7.2`
+    const resolution = entries[0][0]
+      .replace(new RegExp(packageName + "@", "g"), "")
+      .replace(/npm:/g, "")
+      .replace(/,/g, "")
 
     // resolve relative file path
     if (resolution.startsWith("file:.")) {
       return `file:${resolve(appPath, resolution.slice("file:".length))}`
     }
 
-    if (resolution.startsWith("npm:")) {
-      return resolution.replace("npm:", "")
-    }
-
-    return resolution
+    // add `resolutionVersion` to ensure correct version, `^1.0.0` could resolve latest `v1.3.0`, but `^1.0.0 1.2.1` won't
+    return resolutionVersion ? resolution + " " + resolutionVersion : resolution
   } else {
     const lockfile = require(join(
       appPath,

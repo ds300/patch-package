@@ -106,18 +106,40 @@ export function getPackageResolution({
         lockFileStack.push(child[name])
       }
     }
+
+    // Handle Workspaces
+    const rootPackageName = `node_modules/${packageDetails.packageNames[0]}`
+    const packages = lockfile.packages
+    if (packages && rootPackageName in packages) {
+      if (packages[rootPackageName].link) { // It's a workspace
+        const resolved = packages[rootPackageName].resolved
+        if (resolved) {
+          packageDetails.workspacePath = packageDetails.path.replace(rootPackageName, resolved)
+        }
+      }
+    }
+
     lockFileStack.reverse()
     const relevantStackEntry = lockFileStack.find((entry) => {
       if (entry.dependencies) {
         return entry.dependencies && packageDetails.name in entry.dependencies
       } else if (entry.packages) {
-        return entry.packages && packageDetails.path in entry.packages
+        return entry.packages && (
+          packageDetails.path in entry.packages ||
+          // @ts-ignore
+          packageDetails.workspacePath in entry.packages
+        )
       }
       throw new Error("Cannot find dependencies or packages in lockfile")
     })
-    const pkg = relevantStackEntry.dependencies
+
+    const pkg = relevantStackEntry?.dependencies
       ? relevantStackEntry.dependencies[packageDetails.name]
-      : relevantStackEntry.packages[packageDetails.path]
+      : relevantStackEntry?.packages[packageDetails.path]
+        ? relevantStackEntry.packages[packageDetails.path]
+        // @ts-ignore
+        : relevantStackEntry.packages[packageDetails.workspacePath]
+
     return pkg.resolved || pkg.version || pkg.from
   }
 }

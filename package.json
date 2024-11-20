@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "@types/app-root-path": "^1.2.4",
-    "@types/cross-spawn": "^6.0.0",
+    "@types/cross-spawn": "^6.0.6",
     "@types/fs-extra": "^9.0.0",
     "@types/jest": "^24.0.11",
     "@types/json-stable-stringify": "^1.0.34",
@@ -74,7 +74,7 @@
     "@yarnpkg/lockfile": "^1.1.0",
     "chalk": "^4.1.2",
     "ci-info": "^3.7.0",
-    "cross-spawn": "^7.0.3",
+    "cross-spawn": "^7.0.6",
     "find-yarn-workspace-root": "^2.0.0",
     "fs-extra": "^10.0.0",
     "json-stable-stringify": "^1.0.2",

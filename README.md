@@ -389,6 +389,7 @@ though:
 - Changes can also impact the behaviour of other untouched packages. It's
   normally obvious when this will happen, and often desired, but be careful
   nonetheless.
+- This package is trusted by many developers. Check the [usage trend of patch-package](https://npm-compare.com/patch-package#timeRange=FIVE_YEARS) for its popularity over the last five years.
 
 ## Why use postinstall-postinstall with Yarn?
 

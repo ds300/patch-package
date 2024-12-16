@@ -25,6 +25,7 @@ const argv = minimist(process.argv.slice(2), {
     "error-on-warn",
     "create-issue",
     "partial",
+    "text",
     "",
   ],
   string: ["patch-dir", "append", "rebase"],
@@ -86,6 +87,7 @@ if (argv.version || argv.v) {
       appPath,
       argv["use-yarn"] ? "yarn" : null,
     )
+    const enforceTextFileType = !!argv.text;
     const createIssue = argv["create-issue"]
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({
@@ -100,6 +102,7 @@ if (argv.version || argv.v) {
           "append" in argv
             ? { type: "append", name: argv.append || undefined }
             : { type: "overwrite_last" },
+        enforceTextFileType
       })
     })
   } else {

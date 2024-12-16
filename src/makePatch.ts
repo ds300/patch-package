@@ -23,6 +23,7 @@ import { PackageManager } from "./detectPackageManager"
 import { removeIgnoredFiles } from "./filterFiles"
 import { getPackageResolution } from "./getPackageResolution"
 import { getPackageVersion } from "./getPackageVersion"
+import { createGitDiffArguments } from "./gitDiffArguments"
 import { hashFile } from "./hash"
 import {
   getPatchDetailsFromCliString,
@@ -63,6 +64,7 @@ export function makePatch({
   patchDir,
   createIssue,
   mode,
+  enforceTextFileType,
 }: {
   packagePathSpecifier: string
   appPath: string
@@ -72,6 +74,7 @@ export function makePatch({
   patchDir: string
   createIssue: boolean
   mode: { type: "overwrite_last" } | { type: "append"; name?: string }
+  enforceTextFileType: boolean
 }) {
   const packageDetails = getPatchDetailsFromCliString(packagePathSpecifier)
 
@@ -310,16 +313,9 @@ export function makePatch({
     // stage all files
     git("add", "-f", packageDetails.path)
 
+    const gitDiffArgs = createGitDiffArguments(enforceTextFileType)
     // get diff of changes
-    const diffResult = git(
-      "diff",
-      "--cached",
-      "--no-color",
-      "--ignore-space-at-eol",
-      "--no-ext-diff",
-      "--src-prefix=a/",
-      "--dst-prefix=b/",
-    )
+    const diffResult = git(...gitDiffArgs)
 
     if (diffResult.stdout.length === 0) {
       console.log(

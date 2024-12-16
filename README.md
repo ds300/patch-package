@@ -178,6 +178,10 @@ team.
 
   Specify the name for the directory in which to put the patch files.
 
+- `--text`
+
+  Treat all files as text files. This is useful when git detects text files as binary ones and returns empty diffs.
+
 #### Nested packages
 
 If you are trying to patch a package at, e.g.

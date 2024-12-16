@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.1.0
+
+- Add support for the `--text` option to treat all files as text.
+
 ## 8.0.0
 
 - Add support for multiple patch files for a single package. #474

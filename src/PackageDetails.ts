@@ -4,6 +4,7 @@ export interface PackageDetails {
   humanReadablePathSpecifier: string
   pathSpecifier: string
   path: string
+  workspacePath?: string
   name: string
   isNested: boolean
   packageNames: string[]

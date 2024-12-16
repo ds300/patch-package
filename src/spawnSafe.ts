@@ -28,6 +28,10 @@ export const spawnSafeSync = (
       }
     }
     if (mergedOptions.throwOnError) {
+      if (!result.error) {
+        // Create an error object to capture a useful stack trace
+        result.error = new Error("command exited with non-zero status")
+      }
       throw result
     }
   }

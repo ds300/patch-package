@@ -270,15 +270,22 @@ export function applyPatchesForPackage({
         // yay patch was applied successfully
         // print warning if version mismatch
         if (installedPackageVersion !== version) {
-          warnings.push(
-            createVersionMismatchWarning({
-              packageName: name,
-              actualVersion: installedPackageVersion,
-              originalVersion: version,
-              pathSpecifier,
-              path,
-            }),
-          )
+          if (
+            version.includes("+") &&
+            version.split("+")[0] === installedPackageVersion
+          ) {
+            console.log("Multiple patch version matches for", pathSpecifier)
+          } else {
+            warnings.push(
+              createVersionMismatchWarning({
+                packageName: name,
+                actualVersion: installedPackageVersion,
+                originalVersion: version,
+                pathSpecifier,
+                path,
+              }),
+            )
+          }
         }
         logPatchApplication(patchDetails)
       } else if (patches.length > 1) {

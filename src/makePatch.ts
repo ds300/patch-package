@@ -279,7 +279,7 @@ export function makePatch({
           reverse: false,
           cwd: tmpRepo.name,
           bestEffort: false,
-        })
+        }).ok
       ) {
         // TODO: add better error message once --rebase is implemented
         console.log(
@@ -500,10 +500,10 @@ export function makePatch({
               reverse: false,
               cwd: process.cwd(),
               bestEffort: false,
-            })
+            }).ok
           ) {
             didFailWhileFinishingRebase = true
-            logPatchSequenceError({ patchDetails: patch })
+            console.log(createPatchSequenceError({ patchDetails: patch }))
             nextState.push({
               patchFilename: patch.patchFilename,
               didApply: false,
@@ -577,12 +577,12 @@ function createPatchFileName({
   return `${nameAndVersion}${num}${name}.patch`
 }
 
-export function logPatchSequenceError({
+export function createPatchSequenceError({
   patchDetails,
 }: {
   patchDetails: PatchedPackageDetails
 }) {
-  console.log(`
+  return `
 ${chalk.red.bold("⛔ ERROR")}
 
 Failed to apply patch file ${chalk.bold(patchDetails.patchFilename)}.
@@ -602,5 +602,5 @@ After which you should make any required changes inside ${
   ${chalk.bold(`patch-package ${patchDetails.pathSpecifier}`)}
 
 to update the patch file.
-`)
+`
 }

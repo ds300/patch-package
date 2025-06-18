@@ -229,6 +229,10 @@ Run `patch-package` without arguments to apply all patches in your project.
 
   Specify the name for the directory in which the patch files are located
 
+- `--expect-patch`
+
+  Prints error when no patches happen. Best combined with `--error-on-fail` (enabled by default on CI).
+
 #### Notes
 
 To apply patches individually, you may use `git`:

@@ -25,6 +25,7 @@ const argv = minimist(process.argv.slice(2), {
     "error-on-warn",
     "create-issue",
     "partial",
+    "expect-patch",
     "",
   ],
   string: ["patch-dir", "append", "rebase"],
@@ -114,11 +115,13 @@ if (argv.version || argv.v) {
       process.env.NODE_ENV === "test"
 
     const shouldExitWithWarning = !!argv["error-on-warn"]
+    const expectPatch = !!argv["expect-patch"]
 
     applyPatchesForApp({
       appPath,
       reverse,
       patchDir,
+      expectPatch,
       shouldExitWithError,
       shouldExitWithWarning,
       bestEffort: argv.partial,
@@ -177,6 +180,15 @@ Usage:
       This option was added to help people using CircleCI avoid an issue around caching
       and patch file updates (https://github.com/ds300/patch-package/issues/37),
       but might be useful in other contexts too.
+    
+    ${chalk.bold("--expect-patch")}
+        
+      Prints an error if no patch files were found.
+
+      This option works in tandem with ${chalk.bold(
+        "--error-on-fail",
+      )} (enabled by default in CI) to prevent
+      accidental skips due to patch folder was missed or ignored. For example during COPY in Dockerfile, or in .dockerignore.
       
 
   2. Creating patch files

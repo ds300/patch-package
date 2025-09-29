@@ -1,10 +1,9 @@
 import chalk from "chalk"
-import { writeFileSync } from "fs"
 import { existsSync } from "fs-extra"
 import { posix } from "path"
 import semver from "semver"
 import { hashFile } from "./hash"
-import { logPatchSequenceError } from "./makePatch"
+import { createPatchSequenceError } from "./makePatch"
 import { PackageDetails, PatchedPackageDetails } from "./PackageDetails"
 import { packageIsDevDependency } from "./packageIsDevDependency"
 import { executeEffects } from "./patch/apply"
@@ -12,6 +11,7 @@ import { readPatch } from "./patch/read"
 import { reversePatch } from "./patch/reverse"
 import { getGroupedPatches } from "./patchFs"
 import { join, relative } from "./path"
+import { Result } from "./Result"
 import {
   clearPatchApplicationState,
   getPatchApplicationState,
@@ -200,12 +200,12 @@ export function applyPatchesForPackage({
         // this patch was applied we can skip it
         appliedPatches.push(unappliedPatches.shift()!)
       } else {
-        console.log(
+        errors.push(
           chalk.red("Error:"),
           `The patches for ${chalk.bold(pathSpecifier)} have changed.`,
           `You should reinstall your node_modules folder to make sure the package is up to date`,
         )
-        process.exit(1)
+        return
       }
     }
   }
@@ -256,16 +256,15 @@ export function applyPatchesForPackage({
         continue
       }
 
-      if (
-        applyPatch({
-          patchFilePath: join(appPath, patchDir, patchFilename) as string,
-          reverse,
-          patchDetails,
-          patchDir,
-          cwd: process.cwd(),
-          bestEffort,
-        })
-      ) {
+      const res = applyPatch({
+        patchFilePath: join(appPath, patchDir, patchFilename) as string,
+        reverse,
+        patchDetails,
+        patchDir,
+        cwd: process.cwd(),
+        bestEffort,
+      })
+      if (res.ok) {
         appliedPatches.push(patchDetails)
         // yay patch was applied successfully
         // print warning if version mismatch
@@ -281,15 +280,12 @@ export function applyPatchesForPackage({
           )
         }
         logPatchApplication(patchDetails)
-      } else if (patches.length > 1) {
-        logPatchSequenceError({ patchDetails })
-        // in case the package has multiple patches, we need to break out of this inner loop
-        // because we don't want to apply more patches on top of the broken state
-        failedPatch = patchDetails
-        break packageLoop
+        continue
+      }
+      failedPatch = patchDetails
+      if (patches.length > 1) {
+        errors.push(createPatchSequenceError({ patchDetails }))
       } else if (installedPackageVersion === version) {
-        // completely failed to apply patch
-        // TODO: propagate useful error messages from patch application
         errors.push(
           createBrokenPatchFileError({
             packageName: name,
@@ -298,7 +294,6 @@ export function applyPatchesForPackage({
             path,
           }),
         )
-        break packageLoop
       } else {
         errors.push(
           createPatchApplicationFailureError({
@@ -310,9 +305,9 @@ export function applyPatchesForPackage({
             pathSpecifier,
           }),
         )
-        // in case the package has multiple patches, we need to break out of this inner loop
-        // because we don't want to apply more patches on top of the broken state
-        break packageLoop
+      }
+      if (res.error.length) {
+        errors.push(`\n\n${res.error.map((e) => `  - ${e}`).join("\n")}`)
       }
     } catch (error) {
       if (error instanceof PatchApplicationError) {
@@ -325,10 +320,10 @@ export function applyPatchesForPackage({
           }),
         )
       }
-      // in case the package has multiple patches, we need to break out of this inner loop
-      // because we don't want to apply more patches on top of the broken state
-      break packageLoop
     }
+
+    // if we got to the end here it means we failed to apply the patch
+    break packageLoop
   }
 
   if (patches.length > 1) {
@@ -392,9 +387,6 @@ export function applyPatchesForPackage({
         isRebasing: !!failedPatch,
       })
     }
-    if (failedPatch) {
-      process.exit(1)
-    }
   }
 }
 
@@ -412,7 +404,7 @@ export function applyPatch({
   patchDir: string
   cwd: string
   bestEffort: boolean
-}): boolean {
+}): Result<true, string[]> {
   const patch = readPatch({
     patchFilePath,
     patchDetails,
@@ -427,12 +419,7 @@ export function applyPatch({
     const errors: string[] | undefined = bestEffort ? [] : undefined
     executeEffects(forward, { dryRun: false, cwd, bestEffort, errors })
     if (errors?.length) {
-      console.log(
-        "Saving errors to",
-        chalk.cyan.bold("./patch-package-errors.log"),
-      )
-      writeFileSync("patch-package-errors.log", errors.join("\n\n"))
-      process.exit(0)
+      return Result.err(errors)
     }
   } catch (e) {
     try {
@@ -443,11 +430,11 @@ export function applyPatch({
         bestEffort: false,
       })
     } catch (e) {
-      return false
+      return Result.err(["Failed to apply patch file: " + patchFilePath])
     }
   }
 
-  return true
+  return Result.ok(true)
 }
 
 function createVersionMismatchWarning({

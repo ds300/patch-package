@@ -95,6 +95,7 @@ export function applyPatchesForApp({
   appPath,
   reverse,
   patchDir,
+  expectPatch,
   shouldExitWithError,
   shouldExitWithWarning,
   bestEffort,
@@ -102,6 +103,7 @@ export function applyPatchesForApp({
   appPath: string
   reverse: boolean
   patchDir: string
+  expectPatch: boolean
   shouldExitWithError: boolean
   shouldExitWithWarning: boolean
   bestEffort: boolean
@@ -109,13 +111,17 @@ export function applyPatchesForApp({
   const patchesDirectory = join(appPath, patchDir)
   const groupedPatches = getGroupedPatches(patchesDirectory)
 
-  if (groupedPatches.numPatchFiles === 0) {
-    console.log(chalk.blueBright("No patch files found"))
-    return
-  }
-
   const errors: string[] = []
   const warnings: string[] = [...groupedPatches.warnings]
+
+  if (groupedPatches.numPatchFiles === 0) {
+    if (expectPatch) {
+      errors.push("No patch files found")
+    } else {
+      console.log(chalk.blueBright("No patch files found"))
+      return
+    }
+  }
 
   for (const patches of Object.values(
     groupedPatches.pathSpecifierToPatchFiles,

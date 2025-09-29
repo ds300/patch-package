@@ -88,6 +88,9 @@
   "files": [
     "index.js",
     "dist/**/*.js",
+    "!dist/**/*.test.js",
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
     "CHANGELOG.md",
     "LICENSE",
     "patch-package-banner.png",

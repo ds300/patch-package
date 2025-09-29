@@ -65,6 +65,13 @@ yarn 2+ have native support for patching dependencies via
 [`yarn patch`](https://yarnpkg.com/cli/patch). You do not need to use
 patch-package on these projects.
 
+### bun
+
+    bun add patch-package
+
+You can use `--dev` if you don't need to run bun in production, e.g. if you're
+making a web frontend.
+
 ### pnpm
 
 pnpm has native support for patching dependencies via
@@ -152,9 +159,15 @@ team.
 
 - `--use-yarn`
 
-  By default, patch-package checks whether you use npm or yarn based on which
-  lockfile you have. If you have both, it uses npm by default. Set this option
-  to override that default and always use yarn.
+  By default, patch-package checks whether you use npm, yarn or bun based on
+  which lockfile you have. If you have multiple lockfiles, it uses npm by
+  default (in cases where npm is not available, it will resort to yarn). Set
+  this option to override that default and always use yarn.
+
+- `--use-bun`
+
+  Similar to --use-yarn, but for bun. If both --use-yarn and --use-bun are
+  specified, --use-yarn takes precedence.
 
 - `--exclude <regexp>`
 

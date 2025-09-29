@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.0.1
+
+- Update `tmp` to fix security alert. #578
+
 ## 8.0.0
 
 - Add support for multiple patch files for a single package. #474

@@ -172,6 +172,8 @@ export function makePatch({
     writeFileSync(
       tmpRepoPackageJsonPath,
       JSON.stringify({
+        // support `corepack` enabled without `.yarn/releases`
+        packageManager: appPackageJson.packageManager,
         dependencies: {
           [packageDetails.name]: getPackageResolution({
             packageDetails,
@@ -193,7 +195,14 @@ export function makePatch({
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
     // copy .yarn directory as well to ensure installations work in yarn 2
     // tslint:disable-next-line:align
-    ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
+    ;[
+      ".npmrc",
+      ".yarnrc",
+      ".yarnrc.yml",
+      // don't include the whole `.yarn` directory which could contain huge `cache`
+      ".yarn/plugins",
+      ".yarn/releases",
+    ].forEach((rcFile) => {
       const rcPath = join(appPath, rcFile)
       if (existsSync(rcPath)) {
         copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
@@ -205,10 +214,19 @@ export function makePatch({
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with yarn`,
       )
+      const yarnArgs = ["install"]
+      const yarnVersionCmd = spawnSafeSync(`yarn`, ["--version"], {
+        cwd: tmpRepoNpmRoot,
+        logStdErrOnError: false,
+      })
+      const isYarnV1 = yarnVersionCmd.stdout.toString().startsWith("1.")
+      if (isYarnV1) {
+        yarnArgs.push("--ignore-engines")
+      }
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
+        spawnSafeSync(`yarn`, yarnArgs, {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
         })
@@ -217,7 +235,7 @@ export function makePatch({
         // an implicit context which we haven't reproduced
         spawnSafeSync(
           `yarn`,
-          ["install", "--ignore-engines", "--ignore-scripts"],
+          [...yarnArgs, isYarnV1 ? "--ignore-scripts" : "--mode=skip-build"],
           {
             cwd: tmpRepoNpmRoot,
           },
@@ -338,9 +356,8 @@ export function makePatch({
     try {
       parsePatchFile(diffResult.stdout.toString())
     } catch (e) {
-      if (
-        (e as Error).message.includes("Unexpected file mode string: 120000")
-      ) {
+      const err = e as Error
+      if (err.message.includes("Unexpected file mode string: 120000")) {
         console.log(`
 ⛔️ ${chalk.red.bold("ERROR")}
 
@@ -358,7 +375,7 @@ export function makePatch({
           outPath,
           gzipSync(
             JSON.stringify({
-              error: { message: e.message, stack: e.stack },
+              error: { message: err.message, stack: err.stack },
               patch: diffResult.stdout.toString(),
             }),
           ),
@@ -545,7 +562,12 @@ export function makePatch({
       }
     }
   } catch (e) {
-    console.log(e)
+    const err = e as Error & {
+      stdout?: Buffer
+      stderr?: Buffer
+    }
+    // try to log more useful error message
+    console.log(err.stderr?.toString() || err.stdout?.toString() || e)
     throw e
   } finally {
     tmpRepo.removeCallback()

@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test expect-patch: 00: expect-patch flag prints an error message and by default does not fail 1`] = `
+"SNAPSHOT: expect-patch flag prints an error message and by default does not fail
+patch-package 0.0.0
+Applying patches...
+No patch files found
+---
+patch-package finished with 1 error(s).
+END SNAPSHOT"
+`;
+
+exports[`Test expect-patch: 01: expect-patch is silent when patches happen 1`] = `
+"SNAPSHOT: expect-patch is silent when patches happen
+patch-package 0.0.0
+Applying patches...
+left-pad@1.3.0 ✔
+END SNAPSHOT"
+`;
+
+exports[`Test expect-patch: 02: expect-patch flag produces error for error-on-fail flag 1`] = `
+"SNAPSHOT: expect-patch flag produces error for error-on-fail flag
+patch-package 0.0.0
+Applying patches...
+No patch files found
+---
+patch-package finished with 1 error(s).
+END SNAPSHOT"
+`;

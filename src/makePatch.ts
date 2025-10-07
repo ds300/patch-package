@@ -267,6 +267,9 @@ export function makePatch({
     git("config", "--local", "user.name", "patch-package")
     git("config", "--local", "user.email", "patch@pack.age")
 
+    // installed git could be configured to always sign, so override that just in case
+    git("config", "--local", "commit.gpgsign", "false")
+
     // remove ignored files first
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)
 

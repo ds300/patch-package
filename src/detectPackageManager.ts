@@ -4,7 +4,7 @@ import chalk from "chalk"
 import process from "process"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 
-export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
+export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap" | "bun"
 
 function printNoYarnLockfileError() {
   console.log(`
@@ -14,12 +14,20 @@ ${chalk.red.bold("**ERROR**")} ${chalk.red(
 `)
 }
 
+function printNoBunLockfileError() {
+  console.log(`
+${chalk.red.bold("**ERROR**")} ${chalk.red(
+    `The --use-bun option was specified but there is no bun.lockb file`,
+  )}
+`)
+}
+
 function printNoLockfilesError() {
   console.log(`
 ${chalk.red.bold("**ERROR**")} ${chalk.red(
-    `No package-lock.json, npm-shrinkwrap.json, or yarn.lock file.
+    `No package-lock.json, npm-shrinkwrap.json, yarn.lock, or bun.lockb file.
 
-You must use either npm@>=5, yarn, or npm-shrinkwrap to manage this project's
+You must use either npm@>=5, yarn, npm-shrinkwrap, or bun to manage this project's
 dependencies.`,
   )}
 `)
@@ -29,12 +37,38 @@ function printSelectingDefaultMessage() {
   console.info(
     `${chalk.bold(
       "patch-package",
-    )}: you have both yarn.lock and package-lock.json
+    )}: you have multiple lockfiles, e.g. yarn.lock and package-lock.json
 Defaulting to using ${chalk.bold("npm")}
-You can override this setting by passing --use-yarn or deleting
-package-lock.json if you don't need it
+You can override this setting by passing --use-yarn, --use-bun, or
+deleting the conflicting lockfile if you don't need it
 `,
   )
+}
+
+function printSelectingDefaultYarnMessage() {
+  console.info(
+    `${chalk.bold(
+      "patch-package",
+    )}: you have both yarn.lock and bun.lockb lockfiles
+Defaulting to using ${chalk.bold("yarn")}
+You can override this setting by passing --use-bun, or
+deleting yarn.lock if you don't need it
+`,
+  )
+}
+
+function checkForYarnOverride(overridePackageManager: PackageManager | null) {
+  if (overridePackageManager === "yarn") {
+    printNoYarnLockfileError()
+    process.exit(1)
+  }
+}
+
+function checkForBunOverride(overridePackageManager: PackageManager | null) {
+  if (overridePackageManager === "bun") {
+    printNoBunLockfileError()
+    process.exit(1)
+  }
 }
 
 export const detectPackageManager = (
@@ -47,23 +81,40 @@ export const detectPackageManager = (
   const shrinkWrapExists = fs.existsSync(
     join(appRootPath, "npm-shrinkwrap.json"),
   )
-  const yarnLockExists = fs.existsSync(join(appRootPath, "yarn.lock"))
-  if ((packageLockExists || shrinkWrapExists) && yarnLockExists) {
+  const yarnLockExists = fs.existsSync(
+    join(findWorkspaceRoot() ?? appRootPath, "yarn.lock"),
+  )
+  // Bun workspaces seem to work the same as yarn workspaces - https://bun.sh/docs/install/workspaces
+  const bunLockbExists = fs.existsSync(
+    join(findWorkspaceRoot() ?? appRootPath, "bun.lockb"),
+  )
+  if (
+    [
+      packageLockExists || shrinkWrapExists,
+      yarnLockExists,
+      bunLockbExists,
+    ].filter(Boolean).length > 1
+  ) {
     if (overridePackageManager) {
       return overridePackageManager
-    } else {
-      printSelectingDefaultMessage()
-      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
     }
+    if (!packageLockExists && !shrinkWrapExists) {
+      // The only case where we don't want to default to npm is when we have both yarn and bun lockfiles.
+      printSelectingDefaultYarnMessage()
+      return "yarn"
+    }
+    printSelectingDefaultMessage()
+    return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
   } else if (packageLockExists || shrinkWrapExists) {
-    if (overridePackageManager === "yarn") {
-      printNoYarnLockfileError()
-      process.exit(1)
-    } else {
-      return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
-    }
-  } else if (yarnLockExists || findWorkspaceRoot()) {
+    checkForYarnOverride(overridePackageManager)
+    checkForBunOverride(overridePackageManager)
+    return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
+  } else if (yarnLockExists) {
+    checkForBunOverride(overridePackageManager)
     return "yarn"
+  } else if (bunLockbExists) {
+    checkForYarnOverride(overridePackageManager)
+    return "bun"
   } else {
     printNoLockfilesError()
     process.exit(1)

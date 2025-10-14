@@ -60,7 +60,7 @@ export function getPackageResolution({
 
     const resolutions = entries.map(([_, v]) => {
       // @ts-ignore
-      return v.resolved
+      return v.resolved || v.version
     })
 
     if (resolutions.length === 0) {

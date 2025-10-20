@@ -62,7 +62,7 @@ function getInstalledPackageVersion({
 
   const { version } = require(join(packageDir, "package.json"))
   // normalize version for `npm ci`
-  const result = semver.valid(version)
+  const result = semver.valid(version, { loose: true })
   if (result === null) {
     throw new PatchApplicationError(
       `${chalk.red(

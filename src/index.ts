@@ -1,4 +1,4 @@
-import chalk from "chalk"
+import pc from "picocolors"
 import process from "process"
 import minimist from "minimist"
 
@@ -32,7 +32,7 @@ const argv = minimist(process.argv.slice(2), {
 const packageNames = argv._
 
 console.log(
-  chalk.bold("patch-package"),
+  pc.bold("patch-package"),
   // tslint:disable-next-line:no-var-requires
   require(join(__dirname, "../package.json")).version,
 )
@@ -49,7 +49,7 @@ if (argv.version || argv.v) {
   if ("rebase" in argv) {
     if (!argv.rebase) {
       console.log(
-        chalk.red(
+        pc.red(
           "You must specify a patch file name or number when rebasing patches",
         ),
       )
@@ -57,7 +57,7 @@ if (argv.version || argv.v) {
     }
     if (packageNames.length !== 1) {
       console.log(
-        chalk.red(
+        pc.red(
           "You must specify exactly one package name when rebasing patches",
         ),
       )
@@ -133,9 +133,9 @@ Usage:
   1. Patching packages
   ====================
 
-    ${chalk.bold("patch-package")}
+    ${pc.bold("patch-package")}
 
-  Without arguments, the ${chalk.bold(
+  Without arguments, the ${pc.bold(
     "patch-package",
   )} command will attempt to find and apply
   patch files to your project. It looks for files named like
@@ -144,11 +144,11 @@ Usage:
 
   Options:
 
-    ${chalk.bold("--patch-dir <dirname>")}
+    ${pc.bold("--patch-dir <dirname>")}
 
       Specify the name for the directory in which the patch files are located.
       
-    ${chalk.bold("--error-on-fail")}
+    ${pc.bold("--error-on-fail")}
     
       Forces patch-package to exit with code 1 after failing.
     
@@ -157,17 +157,17 @@ Usage:
       yarn.lock and package.json might get out of sync with node_modules,
       which can be very confusing.
       
-      --error-on-fail is ${chalk.bold("switched on")} by default on CI.
+      --error-on-fail is ${pc.bold("switched on")} by default on CI.
       
       See https://github.com/ds300/patch-package/issues/86 for background.
       
-    ${chalk.bold("--error-on-warn")}
+    ${pc.bold("--error-on-warn")}
     
       Forces patch-package to exit with code 1 after warning.
       
       See https://github.com/ds300/patch-package/issues/314 for background.
 
-    ${chalk.bold("--reverse")}
+    ${pc.bold("--reverse")}
         
       Un-applies all patches.
 
@@ -182,45 +182,43 @@ Usage:
   2. Creating patch files
   =======================
 
-    ${chalk.bold("patch-package")} <package-name>${chalk.italic(
-    "[ <package-name>]",
-  )}
+    ${pc.bold("patch-package")} <package-name>${pc.italic("[ <package-name>]")}
 
   When given package names as arguments, patch-package will create patch files
   based on any changes you've made to the versions installed by yarn/npm.
 
   Options:
   
-    ${chalk.bold("--create-issue")}
+    ${pc.bold("--create-issue")}
     
        For packages whose source is hosted on GitHub this option opens a web
        browser with a draft issue based on your diff.
 
-    ${chalk.bold("--use-yarn")}
+    ${pc.bold("--use-yarn")}
 
         By default, patch-package checks whether you use npm or yarn based on
         which lockfile you have. If you have both, it uses npm by default.
         Set this option to override that default and always use yarn.
 
-    ${chalk.bold("--exclude <regexp>")}
+    ${pc.bold("--exclude <regexp>")}
 
         Ignore paths matching the regexp when creating patch files.
         Paths are relative to the root dir of the package to be patched.
 
         Default: 'package\\.json$'
 
-    ${chalk.bold("--include <regexp>")}
+    ${pc.bold("--include <regexp>")}
 
         Only consider paths matching the regexp when creating patch files.
         Paths are relative to the root dir of the package to be patched.
 
         Default '.*'
 
-    ${chalk.bold("--case-sensitive-path-filtering")}
+    ${pc.bold("--case-sensitive-path-filtering")}
 
         Make regexps used in --include or --exclude filters case-sensitive.
     
-    ${chalk.bold("--patch-dir")}
+    ${pc.bold("--patch-dir")}
 
         Specify the name for the directory in which to put the patch files.
 `)

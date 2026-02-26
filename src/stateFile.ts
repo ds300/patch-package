@@ -3,7 +3,7 @@ import { join } from "path"
 import { PackageDetails } from "./PackageDetails"
 import stringify from "json-stable-stringify"
 import { hashFile } from "./hash"
-import chalk from "chalk"
+import pc from "picocolors"
 export interface PatchState {
   patchFilename: string
   patchContentHash: string
@@ -89,7 +89,7 @@ export function verifyAppliedPatches({
     const fullPatchPath = join(patchesDirectory, patch.patchFilename)
     if (!existsSync(fullPatchPath)) {
       console.log(
-        chalk.blueBright("Expected patch file"),
+        pc.blueBright("Expected patch file"),
         fullPatchPath,
         "to exist but it is missing. Try removing and reinstalling node_modules first.",
       )
@@ -97,7 +97,7 @@ export function verifyAppliedPatches({
     }
     if (patch.patchContentHash !== hashFile(fullPatchPath)) {
       console.log(
-        chalk.blueBright("Patch file"),
+        pc.blueBright("Patch file"),
         fullPatchPath,
         "has changed since it was applied. Try removing and reinstalling node_modules first.",
       )

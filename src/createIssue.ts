@@ -1,4 +1,4 @@
-import chalk from "chalk"
+import pc from "picocolors"
 import open from "open"
 import { stringify } from "querystring"
 import { PackageManager } from "./detectPackageManager"
@@ -105,7 +105,7 @@ export function maybePrintIssueCreationPrompt(
   packageManager: PackageManager,
 ) {
   if (vcs) {
-    console.log(`💡 ${chalk.bold(packageDetails.name)} is on ${
+    console.log(`💡 ${pc.bold(packageDetails.name)} is on ${
       vcs.provider
     }! To draft an issue based on your patch run
 

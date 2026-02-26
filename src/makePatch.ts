@@ -1,16 +1,46 @@
 import chalk from "chalk"
 import console from "console"
-import { renameSync } from "fs"
 import {
-  copySync,
+  chmodSync,
+  copyFileSync,
   existsSync,
-  mkdirpSync,
   mkdirSync,
+  readdirSync,
   realpathSync,
-  removeSync,
+  renameSync,
+  rmSync,
+  statSync,
   writeFileSync,
-} from "fs-extra"
+} from "fs"
+import { dirname as pathDirname, join as pathJoin } from "path"
 import { dirSync } from "tmp"
+
+function copySync(
+  src: string,
+  dest: string,
+  options?: { dereference?: boolean },
+) {
+  const srcStat = statSync(src)
+  if (srcStat.isDirectory()) {
+    mkdirSync(dest, { recursive: true })
+    for (const entry of readdirSync(src, { withFileTypes: true })) {
+      const srcPath = pathJoin(src, entry.name)
+      const destPath = pathJoin(dest, entry.name)
+      if (entry.isSymbolicLink() && options?.dereference) {
+        copySync(realpathSync(srcPath), destPath, options)
+      } else if (entry.isDirectory()) {
+        copySync(srcPath, destPath, options)
+      } else {
+        copyFileSync(srcPath, destPath)
+        chmodSync(destPath, statSync(srcPath).mode)
+      }
+    }
+  } else {
+    mkdirSync(pathDirname(dest), { recursive: true })
+    copyFileSync(src, dest)
+    chmodSync(dest, srcStat.mode)
+  }
+}
 import { gzipSync } from "zlib"
 import { applyPatch } from "./applyPatches"
 import {
@@ -168,7 +198,7 @@ export function makePatch({
     console.info(chalk.grey("•"), "Creating temporary folder")
 
     // make a blank package.json
-    mkdirpSync(tmpRepoNpmRoot)
+    mkdirSync(tmpRepoNpmRoot, { recursive: true })
     writeFileSync(
       tmpRepoPackageJsonPath,
       JSON.stringify({
@@ -254,11 +284,14 @@ export function makePatch({
       })
 
     // remove nested node_modules just to be safe
-    removeSync(join(tmpRepoPackagePath, "node_modules"))
+    rmSync(join(tmpRepoPackagePath, "node_modules"), {
+      recursive: true,
+      force: true,
+    })
     // remove .git just to be safe
-    removeSync(join(tmpRepoPackagePath, ".git"))
+    rmSync(join(tmpRepoPackagePath, ".git"), { recursive: true, force: true })
     // remove patch-package state file
-    removeSync(join(tmpRepoPackagePath, STATE_FILE_NAME))
+    rmSync(join(tmpRepoPackagePath, STATE_FILE_NAME), { force: true })
 
     // commit the package
     console.info(chalk.grey("•"), "Diffing your files with clean files")
@@ -292,17 +325,20 @@ export function makePatch({
     git("commit", "--allow-empty", "-m", "init")
 
     // replace package with user's version
-    removeSync(tmpRepoPackagePath)
+    rmSync(tmpRepoPackagePath, { recursive: true, force: true })
 
     // pnpm installs packages as symlinks, copySync would copy only the symlink
     copySync(realpathSync(packagePath), tmpRepoPackagePath)
 
     // remove nested node_modules just to be safe
-    removeSync(join(tmpRepoPackagePath, "node_modules"))
+    rmSync(join(tmpRepoPackagePath, "node_modules"), {
+      recursive: true,
+      force: true,
+    })
     // remove .git just to be safe
-    removeSync(join(tmpRepoPackagePath, ".git"))
+    rmSync(join(tmpRepoPackagePath, ".git"), { recursive: true, force: true })
     // remove patch-package state file
-    removeSync(join(tmpRepoPackagePath, STATE_FILE_NAME))
+    rmSync(join(tmpRepoPackagePath, STATE_FILE_NAME), { force: true })
 
     // also remove ignored files like before
     removeIgnoredFiles(tmpRepoPackagePath, includePaths, excludePaths)

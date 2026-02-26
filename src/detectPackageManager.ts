@@ -1,4 +1,4 @@
-import fs from "fs-extra"
+import fs from "fs"
 import { join } from "./path"
 import chalk from "chalk"
 import process from "process"

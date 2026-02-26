@@ -1,7 +1,7 @@
 import { join, resolve } from "./path"
 import { PackageDetails, getPatchDetailsFromCliString } from "./PackageDetails"
 import { PackageManager, detectPackageManager } from "./detectPackageManager"
-import { readFileSync, existsSync } from "fs-extra"
+import { readFileSync, existsSync } from "fs"
 import { parse as parseYarnLockFile } from "@yarnpkg/lockfile"
 import yaml from "yaml"
 import findWorkspaceRoot from "find-yarn-workspace-root"

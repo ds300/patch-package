@@ -1,5 +1,5 @@
 import { join } from "./path"
-import { removeSync } from "fs-extra"
+import { rmSync } from "fs"
 import klawSync from "klaw-sync"
 
 export function removeIgnoredFiles(
@@ -13,5 +13,5 @@ export function removeIgnoredFiles(
       (relativePath) =>
         !relativePath.match(includePaths) || relativePath.match(excludePaths),
     )
-    .forEach((relativePath) => removeSync(join(dir, relativePath)))
+    .forEach((relativePath) => rmSync(join(dir, relativePath), { force: true }))
 }

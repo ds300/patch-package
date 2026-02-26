@@ -1,14 +1,27 @@
-import * as fs from "fs-extra"
+import * as fs from "fs"
+import { join as pathJoin } from "path"
 import { join, resolve } from "../src/path"
 import * as tmp from "tmp"
 import { spawnSafeSync } from "../src/spawnSafe"
 import { resolveRelativeFileDependencies } from "../src/resolveRelativeFileDependencies"
-import rimraf from "rimraf"
+
+function copyDirSync(src: string, dest: string) {
+  fs.mkdirSync(dest, { recursive: true })
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = pathJoin(src, entry.name)
+    const destPath = pathJoin(dest, entry.name)
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath)
+    } else {
+      fs.copyFileSync(srcPath, destPath)
+    }
+  }
+}
 
 export const patchPackageTarballPath = resolve(
   fs
     .readdirSync(".")
-    .filter((nm) => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
+    .filter((nm: string) => nm.match(/^patch-package\.test\.\d+\.tgz$/))[0],
 )
 
 export function runIntegrationTest({
@@ -20,12 +33,13 @@ export function runIntegrationTest({
 }) {
   describe(`Test ${projectName}:`, () => {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
-    fs.copySync(join(__dirname, projectName), tmpDir.name, {
-      recursive: true,
-    })
+    copyDirSync(join(__dirname, projectName), tmpDir.name)
 
     // remove node_modules folder when running locally, to avoid leaking state from source dir
-    rimraf.sync(join(tmpDir.name, "node_modules"))
+    fs.rmSync(join(tmpDir.name, "node_modules"), {
+      recursive: true,
+      force: true,
+    })
 
     const packageJson = require(join(tmpDir.name, "package.json"))
     packageJson.dependencies = resolveRelativeFileDependencies(

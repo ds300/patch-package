@@ -9,7 +9,8 @@ import { TestCase, Files } from "./testCases"
 import { appendFileSync, existsSync, writeFileSync } from "fs"
 import { join, dirname } from "path"
 
-jest.mock("fs-extra", () => {
+jest.mock("fs", () => {
+  const realFs = jest.requireActual("fs")
   let workingFiles: Files
 
   function setWorkingFiles(files: Files) {
@@ -20,39 +21,82 @@ jest.mock("fs-extra", () => {
     return workingFiles
   }
 
+  function isVirtualPath(path: string) {
+    return workingFiles && path in workingFiles
+  }
+
   return {
+    ...realFs,
     setWorkingFiles,
     getWorkingFiles,
-    ensureDirSync: jest.fn(),
-    readFileSync: jest.fn((path) => getWorkingFiles()[path].contents),
+    mkdirSync: jest.fn((...args: any[]) => {
+      if (workingFiles) {
+        return
+      }
+      return realFs.mkdirSync(...args)
+    }),
+    existsSync: jest.fn((path: string) => {
+      if (workingFiles) {
+        return path in workingFiles
+      }
+      return realFs.existsSync(path)
+    }),
+    readFileSync: jest.fn((path: string, ...args: any[]) => {
+      if (isVirtualPath(path)) {
+        return getWorkingFiles()[path].contents
+      }
+      return realFs.readFileSync(path, ...args)
+    }),
     writeFileSync: jest.fn(
       (path: string, contents: string, opts?: { mode?: number }) => {
-        getWorkingFiles()[path] = {
-          contents,
-          mode: opts && typeof opts.mode === "number" ? opts.mode : 0o644,
+        if (workingFiles) {
+          getWorkingFiles()[path] = {
+            contents,
+            mode: opts && typeof opts.mode === "number" ? opts.mode : 0o644,
+          }
+          return
         }
+        return realFs.writeFileSync(path, contents, opts)
       },
     ),
-    unlinkSync: jest.fn((path) => delete getWorkingFiles()[path]),
-    moveSync: jest.fn((from, to) => {
-      getWorkingFiles()[to] = getWorkingFiles()[from]
-      delete getWorkingFiles()[from]
+    unlinkSync: jest.fn((path: string) => {
+      if (isVirtualPath(path)) {
+        delete getWorkingFiles()[path]
+        return
+      }
+      return realFs.unlinkSync(path)
     }),
-    statSync: jest.fn((path) => getWorkingFiles()[path]),
-    chmodSync: jest.fn((path, mode) => {
-      const { contents } = getWorkingFiles()[path]
-      getWorkingFiles()[path] = { contents, mode }
+    renameSync: jest.fn((from: string, to: string) => {
+      if (isVirtualPath(from)) {
+        getWorkingFiles()[to] = getWorkingFiles()[from]
+        delete getWorkingFiles()[from]
+        return
+      }
+      return realFs.renameSync(from, to)
+    }),
+    statSync: jest.fn((path: string, ...args: any[]) => {
+      if (isVirtualPath(path)) {
+        return getWorkingFiles()[path]
+      }
+      return realFs.statSync(path, ...args)
+    }),
+    chmodSync: jest.fn((path: string, mode: number) => {
+      if (isVirtualPath(path)) {
+        const { contents } = getWorkingFiles()[path]
+        getWorkingFiles()[path] = { contents, mode }
+        return
+      }
+      return realFs.chmodSync(path, mode)
     }),
   }
 })
 
 function writeFiles(cwd: string, files: Files): void {
-  const mkdirpSync = require("fs-extra/lib/mkdirs/index.js").mkdirpSync
-  const writeFileSync = require("fs").writeFileSync
+  const realFs = jest.requireActual("fs") as typeof import("fs")
   Object.keys(files).forEach((filePath) => {
     if (!filePath.startsWith(".git/")) {
-      mkdirpSync(join(cwd, dirname(filePath)))
-      writeFileSync(join(cwd, filePath), files[filePath].contents, {
+      realFs.mkdirSync(join(cwd, dirname(filePath)), { recursive: true })
+      realFs.writeFileSync(join(cwd, filePath), files[filePath].contents, {
         mode: files[filePath].mode,
       })
     }
@@ -67,7 +111,7 @@ function removeLeadingSpaceOnBlankLines(patchFileContents: string): string {
 }
 
 export function executeTestCase(testCase: TestCase) {
-  const fs = require("fs-extra")
+  const fs = require("fs")
 
   function reportingFailures(f: () => void): void {
     try {

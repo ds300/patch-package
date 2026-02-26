@@ -1,4 +1,4 @@
-import * as fs from "fs-extra"
+import * as fs from "fs"
 import * as path from "path"
 import { spawnSafeSync } from "../src/spawnSafe"
 
@@ -13,7 +13,7 @@ console.log("making an integration test called", testName)
 
 const testDir = path.join(__dirname, testName)
 
-fs.mkdirpSync(testDir)
+fs.mkdirSync(testDir, { recursive: true })
 
 // initialise npm project
 fs.writeFileSync(

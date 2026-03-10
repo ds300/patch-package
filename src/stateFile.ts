@@ -21,8 +21,9 @@ export const STATE_FILE_NAME = ".patch-package.json"
 
 export function getPatchApplicationState(
   packageDetails: PackageDetails,
+  resolvedPath?: string,
 ): PatchApplicationState | null {
-  const fileName = join(packageDetails.path, STATE_FILE_NAME)
+  const fileName = join(resolvedPath || packageDetails.path, STATE_FILE_NAME)
 
   let state: null | PatchApplicationState = null
   try {
@@ -46,12 +47,14 @@ export function savePatchApplicationState({
   packageDetails,
   patches,
   isRebasing,
+  resolvedPath,
 }: {
   packageDetails: PackageDetails
   patches: PatchState[]
   isRebasing: boolean
+  resolvedPath?: string
 }) {
-  const fileName = join(packageDetails.path, STATE_FILE_NAME)
+  const fileName = join(resolvedPath || packageDetails.path, STATE_FILE_NAME)
 
   const state: PatchApplicationState = {
     patches,
@@ -62,8 +65,11 @@ export function savePatchApplicationState({
   writeFileSync(fileName, stringify(state, { space: 4 }), "utf8")
 }
 
-export function clearPatchApplicationState(packageDetails: PackageDetails) {
-  const fileName = join(packageDetails.path, STATE_FILE_NAME)
+export function clearPatchApplicationState(
+  packageDetails: PackageDetails,
+  resolvedPath?: string,
+) {
+  const fileName = join(resolvedPath || packageDetails.path, STATE_FILE_NAME)
 
   try {
     unlinkSync(fileName)

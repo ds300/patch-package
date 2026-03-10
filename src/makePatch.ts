@@ -32,6 +32,7 @@ import {
 import { parsePatchFile } from "./patch/parse"
 import { getGroupedPatches } from "./patchFs"
 import { dirname, join, resolve } from "./path"
+import { resolvePackagePath } from "./resolvePackagePath"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { spawnSafeSync } from "./spawnSafe"
 import {
@@ -145,11 +146,21 @@ export function makePatch({
     mode.type !== "append"
 
   const appPackageJson = require(join(appPath, "package.json"))
-  const packagePath = join(appPath, packageDetails.path)
+
+  // Resolve actual package path, handling npm install-strategy=linked (.store)
+  const resolvedPackageDetails = resolvePackagePath({
+    appPath,
+    packagePath: packageDetails.path,
+    packageName: packageDetails.name,
+  })
+  const packagePath = join(appPath, resolvedPackageDetails)
   const packageJsonPath = join(packagePath, "package.json")
 
   if (!existsSync(packageJsonPath)) {
-    printNoPackageFoundError(packagePathSpecifier, packageJsonPath)
+    printNoPackageFoundError(
+      packagePathSpecifier,
+      join(appPath, packageDetails.path, "package.json"),
+    )
     process.exit(1)
   }
 
@@ -187,7 +198,7 @@ export function makePatch({
     )
 
     const packageVersion = getPackageVersion(
-      join(resolve(packageDetails.path), "package.json"),
+      join(resolve(resolvedPackageDetails), "package.json"),
     )
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry

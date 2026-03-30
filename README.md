@@ -214,6 +214,20 @@ Run `patch-package` without arguments to apply all patches in your project.
 
   See https://github.com/ds300/patch-package/issues/86 for background.
 
+- `--error-on-warn`
+
+  Forces patch-package to exit with code 1 after warnings.
+
+  The most common warning is likely a patch file version mismatch. If you
+  upgrade dependencies (semi-)automatically, you will run into seeing
+  the warning when installing. With the error-on-warn option you can ensure
+  that dependency upgrades are coupled with the patch version bump.
+  
+  `--error-on-warn` is not switched on by default on CI,
+  unlike error-on-fail.
+
+  See https://github.com/ds300/patch-package/issues/345 for background.
+
 - `--reverse`
 
   Un-applies all patches.

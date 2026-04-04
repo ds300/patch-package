@@ -4,7 +4,7 @@ import chalk from "chalk"
 import process from "process"
 import findWorkspaceRoot from "find-yarn-workspace-root"
 
-export type PackageManager = "yarn" | "npm" | "npm-shrinkwrap"
+export type PackageManager = "yarn" | "yarn-berry" | "npm" | "npm-shrinkwrap"
 
 function printNoYarnLockfileError() {
   console.log(`
@@ -37,6 +37,19 @@ package-lock.json if you don't need it
   )
 }
 
+function detectYarnVersion(appRootPath: string): "yarn" | "yarn-berry" {
+  try {
+    const lockfilePath = join(appRootPath, "yarn.lock")
+    const lockfileContent = fs.readFileSync(lockfilePath, "utf8")
+    if (lockfileContent.includes("__metadata:")) {
+      return "yarn-berry"
+    }
+  } catch (e) {
+    // fall through to default
+  }
+  return "yarn"
+}
+
 export const detectPackageManager = (
   appRootPath: string,
   overridePackageManager: PackageManager | null,
@@ -63,7 +76,7 @@ export const detectPackageManager = (
       return shrinkWrapExists ? "npm-shrinkwrap" : "npm"
     }
   } else if (yarnLockExists || findWorkspaceRoot()) {
-    return "yarn"
+    return detectYarnVersion(appRootPath)
   } else {
     printNoLockfilesError()
     process.exit(1)

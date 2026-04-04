@@ -193,14 +193,21 @@ export function makePatch({
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
     // copy .yarn directory as well to ensure installations work in yarn 2
     // tslint:disable-next-line:align
-    ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
+    ;[".npmrc", ".yarnrc", ".yarnrc.yml", ".yarn"].forEach((rcFile) => {
       const rcPath = join(appPath, rcFile)
       if (existsSync(rcPath)) {
         copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
       }
     })
 
-    if (packageManager === "yarn") {
+    if (packageManager.startsWith("yarn")) {
+      const isBerry = packageManager === "yarn-berry"
+      const installArgs = isBerry
+        ? ["install"]
+        : ["install", "--ignore-engines"]
+      const installArgsIgnoreScripts = isBerry
+        ? ["install", "--mode=skip-build"]
+        : ["install", "--ignore-engines", "--ignore-scripts"]
       console.info(
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with yarn`,
@@ -208,20 +215,16 @@ export function makePatch({
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
+        spawnSafeSync(`yarn`, installArgs, {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we haven't reproduced
-        spawnSafeSync(
-          `yarn`,
-          ["install", "--ignore-engines", "--ignore-scripts"],
-          {
-            cwd: tmpRepoNpmRoot,
-          },
-        )
+        spawnSafeSync(`yarn`, installArgsIgnoreScripts, {
+          cwd: tmpRepoNpmRoot,
+        })
       }
     } else {
       console.info(

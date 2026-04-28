@@ -7,9 +7,8 @@ import { getAppRootPath } from "./getAppRootPath"
 import { makePatch } from "./makePatch"
 import { makeRegExp } from "./makeRegExp"
 import { detectPackageManager } from "./detectPackageManager"
-import { join } from "./path"
+import { join, slash } from "./path"
 import { normalize, sep } from "path"
-import slash = require("slash")
 import { isCI } from "ci-info"
 import { rebase } from "./rebase"
 

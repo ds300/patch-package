@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs"
 import { join } from "path"
 import { PackageDetails } from "./PackageDetails"
-import stringify from "json-stable-stringify"
+import stringify from "fast-json-stable-stringify"
 import { hashFile } from "./hash"
 import chalk from "chalk"
 export interface PatchState {
@@ -59,7 +59,7 @@ export function savePatchApplicationState({
     isRebasing,
   }
 
-  writeFileSync(fileName, stringify(state, { space: 4 }), "utf8")
+  writeFileSync(fileName, stringify(state), "utf8")
 }
 
 export function clearPatchApplicationState(packageDetails: PackageDetails) {

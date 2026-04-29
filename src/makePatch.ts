@@ -107,7 +107,7 @@ export function makePatch({
 
   const existingPatches =
     getGroupedPatches(patchDir).pathSpecifierToPatchFiles[
-      packageDetails.pathSpecifier
+    packageDetails.pathSpecifier
     ] || []
 
   // apply all existing patches if appending
@@ -117,11 +117,11 @@ export function makePatch({
     ? mode.type === "append"
       ? existingPatches.slice(0, previouslyAppliedPatches!.length)
       : state!.patches[state!.patches.length - 1].didApply
-      ? existingPatches.slice(0, previouslyAppliedPatches!.length - 1)
-      : existingPatches.slice(0, previouslyAppliedPatches!.length)
+        ? existingPatches.slice(0, previouslyAppliedPatches!.length - 1)
+        : existingPatches.slice(0, previouslyAppliedPatches!.length)
     : mode.type === "append"
-    ? existingPatches
-    : existingPatches.slice(0, -1)
+      ? existingPatches
+      : existingPatches.slice(0, -1)
 
   if (createIssue && mode.type === "append") {
     console.log("--create-issue is not compatible with --append.")
@@ -183,6 +183,13 @@ export function makePatch({
           appPath,
           appPackageJson.resolutions || {},
         ),
+        // In the event of the yarn manager, yarn v2 and above have all hard removed
+        // support for the the `--ignore-engines` flag (which you can see later on we use),
+        // which means without forcing yarn to be on v1, yarn will crash. There is an on-going
+        // attempt to bake in support for yarn v2 and above in this open PR:
+        // https://github.com/ds300/patch-package/pull/506
+        // so once that ships, we can remove this snippet
+        packageManager: 'yarn@1.22.22'
       }),
     )
 
@@ -190,15 +197,15 @@ export function makePatch({
       join(resolve(packageDetails.path), "package.json"),
     )
 
-    // copy .npmrc/.yarnrc in case packages are hosted in private registry
-    // copy .yarn directory as well to ensure installations work in yarn 2
-    // tslint:disable-next-line:align
-    ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
-      const rcPath = join(appPath, rcFile)
-      if (existsSync(rcPath)) {
-        copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
-      }
-    })
+      // copy .npmrc/.yarnrc in case packages are hosted in private registry
+      // copy .yarn directory as well to ensure installations work in yarn 2
+      // tslint:disable-next-line:align
+      ;[".npmrc", ".yarnrc", ".yarn"].forEach((rcFile) => {
+        const rcPath = join(appPath, rcFile)
+        if (existsSync(rcPath)) {
+          copySync(rcPath, join(tmpRepo.name, rcFile), { dereference: true })
+        }
+      })
 
     if (packageManager === "yarn") {
       console.info(
@@ -211,6 +218,9 @@ export function makePatch({
         spawnSafeSync(`yarn`, ["install", "--ignore-engines"], {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
+          // use utf-8 encoding so that, in the event of an error, the logs
+          // some out as readable human text, not a binary buffer
+          encoding: 'utf-8'
         })
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
@@ -220,6 +230,7 @@ export function makePatch({
           ["install", "--ignore-engines", "--ignore-scripts"],
           {
             cwd: tmpRepoNpmRoot,
+            encoding: 'utf-8'
           },
         )
       }
@@ -595,9 +606,8 @@ To partially apply the patch (if possible) and output a log of errors to fix, ru
 
   ${chalk.bold(`patch-package --partial`)}
 
-After which you should make any required changes inside ${
-    patchDetails.path
-  }, and finally run
+After which you should make any required changes inside ${patchDetails.path
+    }, and finally run
 
   ${chalk.bold(`patch-package ${patchDetails.pathSpecifier}`)}
 

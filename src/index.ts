@@ -26,6 +26,7 @@ const argv = minimist(process.argv.slice(2), {
     "create-issue",
     "partial",
     "",
+    "ignore-missing",
   ],
   string: ["patch-dir", "append", "rebase"],
 })
@@ -115,6 +116,9 @@ if (argv.version || argv.v) {
 
     const shouldExitWithWarning = !!argv["error-on-warn"]
 
+    const ignoreMissing =
+      !!argv["ignore-missing"] || !!process.env.PATCH_PACKAGE_IGNORE_MISSING
+
     applyPatchesForApp({
       appPath,
       reverse,
@@ -122,6 +126,7 @@ if (argv.version || argv.v) {
       shouldExitWithError,
       shouldExitWithWarning,
       bestEffort: argv.partial,
+      ignoreMissing,
     })
   }
 }
@@ -178,13 +183,28 @@ Usage:
       and patch file updates (https://github.com/ds300/patch-package/issues/37),
       but might be useful in other contexts too.
       
+    ${chalk.bold("--ignore-missing")}
+
+      Ignores patches for packages that are not present in node_modules.
+      This is useful when working with monorepos and wanting to install sub-packages
+      separately from the root package, with pruned dependencies.
+
+      This option is can also be set via the environment variable
+      PATCH_PACKAGE_IGNORE_MISSING=1. Setting this env variable during the deployment
+      build process is recommended instead of using the --ignore-missing command option
+      when we want to ignore missing packages during deployment (of a monorepo with
+      pruned dependencies), but ensure we fail loudly during development if any
+      dependencies are moved or removed without updating the patches accordingly.
+
+      See https://github.com/ds300/patch-package/issues/339 for background.
+
 
   2. Creating patch files
   =======================
 
     ${chalk.bold("patch-package")} <package-name>${chalk.italic(
-    "[ <package-name>]",
-  )}
+      "[ <package-name>]",
+    )}
 
   When given package names as arguments, patch-package will create patch files
   based on any changes you've made to the versions installed by yarn/npm.

@@ -1,6 +1,6 @@
 import chalk from "chalk"
 import process from "process"
-import minimist from "minimist"
+import dashdash from "dashdash"
 
 import { applyPatchesForApp } from "./applyPatches"
 import { getAppRootPath } from "./getAppRootPath"
@@ -14,22 +14,40 @@ import { isCI } from "ci-info"
 import { rebase } from "./rebase"
 
 const appPath = getAppRootPath()
-const argv = minimist(process.argv.slice(2), {
-  boolean: [
-    "use-yarn",
-    "case-sensitive-path-filtering",
-    "reverse",
-    "help",
-    "version",
-    "error-on-fail",
-    "error-on-warn",
-    "create-issue",
-    "partial",
-    "",
+
+// dashdash converts dashes in option names to underscores in the parsed
+// result (e.g. `--patch-dir` becomes `opts.patch_dir`). Absent options are
+// simply omitted from the result object, so `"rebase" in opts` still tells us
+// whether the flag was passed at all, and positional arguments end up in
+// `opts._args`.
+const parser = dashdash.createParser({
+  options: [
+    { names: ["help", "h"], type: "bool" },
+    { names: ["version", "v"], type: "bool" },
+    { name: "use-yarn", type: "bool" },
+    { name: "case-sensitive-path-filtering", type: "bool" },
+    { name: "reverse", type: "bool" },
+    { name: "error-on-fail", type: "bool" },
+    { name: "error-on-warn", type: "bool" },
+    { name: "create-issue", type: "bool" },
+    { name: "partial", type: "bool" },
+    { name: "patch-dir", type: "string" },
+    { name: "append", type: "string" },
+    { name: "rebase", type: "string" },
+    { name: "include", type: "string" },
+    { name: "exclude", type: "string" },
   ],
-  string: ["patch-dir", "append", "rebase"],
 })
-const packageNames = argv._
+
+let argv: dashdash.Results
+try {
+  argv = parser.parse(process.argv)
+} catch (e) {
+  console.log(chalk.red((e as Error).message))
+  process.exit(1)
+}
+
+const packageNames = argv._args
 
 console.log(
   chalk.bold("patch-package"),
@@ -37,12 +55,12 @@ console.log(
   require(join(__dirname, "../package.json")).version,
 )
 
-if (argv.version || argv.v) {
+if (argv.version) {
   // noop
-} else if (argv.help || argv.h) {
+} else if (argv.help) {
   printHelp()
 } else {
-  const patchDir = slash(normalize((argv["patch-dir"] || "patches") + sep))
+  const patchDir = slash(normalize((argv.patch_dir || "patches") + sep))
   if (patchDir.startsWith("/")) {
     throw new Error("--patch-dir must be a relative path")
   }
@@ -74,19 +92,19 @@ if (argv.version || argv.v) {
       argv.include,
       "include",
       /.*/,
-      argv["case-sensitive-path-filtering"],
+      argv.case_sensitive_path_filtering,
     )
     const excludePaths = makeRegExp(
       argv.exclude,
       "exclude",
       /^package\.json$/,
-      argv["case-sensitive-path-filtering"],
+      argv.case_sensitive_path_filtering,
     )
     const packageManager = detectPackageManager(
       appPath,
-      argv["use-yarn"] ? "yarn" : null,
+      argv.use_yarn ? "yarn" : null,
     )
-    const createIssue = argv["create-issue"]
+    const createIssue = argv.create_issue
     packageNames.forEach((packagePathSpecifier: string) => {
       makePatch({
         packagePathSpecifier,
@@ -104,16 +122,16 @@ if (argv.version || argv.v) {
     })
   } else {
     console.log("Applying patches...")
-    const reverse = !!argv["reverse"]
+    const reverse = !!argv.reverse
     // don't want to exit(1) on postinstall locally.
     // see https://github.com/ds300/patch-package/issues/86
     const shouldExitWithError =
-      !!argv["error-on-fail"] ||
+      !!argv.error_on_fail ||
       (process.env.NODE_ENV === "production" && isCI) ||
       (isCI && !process.env.PATCH_PACKAGE_INTEGRATION_TEST) ||
       process.env.NODE_ENV === "test"
 
-    const shouldExitWithWarning = !!argv["error-on-warn"]
+    const shouldExitWithWarning = !!argv.error_on_warn
 
     applyPatchesForApp({
       appPath,

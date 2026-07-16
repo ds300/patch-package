@@ -295,7 +295,13 @@ export function makePatch({
     removeSync(tmpRepoPackagePath)
 
     // pnpm installs packages as symlinks, copySync would copy only the symlink
-    copySync(realpathSync(packagePath), tmpRepoPackagePath)
+    copySync(realpathSync(packagePath), tmpRepoPackagePath, {
+      // packages, e.g. react-native, can contain broken symlinks (e.g.
+      // pointing at build artifacts that no longer exist), which would
+      // otherwise crash with ENOENT when their target is stat'd — skip them
+      // https://github.com/ds300/patch-package/issues/580
+      filter: (src) => existsSync(src),
+    })
 
     // remove nested node_modules just to be safe
     removeSync(join(tmpRepoPackagePath, "node_modules"))

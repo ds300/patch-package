@@ -1,4 +1,5 @@
 import chalk from "chalk"
+import semver from "semver"
 import console from "console"
 import { renameSync } from "fs"
 import {
@@ -52,6 +53,14 @@ function printNoPackageFoundError(
 
   File not found: ${packageJsonPath}`,
   )
+}
+
+function npmRequiresAllowRemoteFlag() {
+  const npmVersion = spawnSafeSync("npm", ["--version"], {
+    stdio: "pipe",
+  }).stdout.toString().trim()
+
+  return semver.gte(npmVersion, "12.0.0")
 }
 
 export function makePatch({
@@ -228,10 +237,18 @@ export function makePatch({
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with npm`,
       )
+      
+      const npmInstallArgs = ["i", "--force"]
+
+      // npm 12+ defaults to blocking remote tarball dependencies
+      if (npmRequiresAllowRemoteFlag()) {
+        npmInstallArgs.push("--allow-remote=all")
+      }
+
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
-        spawnSafeSync(`npm`, ["i", "--force"], {
+        spawnSafeSync(`npm`, npmInstallArgs, {
           cwd: tmpRepoNpmRoot,
           logStdErrOnError: false,
           stdio: "ignore",
@@ -239,7 +256,7 @@ export function makePatch({
       } catch (e) {
         // try again while ignoring scripts in case the script depends on
         // an implicit context which we haven't reproduced
-        spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
+        spawnSafeSync(`npm`, [...npmInstallArgs, "--ignore-scripts"], {
           cwd: tmpRepoNpmRoot,
           stdio: "ignore",
         })

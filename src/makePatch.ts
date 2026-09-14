@@ -233,11 +233,14 @@ export function makePatch({
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with npm`,
       )
+      // a copied .npmrc with install-strategy=linked would make the package a symlink git can't diff
+      const npmEnv = { ...process.env, npm_config_install_strategy: "hoisted" }
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
         spawnSafeSync(`npm`, ["i", "--force"], {
           cwd: tmpRepoNpmRoot,
+          env: npmEnv,
           logStdErrOnError: false,
           stdio: "ignore",
         })
@@ -246,6 +249,7 @@ export function makePatch({
         // an implicit context which we haven't reproduced
         spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
           cwd: tmpRepoNpmRoot,
+          env: npmEnv,
           stdio: "ignore",
         })
       }

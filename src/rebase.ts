@@ -4,6 +4,7 @@ import { applyPatch } from "./applyPatches"
 import { hashFile } from "./hash"
 import { PatchedPackageDetails } from "./PackageDetails"
 import { getGroupedPatches } from "./patchFs"
+import { resolvePackagePath } from "./resolvePackagePath"
 import {
   getPatchApplicationState,
   savePatchApplicationState,
@@ -39,7 +40,12 @@ export function rebase({
     process.exit(1)
   }
 
-  const state = getPatchApplicationState(packagePatches[0])
+  const resolvedPackagePath = resolvePackagePath({
+    appPath,
+    packageDetails: packagePatches[0],
+    version: packagePatches[0].version,
+  })
+  const state = getPatchApplicationState(packagePatches[0], resolvedPackagePath)
 
   if (!state) {
     console.log(
@@ -54,7 +60,7 @@ export function rebase({
     console.log(
       chalk.blueBright("Already rebasing"),
       "Make changes to the files in",
-      chalk.bold(packagePatches[0].path),
+      chalk.bold(resolvedPackagePath),
       "and then run `patch-package",
       packagePathSpecifier,
       "--continue` to",
@@ -84,14 +90,16 @@ export function rebase({
       patches: packagePatches,
       appPath,
       patchDir,
+      resolvedPath: resolvedPackagePath,
     })
     savePatchApplicationState({
       packageDetails: packagePatches[0],
       isRebasing: true,
+      resolvedPath: resolvedPackagePath,
       patches: [],
     })
     console.log(`
-Make any changes you need inside ${chalk.bold(packagePatches[0].path)}
+Make any changes you need inside ${chalk.bold(resolvedPackagePath)}
 
 When you are done, run
 
@@ -161,10 +169,12 @@ to insert a new patch file.
     patches: packagePatches.slice(targetIdx + 1),
     appPath,
     patchDir,
+    resolvedPath: resolvedPackagePath,
   })
   savePatchApplicationState({
     packageDetails: packagePatches[0],
     isRebasing: true,
+    resolvedPath: resolvedPackagePath,
     patches: packagePatches.slice(0, targetIdx + 1).map((p) => ({
       patchFilename: p.patchFilename,
       patchContentHash: hashFile(join(patchesDirectory, p.patchFilename)),
@@ -173,7 +183,7 @@ to insert a new patch file.
   })
 
   console.log(`
-Make any changes you need inside ${chalk.bold(packagePatches[0].path)}
+Make any changes you need inside ${chalk.bold(resolvedPackagePath)}
 
 When you are done, do one of the following:
 
@@ -196,10 +206,12 @@ function unApplyPatches({
   patches,
   appPath,
   patchDir,
+  resolvedPath,
 }: {
   patches: PatchedPackageDetails[]
   appPath: string
   patchDir: string
+  resolvedPath: string
 }) {
   for (const patch of patches.slice().reverse()) {
     if (
@@ -210,6 +222,7 @@ function unApplyPatches({
         patchDir,
         cwd: process.cwd(),
         bestEffort: false,
+        resolvedPath,
       })
     ) {
       console.log(

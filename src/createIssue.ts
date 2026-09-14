@@ -36,9 +36,13 @@ function parseRepoString(repository: string): VCS {
   return { org, repo, provider: "GitHub" }
 }
 
-export function getPackageVCSDetails(packageDetails: PackageDetails): VCS {
-  const repository = require(resolve(join(packageDetails.path, "package.json")))
-    .repository as undefined | string | { url: string }
+export function getPackageVCSDetails(
+  packageDetails: PackageDetails,
+  resolvedPath?: string,
+): VCS {
+  const repository = require(resolve(
+    join(resolvedPath || packageDetails.path, "package.json"),
+  )).repository as undefined | string | { url: string }
 
   if (!repository) {
     return null
@@ -121,13 +125,15 @@ export function openIssueCreationLink({
   patchFileContents,
   packageVersion,
   patchPath,
+  resolvedPath,
 }: {
   packageDetails: PackageDetails
   patchFileContents: string
   packageVersion: string
   patchPath: string
+  resolvedPath?: string
 }) {
-  const vcs = getPackageVCSDetails(packageDetails)
+  const vcs = getPackageVCSDetails(packageDetails, resolvedPath)
 
   if (!vcs) {
     console.log(

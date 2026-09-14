@@ -8,10 +8,12 @@ import { logPatchSequenceError } from "./makePatch"
 import { PackageDetails, PatchedPackageDetails } from "./PackageDetails"
 import { packageIsDevDependency } from "./packageIsDevDependency"
 import { executeEffects } from "./patch/apply"
+import { PatchFilePart } from "./patch/parse"
 import { readPatch } from "./patch/read"
 import { reversePatch } from "./patch/reverse"
 import { getGroupedPatches } from "./patchFs"
 import { join, relative } from "./path"
+import { resolvePackagePath } from "./resolvePackagePath"
 import {
   clearPatchApplicationState,
   getPatchApplicationState,
@@ -28,17 +30,19 @@ class PatchApplicationError extends Error {
 function getInstalledPackageVersion({
   appPath,
   path,
+  resolvedPath,
   pathSpecifier,
   isDevOnly,
   patchFilename,
 }: {
   appPath: string
   path: string
+  resolvedPath: string
   pathSpecifier: string
   isDevOnly: boolean
   patchFilename: string
 }): null | string {
-  const packageDir = join(appPath, path)
+  const packageDir = join(appPath, resolvedPath)
   if (!existsSync(packageDir)) {
     if (process.env.NODE_ENV === "production" && isDevOnly) {
       return null
@@ -47,7 +51,7 @@ function getInstalledPackageVersion({
     let err =
       `${chalk.red("Error:")} Patch file found for package ${posix.basename(
         pathSpecifier,
-      )}` + ` which is not present at ${relative(".", packageDir)}`
+      )}` + ` which is not present at ${relative(".", join(appPath, path))}`
 
     if (!isDevOnly && process.env.NODE_ENV === "production") {
       err += `
@@ -180,7 +184,16 @@ export function applyPatchesForPackage({
   bestEffort: boolean
 }) {
   const pathSpecifier = patches[0].pathSpecifier
-  const state = patches.length > 1 ? getPatchApplicationState(patches[0]) : null
+  const resolvedPackagePath = resolvePackagePath({
+    appPath,
+    packageDetails: patches[0],
+    version: patches[0].version,
+  })
+
+  const state =
+    patches.length > 1
+      ? getPatchApplicationState(patches[0], resolvedPackagePath)
+      : null
   const unappliedPatches = patches.slice(0)
   const appliedPatches: PatchedPackageDetails[] = []
   // if there are multiple patches to apply, we can't rely on the reverse-patch-dry-run behavior to make this operation
@@ -235,6 +248,7 @@ export function applyPatchesForPackage({
       const installedPackageVersion = getInstalledPackageVersion({
         appPath,
         path,
+        resolvedPath: resolvedPackagePath,
         pathSpecifier,
         isDevOnly:
           isDevOnly ||
@@ -264,6 +278,7 @@ export function applyPatchesForPackage({
           patchDir,
           cwd: process.cwd(),
           bestEffort,
+          resolvedPath: resolvedPackagePath,
         })
       ) {
         appliedPatches.push(patchDetails)
@@ -282,7 +297,10 @@ export function applyPatchesForPackage({
         }
         logPatchApplication(patchDetails)
       } else if (patches.length > 1) {
-        logPatchSequenceError({ patchDetails })
+        logPatchSequenceError({
+          patchDetails,
+          resolvedPath: resolvedPackagePath,
+        })
         // in case the package has multiple patches, we need to break out of this inner loop
         // because we don't want to apply more patches on top of the broken state
         failedPatch = patchDetails
@@ -338,7 +356,7 @@ export function applyPatchesForPackage({
       }
       // if we removed all the patches that were previously applied we can delete the state file
       if (appliedPatches.length === patches.length) {
-        clearPatchApplicationState(patches[0])
+        clearPatchApplicationState(patches[0], resolvedPackagePath)
       } else {
         // We failed while reversing patches and some are still in the applied state.
         // We need to update the state file to reflect that.
@@ -364,6 +382,7 @@ export function applyPatchesForPackage({
             patchFilename: patch.patchFilename,
           })),
           isRebasing: false,
+          resolvedPath: resolvedPackagePath,
         })
       }
     } else {
@@ -390,6 +409,7 @@ export function applyPatchesForPackage({
         packageDetails: patches[0],
         patches: nextState,
         isRebasing: !!failedPatch,
+        resolvedPath: resolvedPackagePath,
       })
     }
     if (failedPatch) {
@@ -405,6 +425,7 @@ export function applyPatch({
   patchDir,
   cwd,
   bestEffort,
+  resolvedPath,
 }: {
   patchFilePath: string
   reverse: boolean
@@ -412,12 +433,18 @@ export function applyPatch({
   patchDir: string
   cwd: string
   bestEffort: boolean
+  resolvedPath?: string
 }): boolean {
   const patch = readPatch({
     patchFilePath,
     patchDetails,
     patchDir,
   })
+
+  // Remap paths if package resolved to a different location (e.g. .store)
+  if (resolvedPath && resolvedPath !== patchDetails.path) {
+    remapPatchPaths(patch, patchDetails.path, resolvedPath)
+  }
 
   const forward = reverse ? reversePatch(patch) : patch
   try {
@@ -448,6 +475,36 @@ export function applyPatch({
   }
 
   return true
+}
+
+/**
+ * Remaps paths in parsed patch effects when the package resolved to a
+ * different location than expected (e.g. npm install-strategy=linked .store).
+ */
+function remapPatchPaths(
+  patch: PatchFilePart[],
+  originalPrefix: string,
+  newPrefix: string,
+): void {
+  const remap = (path: string) =>
+    path.startsWith(`${originalPrefix}/`)
+      ? newPrefix + path.slice(originalPrefix.length)
+      : path
+
+  for (const part of patch) {
+    switch (part.type) {
+      case "patch":
+      case "file deletion":
+      case "file creation":
+      case "mode change":
+        part.path = remap(part.path)
+        break
+      case "rename":
+        part.fromPath = remap(part.fromPath)
+        part.toPath = remap(part.toPath)
+        break
+    }
+  }
 }
 
 function createVersionMismatchWarning({

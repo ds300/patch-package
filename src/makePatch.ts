@@ -32,6 +32,7 @@ import {
 import { parsePatchFile } from "./patch/parse"
 import { getGroupedPatches } from "./patchFs"
 import { dirname, join, resolve } from "./path"
+import { resolvePackagePath } from "./resolvePackagePath"
 import { resolveRelativeFileDependencies } from "./resolveRelativeFileDependencies"
 import { spawnSafeSync } from "./spawnSafe"
 import {
@@ -80,7 +81,19 @@ export function makePatch({
     return
   }
 
-  const state = getPatchApplicationState(packageDetails)
+  const resolvedPackagePath = resolvePackagePath({ appPath, packageDetails })
+  const packagePath = join(appPath, resolvedPackagePath)
+  const packageJsonPath = join(packagePath, "package.json")
+
+  if (!existsSync(packageJsonPath)) {
+    printNoPackageFoundError(
+      packagePathSpecifier,
+      join(appPath, packageDetails.path, "package.json"),
+    )
+    process.exit(1)
+  }
+
+  const state = getPatchApplicationState(packageDetails, resolvedPackagePath)
   const isRebasing = state?.isRebasing ?? false
 
   // If we are rebasing and no patches have been applied, --append is the only valid option because
@@ -137,7 +150,7 @@ export function makePatch({
     mode.type === "append" || existingPatches.length === 0
       ? existingPatches.length + 1
       : existingPatches.length
-  const vcs = getPackageVCSDetails(packageDetails)
+  const vcs = getPackageVCSDetails(packageDetails, resolvedPackagePath)
   const canCreateIssue =
     !isRebasing &&
     shouldRecommendIssue(vcs) &&
@@ -145,13 +158,6 @@ export function makePatch({
     mode.type !== "append"
 
   const appPackageJson = require(join(appPath, "package.json"))
-  const packagePath = join(appPath, packageDetails.path)
-  const packageJsonPath = join(packagePath, "package.json")
-
-  if (!existsSync(packageJsonPath)) {
-    printNoPackageFoundError(packagePathSpecifier, packageJsonPath)
-    process.exit(1)
-  }
 
   const tmpRepo = dirSync({ unsafeCleanup: true })
   const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)
@@ -187,7 +193,7 @@ export function makePatch({
     )
 
     const packageVersion = getPackageVersion(
-      join(resolve(packageDetails.path), "package.json"),
+      join(resolve(resolvedPackagePath), "package.json"),
     )
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry
@@ -228,11 +234,14 @@ export function makePatch({
         chalk.grey("•"),
         `Installing ${packageDetails.name}@${packageVersion} with npm`,
       )
+      // a copied .npmrc with install-strategy=linked would make the package a symlink git can't diff
+      const npmEnv = { ...process.env, npm_config_install_strategy: "hoisted" }
       try {
         // try first without ignoring scripts in case they are required
         // this works in 99.99% of cases
         spawnSafeSync(`npm`, ["i", "--force"], {
           cwd: tmpRepoNpmRoot,
+          env: npmEnv,
           logStdErrOnError: false,
           stdio: "ignore",
         })
@@ -241,6 +250,7 @@ export function makePatch({
         // an implicit context which we haven't reproduced
         spawnSafeSync(`npm`, ["i", "--ignore-scripts", "--force"], {
           cwd: tmpRepoNpmRoot,
+          env: npmEnv,
           stdio: "ignore",
         })
       }
@@ -500,10 +510,14 @@ export function makePatch({
               reverse: false,
               cwd: process.cwd(),
               bestEffort: false,
+              resolvedPath: resolvedPackagePath,
             })
           ) {
             didFailWhileFinishingRebase = true
-            logPatchSequenceError({ patchDetails: patch })
+            logPatchSequenceError({
+              patchDetails: patch,
+              resolvedPath: resolvedPackagePath,
+            })
             nextState.push({
               patchFilename: patch.patchFilename,
               didApply: false,
@@ -527,9 +541,10 @@ export function makePatch({
         packageDetails,
         patches: nextState,
         isRebasing: didFailWhileFinishingRebase,
+        resolvedPath: resolvedPackagePath,
       })
     } else {
-      clearPatchApplicationState(packageDetails)
+      clearPatchApplicationState(packageDetails, resolvedPackagePath)
     }
 
     if (canCreateIssue) {
@@ -539,6 +554,7 @@ export function makePatch({
           patchFileContents: diffResult.stdout.toString(),
           packageVersion,
           patchPath,
+          resolvedPath: resolvedPackagePath,
         })
       } else {
         maybePrintIssueCreationPrompt(vcs, packageDetails, packageManager)
@@ -579,8 +595,10 @@ function createPatchFileName({
 
 export function logPatchSequenceError({
   patchDetails,
+  resolvedPath = patchDetails.path,
 }: {
   patchDetails: PatchedPackageDetails
+  resolvedPath?: string
 }) {
   console.log(`
 ${chalk.red.bold("⛔ ERROR")}
@@ -595,9 +613,7 @@ To partially apply the patch (if possible) and output a log of errors to fix, ru
 
   ${chalk.bold(`patch-package --partial`)}
 
-After which you should make any required changes inside ${
-    patchDetails.path
-  }, and finally run
+After which you should make any required changes inside ${resolvedPath}, and finally run
 
   ${chalk.bold(`patch-package ${patchDetails.pathSpecifier}`)}
 

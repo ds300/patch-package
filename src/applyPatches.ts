@@ -57,7 +57,7 @@ function getInstalledPackageVersion({
       err += `
 
   If this package is a dev dependency, rename the patch file to
-
+  
     ${chalk.bold(patchFilename.replace(".patch", ".dev.patch"))}
 `
     }

@@ -26,6 +26,8 @@ export function resolvePackagePath({
   const storeDir = join(appPath, "node_modules", ".store")
   const lockfilePackages = readLockfilePackages(appPath)
   const lockfileVersion = lockfilePackages[path]?.version
+  // npm aliases record the real package name, which is what .store uses
+  const storeName = lockfilePackages[path]?.name || name
 
   const packageDir =
     resolveThroughParents({
@@ -38,7 +40,7 @@ export function resolvePackagePath({
     }) ||
     findInStore({
       storeDir,
-      name,
+      name: storeName,
       lockfileVersion,
       fallbackVersion: version,
     })
@@ -75,7 +77,7 @@ function resolveThroughParents({
     ? realpathSync(join(appPath, rootPath))
     : findInStore({
         storeDir,
-        name: rootName,
+        name: lockfilePackages[rootPath]?.name || rootName,
         lockfileVersion: lockfilePackages[rootPath]?.version,
       })
 
@@ -91,11 +93,11 @@ function resolveThroughParents({
   }
 
   // anything outside .store is a regular install, which is left untouched
-  const storeVersion = getStoreEntryVersion(
-    packageDir,
-    packageNames.slice(-1)[0],
-  )
-  if (!storeVersion || (lockfileVersion && storeVersion !== lockfileVersion)) {
+  const storeEntry = parseStoreEntry(packageDir)
+  if (
+    !storeEntry ||
+    (lockfileVersion && storeEntry.version !== lockfileVersion)
+  ) {
     return null
   }
   return packageDir
@@ -121,14 +123,14 @@ function findInStore({
 
   const candidates = readdirSync(entriesDir)
     .map((entry) => join(entriesDir, entry, "node_modules", name))
-    .filter((candidate) => getStoreEntryVersion(candidate, name))
+    .filter((candidate) => parseStoreEntry(candidate)?.name === name)
     .filter((candidate) => existsSync(join(candidate, "package.json")))
 
   // makePatch diffs against the lockfile version, so never substitute another
   const wantedVersion = lockfileVersion || fallbackVersion
   const matches = wantedVersion
     ? candidates.filter(
-        (candidate) => getStoreEntryVersion(candidate, name) === wantedVersion,
+        (candidate) => parseStoreEntry(candidate)?.version === wantedVersion,
       )
     : []
 
@@ -141,33 +143,18 @@ function findInStore({
 
 /**
  * Store entries are node_modules/.store/<name>@<version>-<hash>/node_modules/<name>.
- * Reading the version from the entry name keeps patches to package.json resolvable.
+ * Reading the version from the path keeps patches to package.json resolvable.
  */
-function getStoreEntryVersion(
+function parseStoreEntry(
   packageDir: string,
-  name: string,
-): string | undefined {
-  const suffix = `/node_modules/${name}`
-  const normalizedDir = join(packageDir)
-  if (!normalizedDir.endsWith(suffix)) {
+): { name: string; version: string } | undefined {
+  const match = join(packageDir).match(
+    /\/node_modules\/\.store\/((?:@[^/]+\/)?[^/@]+)@([^/]+)-[\w-]{22}\/node_modules\/(.+)$/,
+  )
+  if (!match || match[1] !== match[3]) {
     return undefined
   }
-
-  const entryDir = normalizedDir.slice(0, -suffix.length)
-  const storeDir = name.startsWith("@")
-    ? dirname(dirname(entryDir))
-    : dirname(entryDir)
-  const match = basename(entryDir).match(/^(?:.+?)@(.+)-[\w-]{22}$/)
-
-  if (
-    basename(storeDir) !== ".store" ||
-    basename(dirname(storeDir)) !== "node_modules" ||
-    !match ||
-    !basename(entryDir).startsWith(`${name.split("/").pop()}@`)
-  ) {
-    return undefined
-  }
-  return match[1]
+  return { name: match[1], version: match[2] }
 }
 
 /**
@@ -207,7 +194,10 @@ function resolveDependency({
   }
 }
 
-type LockfilePackages = Record<string, { version?: string } | undefined>
+type LockfilePackages = Record<
+  string,
+  { name?: string; version?: string } | undefined
+>
 
 function readLockfilePackages(appPath: string): LockfilePackages {
   for (const lockfileName of ["npm-shrinkwrap.json", "package-lock.json"]) {

@@ -204,6 +204,36 @@ describe("resolvePackagePath", () => {
     expect(resolve("parent/child")).toBe(join("../..", childPath))
   })
 
+  it("resolves an aliased transitive package by its lockfile name", () => {
+    addStoreEntry("string-width", "5.1.2", OTHER_HASH)
+    const storePath = addStoreEntry("string-width", "4.2.3")
+    writeFileSync(
+      join(appPath, "package-lock.json"),
+      JSON.stringify({
+        packages: {
+          "node_modules/string-width-cjs": {
+            name: "string-width",
+            version: "4.2.3",
+          },
+        },
+      }),
+    )
+
+    expect(resolve("string-width-cjs")).toBe(storePath)
+  })
+
+  it("resolves an aliased nested package through its parent's store entry", () => {
+    const parentPath = addStoreEntry("@isaacs/cliui", "8.0.2")
+    const aliasedPath = addStoreEntry("string-width", "4.2.3")
+    link("node_modules/@isaacs/cliui", parentPath)
+    link(
+      `node_modules/.store/@isaacs/cliui@8.0.2-${HASH}/node_modules/string-width-cjs`,
+      aliasedPath,
+    )
+
+    expect(resolve("@isaacs/cliui/string-width-cjs")).toBe(aliasedPath)
+  })
+
   it("returns the original path when a nested package is missing", () => {
     const parentPath = addStoreEntry("parent", "1.0.0")
     link("node_modules/parent", parentPath)

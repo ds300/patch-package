@@ -184,14 +184,10 @@ export function applyPatchesForPackage({
   bestEffort: boolean
 }) {
   const pathSpecifier = patches[0].pathSpecifier
-
-  // Resolve actual package path, handling npm install-strategy=linked (.store)
-  const firstPatch = patches[0]
   const resolvedPackagePath = resolvePackagePath({
     appPath,
-    packagePath: firstPatch.path,
-    packageName: firstPatch.name,
-    version: firstPatch.version,
+    packageDetails: patches[0],
+    version: patches[0].version,
   })
 
   const state =
@@ -249,18 +245,10 @@ export function applyPatchesForPackage({
     try {
       const { name, version, path, isDevOnly, patchFilename } = patchDetails
 
-      // Resolve the actual package path, handling npm install-strategy=linked
-      const resolvedPath = resolvePackagePath({
-        appPath,
-        packagePath: path,
-        packageName: name,
-        version,
-      })
-
       const installedPackageVersion = getInstalledPackageVersion({
         appPath,
         path,
-        resolvedPath,
+        resolvedPath: resolvedPackagePath,
         pathSpecifier,
         isDevOnly:
           isDevOnly ||
@@ -290,7 +278,7 @@ export function applyPatchesForPackage({
           patchDir,
           cwd: process.cwd(),
           bestEffort,
-          resolvedPath,
+          resolvedPath: resolvedPackagePath,
         })
       ) {
         appliedPatches.push(patchDetails)
@@ -495,17 +483,22 @@ function remapPatchPaths(
   originalPrefix: string,
   newPrefix: string,
 ): void {
+  const remap = (path: string) =>
+    path.startsWith(`${originalPrefix}/`)
+      ? newPrefix + path.slice(originalPrefix.length)
+      : path
+
   for (const part of patch) {
     switch (part.type) {
       case "patch":
       case "file deletion":
       case "file creation":
       case "mode change":
-        part.path = part.path.replace(originalPrefix, newPrefix)
+        part.path = remap(part.path)
         break
       case "rename":
-        part.fromPath = part.fromPath.replace(originalPrefix, newPrefix)
-        part.toPath = part.toPath.replace(originalPrefix, newPrefix)
+        part.fromPath = remap(part.fromPath)
+        part.toPath = remap(part.toPath)
         break
     }
   }

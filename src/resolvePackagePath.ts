@@ -1,140 +1,202 @@
-import { existsSync, readdirSync } from "fs-extra"
-import { join, relative, resolve } from "./path"
+import { existsSync, readdirSync, readFileSync, realpathSync } from "fs-extra"
+import { basename, dirname } from "path"
+import { PackageDetails } from "./PackageDetails"
+import { join, relative } from "./path"
 
 /**
- * Resolves the real filesystem path for a package that may not be at the
- * expected node_modules location. Handles:
- *
- * 1. npm install-strategy=linked (.store directory layout)
- * 2. Monorepo hoisting (package in ancestor node_modules)
- *
- * Returns a path relative to appPath (like packageDetails.path).
- * Falls back to the original packagePath if the package cannot be found elsewhere.
+ * npm install-strategy=linked keeps transitive and nested packages only in
+ * node_modules/.store. Returns packageDetails.path when it exists or can't be resolved.
  */
 export function resolvePackagePath({
   appPath,
-  packagePath,
-  packageName,
+  packageDetails,
   version,
 }: {
   appPath: string
-  packagePath: string
-  packageName: string
+  packageDetails: PackageDetails
   version?: string
 }): string {
-  const fullPath = join(appPath, packagePath)
+  const { path, packageNames, name } = packageDetails
 
-  // Direct path exists (handles regular installs and working symlinks)
-  if (existsSync(fullPath)) {
-    return packagePath
+  if (existsSync(join(appPath, path))) {
+    return path
   }
 
-  // Try to find the package in .store directory (npm install-strategy=linked)
-  const storePath = resolveFromStore({ appPath, packageName, version })
-  if (storePath) {
-    return storePath
+  const storeDir = join(appPath, "node_modules", ".store")
+  if (!existsSync(storeDir)) {
+    return path
   }
 
-  // Try to find the package in ancestor node_modules (monorepo hoisting)
-  const ancestorPath = resolveFromAncestors({ appPath, packageName })
-  if (ancestorPath) {
-    return ancestorPath
-  }
+  const appRealPath = realpathSync(appPath)
+  const lockfilePackages = readLockfilePackages(appPath)
+  const lockfileVersion = lockfilePackages[path]?.version
 
-  // Couldn't resolve, return original (caller will handle the error)
-  return packagePath
-}
+  const packageDir =
+    resolveThroughParents({
+      appPath,
+      appRealPath,
+      storeDir,
+      packageNames,
+      lockfilePackages,
+      lockfileVersion,
+    }) ||
+    findInStore({
+      storeDir,
+      name,
+      lockfileVersion,
+      fallbackVersion: version,
+    })
 
-function resolveFromStore({
-  appPath,
-  packageName,
-  version,
-}: {
-  appPath: string
-  packageName: string
-  version?: string
-}): string | null {
-  const storePath = join(appPath, "node_modules", ".store")
-
-  if (!existsSync(storePath)) {
-    return null
-  }
-
-  try {
-    const storeEntries = readdirSync(storePath)
-    // For scoped packages like @scope/name, .store uses + as separator
-    const normalizedName = packageName.replace("/", "+")
-
-    // Try version-specific match first
-    if (version) {
-      const versionPrefix = `${normalizedName}@${version}`
-      for (const entry of storeEntries) {
-        if (entry.startsWith(versionPrefix)) {
-          const candidatePath = join(
-            "node_modules",
-            ".store",
-            entry,
-            "node_modules",
-            packageName,
-          )
-          if (existsSync(join(appPath, candidatePath))) {
-            return candidatePath
-          }
-        }
-      }
-    }
-
-    // Try any version match
-    const namePrefix = normalizedName + "@"
-    for (const entry of storeEntries) {
-      if (entry.startsWith(namePrefix)) {
-        const candidatePath = join(
-          "node_modules",
-          ".store",
-          entry,
-          "node_modules",
-          packageName,
-        )
-        if (existsSync(join(appPath, candidatePath))) {
-          return candidatePath
-        }
-      }
-    }
-  } catch (e) {
-    // noop
-  }
-
-  return null
+  return packageDir ? relative(appRealPath, packageDir) : path
 }
 
 /**
- * Walks up parent directories looking for the package in ancestor
- * node_modules directories. This handles monorepo hoisting where
- * dependencies are installed in the workspace root node_modules
- * rather than the package's own node_modules.
+ * The lockfile nests packages as a hoisted install would, which may not match
+ * the real dependent, so the result only counts if its version agrees.
  */
-function resolveFromAncestors({
+function resolveThroughParents({
   appPath,
-  packageName,
+  appRealPath,
+  storeDir,
+  packageNames,
+  lockfilePackages,
+  lockfileVersion,
 }: {
   appPath: string
-  packageName: string
+  appRealPath: string
+  storeDir: string
+  packageNames: string[]
+  lockfilePackages: LockfilePackages
+  lockfileVersion?: string
 }): string | null {
-  let currentDir = resolve(appPath, "..")
+  const [rootName, ...nestedNames] = packageNames
+  if (!nestedNames.length) {
+    return null
+  }
 
-  while (true) {
-    const candidateFullPath = join(currentDir, "node_modules", packageName)
-    if (existsSync(candidateFullPath)) {
-      return relative(appPath, candidateFullPath)
+  const rootPath = join("node_modules", rootName)
+  let packageDir = existsSync(join(appPath, rootPath))
+    ? realpathSync(join(appPath, rootPath))
+    : findInStore({
+        storeDir,
+        name: rootName,
+        lockfileVersion: lockfilePackages[rootPath]?.version,
+      })
+
+  for (const name of nestedNames) {
+    if (!packageDir) {
+      return null
+    }
+    packageDir = resolveDependency({ fromDir: packageDir, name, appRealPath })
+  }
+
+  if (
+    packageDir &&
+    lockfileVersion &&
+    readPackageVersion(packageDir) !== lockfileVersion
+  ) {
+    return null
+  }
+  return packageDir
+}
+
+function findInStore({
+  storeDir,
+  name,
+  lockfileVersion,
+  fallbackVersion,
+}: {
+  storeDir: string
+  name: string
+  lockfileVersion?: string
+  fallbackVersion?: string
+}): string | null {
+  // Store entries are named <name>@<version>-<hash>, grouped by scope.
+  const entriesDir = name.startsWith("@")
+    ? join(storeDir, name.split("/")[0])
+    : storeDir
+  if (!existsSync(entriesDir)) {
+    return null
+  }
+
+  const entryPrefix = `${name.split("/").pop()}@`
+  const candidates = readdirSync(entriesDir)
+    .filter((entry) => entry.startsWith(entryPrefix))
+    .sort()
+    .map((entry) => join(entriesDir, entry, "node_modules", name))
+    .filter((candidate) => existsSync(join(candidate, "package.json")))
+
+  const findVersion = (version: string) =>
+    candidates.find((candidate) => readPackageVersion(candidate) === version)
+
+  let match: string | undefined
+  if (lockfileVersion) {
+    // makePatch diffs against the lockfile version, so never substitute another
+    match = findVersion(lockfileVersion)
+  } else if (fallbackVersion) {
+    match = findVersion(fallbackVersion)
+  }
+  if (!match && !lockfileVersion && candidates.length === 1) {
+    match = candidates[0]
+  }
+
+  return match ? realpathSync(match) : null
+}
+
+/**
+ * Mirrors Node's module lookup from the parent's real location, which finds
+ * the sibling symlinks npm creates inside each .store entry.
+ */
+function resolveDependency({
+  fromDir,
+  name,
+  appRealPath,
+}: {
+  fromDir: string
+  name: string
+  appRealPath: string
+}): string | null {
+  let currentDir = fromDir
+
+  while (!relative(appRealPath, currentDir).startsWith("..")) {
+    if (basename(currentDir) !== "node_modules") {
+      const candidate = join(currentDir, "node_modules", name)
+      if (existsSync(candidate)) {
+        return realpathSync(candidate)
+      }
     }
 
-    const parentDir = resolve(currentDir, "..")
+    const parentDir = dirname(currentDir)
     if (parentDir === currentDir) {
-      // Reached filesystem root
       break
     }
     currentDir = parentDir
   }
 
   return null
+}
+
+type LockfilePackages = Record<string, { version?: string } | undefined>
+
+function readLockfilePackages(appPath: string): LockfilePackages {
+  for (const lockfileName of ["npm-shrinkwrap.json", "package-lock.json"]) {
+    try {
+      const lockfile = JSON.parse(
+        readFileSync(join(appPath, lockfileName), "utf8"),
+      )
+      return lockfile.packages || {}
+    } catch (e) {
+      // noop
+    }
+  }
+  return {}
+}
+
+function readPackageVersion(packageDir: string): string | undefined {
+  try {
+    return JSON.parse(readFileSync(join(packageDir, "package.json"), "utf8"))
+      .version
+  } catch (e) {
+    return undefined
+  }
 }

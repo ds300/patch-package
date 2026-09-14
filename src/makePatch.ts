@@ -81,6 +81,7 @@ export function makePatch({
     return
   }
 
+  const resolvedPackagePath = resolvePackagePath({ appPath, packageDetails })
   const state = getPatchApplicationState(packageDetails)
   const isRebasing = state?.isRebasing ?? false
 
@@ -146,14 +147,7 @@ export function makePatch({
     mode.type !== "append"
 
   const appPackageJson = require(join(appPath, "package.json"))
-
-  // Resolve actual package path, handling npm install-strategy=linked (.store)
-  const resolvedPackageDetails = resolvePackagePath({
-    appPath,
-    packagePath: packageDetails.path,
-    packageName: packageDetails.name,
-  })
-  const packagePath = join(appPath, resolvedPackageDetails)
+  const packagePath = join(appPath, resolvedPackagePath)
   const packageJsonPath = join(packagePath, "package.json")
 
   if (!existsSync(packageJsonPath)) {
@@ -198,7 +192,7 @@ export function makePatch({
     )
 
     const packageVersion = getPackageVersion(
-      join(resolve(resolvedPackageDetails), "package.json"),
+      join(resolve(resolvedPackagePath), "package.json"),
     )
 
     // copy .npmrc/.yarnrc in case packages are hosted in private registry

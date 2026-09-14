@@ -553,6 +553,7 @@ export function makePatch({
           patchFileContents: diffResult.stdout.toString(),
           packageVersion,
           patchPath,
+          resolvedPath: resolvedPackagePath,
         })
       } else {
         maybePrintIssueCreationPrompt(vcs, packageDetails, packageManager)

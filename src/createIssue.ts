@@ -125,13 +125,15 @@ export function openIssueCreationLink({
   patchFileContents,
   packageVersion,
   patchPath,
+  resolvedPath,
 }: {
   packageDetails: PackageDetails
   patchFileContents: string
   packageVersion: string
   patchPath: string
+  resolvedPath?: string
 }) {
-  const vcs = getPackageVCSDetails(packageDetails)
+  const vcs = getPackageVCSDetails(packageDetails, resolvedPath)
 
   if (!vcs) {
     console.log(

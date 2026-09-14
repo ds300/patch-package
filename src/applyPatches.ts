@@ -297,7 +297,10 @@ export function applyPatchesForPackage({
         }
         logPatchApplication(patchDetails)
       } else if (patches.length > 1) {
-        logPatchSequenceError({ patchDetails })
+        logPatchSequenceError({
+          patchDetails,
+          resolvedPath: resolvedPackagePath,
+        })
         // in case the package has multiple patches, we need to break out of this inner loop
         // because we don't want to apply more patches on top of the broken state
         failedPatch = patchDetails

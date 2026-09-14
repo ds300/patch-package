@@ -82,7 +82,7 @@ export function makePatch({
   }
 
   const resolvedPackagePath = resolvePackagePath({ appPath, packageDetails })
-  const state = getPatchApplicationState(packageDetails)
+  const state = getPatchApplicationState(packageDetails, resolvedPackagePath)
   const isRebasing = state?.isRebasing ?? false
 
   // If we are rebasing and no patches have been applied, --append is the only valid option because
@@ -139,7 +139,7 @@ export function makePatch({
     mode.type === "append" || existingPatches.length === 0
       ? existingPatches.length + 1
       : existingPatches.length
-  const vcs = getPackageVCSDetails(packageDetails)
+  const vcs = getPackageVCSDetails(packageDetails, resolvedPackagePath)
   const canCreateIssue =
     !isRebasing &&
     shouldRecommendIssue(vcs) &&
@@ -505,10 +505,14 @@ export function makePatch({
               reverse: false,
               cwd: process.cwd(),
               bestEffort: false,
+              resolvedPath: resolvedPackagePath,
             })
           ) {
             didFailWhileFinishingRebase = true
-            logPatchSequenceError({ patchDetails: patch })
+            logPatchSequenceError({
+              patchDetails: patch,
+              resolvedPath: resolvedPackagePath,
+            })
             nextState.push({
               patchFilename: patch.patchFilename,
               didApply: false,
@@ -532,9 +536,10 @@ export function makePatch({
         packageDetails,
         patches: nextState,
         isRebasing: didFailWhileFinishingRebase,
+        resolvedPath: resolvedPackagePath,
       })
     } else {
-      clearPatchApplicationState(packageDetails)
+      clearPatchApplicationState(packageDetails, resolvedPackagePath)
     }
 
     if (canCreateIssue) {
@@ -584,8 +589,10 @@ function createPatchFileName({
 
 export function logPatchSequenceError({
   patchDetails,
+  resolvedPath = patchDetails.path,
 }: {
   patchDetails: PatchedPackageDetails
+  resolvedPath?: string
 }) {
   console.log(`
 ${chalk.red.bold("⛔ ERROR")}
@@ -600,9 +607,7 @@ To partially apply the patch (if possible) and output a log of errors to fix, ru
 
   ${chalk.bold(`patch-package --partial`)}
 
-After which you should make any required changes inside ${
-    patchDetails.path
-  }, and finally run
+After which you should make any required changes inside ${resolvedPath}, and finally run
 
   ${chalk.bold(`patch-package ${patchDetails.pathSpecifier}`)}
 

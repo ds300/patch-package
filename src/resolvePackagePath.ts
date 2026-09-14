@@ -22,12 +22,8 @@ export function resolvePackagePath({
     return path
   }
 
-  const storeDir = join(appPath, "node_modules", ".store")
-  if (!existsSync(storeDir)) {
-    return path
-  }
-
   const appRealPath = realpathSync(appPath)
+  const storeDir = join(appPath, "node_modules", ".store")
   const lockfilePackages = readLockfilePackages(appPath)
   const lockfileVersion = lockfilePackages[path]?.version
 
@@ -90,11 +86,16 @@ function resolveThroughParents({
     packageDir = resolveDependency({ fromDir: packageDir, name, appRealPath })
   }
 
-  if (
-    packageDir &&
-    lockfileVersion &&
-    readPackageVersion(packageDir) !== lockfileVersion
-  ) {
+  if (!packageDir) {
+    return null
+  }
+
+  // anything outside .store is a regular install, which is left untouched
+  const storeVersion = getStoreEntryVersion(
+    packageDir,
+    packageNames.slice(-1)[0],
+  )
+  if (!storeVersion || (lockfileVersion && storeVersion !== lockfileVersion)) {
     return null
   }
   return packageDir
@@ -111,7 +112,6 @@ function findInStore({
   lockfileVersion?: string
   fallbackVersion?: string
 }): string | null {
-  // Store entries are named <name>@<version>-<hash>, grouped by scope.
   const entriesDir = name.startsWith("@")
     ? join(storeDir, name.split("/")[0])
     : storeDir
@@ -119,28 +119,55 @@ function findInStore({
     return null
   }
 
-  const entryPrefix = `${name.split("/").pop()}@`
   const candidates = readdirSync(entriesDir)
-    .filter((entry) => entry.startsWith(entryPrefix))
-    .sort()
     .map((entry) => join(entriesDir, entry, "node_modules", name))
+    .filter((candidate) => getStoreEntryVersion(candidate, name))
     .filter((candidate) => existsSync(join(candidate, "package.json")))
 
-  const findVersion = (version: string) =>
-    candidates.find((candidate) => readPackageVersion(candidate) === version)
+  // makePatch diffs against the lockfile version, so never substitute another
+  const wantedVersion = lockfileVersion || fallbackVersion
+  const matches = wantedVersion
+    ? candidates.filter(
+        (candidate) => getStoreEntryVersion(candidate, name) === wantedVersion,
+      )
+    : []
 
-  let match: string | undefined
-  if (lockfileVersion) {
-    // makePatch diffs against the lockfile version, so never substitute another
-    match = findVersion(lockfileVersion)
-  } else if (fallbackVersion) {
-    match = findVersion(fallbackVersion)
+  if (!matches.length && !lockfileVersion && candidates.length === 1) {
+    return realpathSync(candidates[0])
   }
-  if (!match && !lockfileVersion && candidates.length === 1) {
-    match = candidates[0]
+  // same-version entries differ by dependency graph, and we can't tell which is used
+  return matches.length === 1 ? realpathSync(matches[0]) : null
+}
+
+/**
+ * Store entries are node_modules/.store/<name>@<version>-<hash>/node_modules/<name>.
+ * Reading the version from the entry name keeps patches to package.json resolvable.
+ */
+function getStoreEntryVersion(
+  packageDir: string,
+  name: string,
+): string | undefined {
+  const suffix = `/node_modules/${name}`
+  const normalizedDir = join(packageDir)
+  if (!normalizedDir.endsWith(suffix)) {
+    return undefined
   }
 
-  return match ? realpathSync(match) : null
+  const entryDir = normalizedDir.slice(0, -suffix.length)
+  const storeDir = name.startsWith("@")
+    ? dirname(dirname(entryDir))
+    : dirname(entryDir)
+  const match = basename(entryDir).match(/^(?:.+?)@(.+)-[\w-]{22}$/)
+
+  if (
+    basename(storeDir) !== ".store" ||
+    basename(dirname(storeDir)) !== "node_modules" ||
+    !match ||
+    !basename(entryDir).startsWith(`${name.split("/").pop()}@`)
+  ) {
+    return undefined
+  }
+  return match[1]
 }
 
 /**
@@ -158,7 +185,7 @@ function resolveDependency({
 }): string | null {
   let currentDir = fromDir
 
-  while (!relative(appRealPath, currentDir).startsWith("..")) {
+  while (true) {
     if (basename(currentDir) !== "node_modules") {
       const candidate = join(currentDir, "node_modules", name)
       if (existsSync(candidate)) {
@@ -166,14 +193,18 @@ function resolveDependency({
       }
     }
 
+    // workspace links point into the root .store, outside appPath
     const parentDir = dirname(currentDir)
-    if (parentDir === currentDir) {
-      break
+    if (
+      parentDir === currentDir ||
+      basename(parentDir) === ".store" ||
+      (!join(parentDir).includes("/node_modules/.store/") &&
+        relative(appRealPath, parentDir).startsWith(".."))
+    ) {
+      return null
     }
     currentDir = parentDir
   }
-
-  return null
 }
 
 type LockfilePackages = Record<string, { version?: string } | undefined>
@@ -190,13 +221,4 @@ function readLockfilePackages(appPath: string): LockfilePackages {
     }
   }
   return {}
-}
-
-function readPackageVersion(packageDir: string): string | undefined {
-  try {
-    return JSON.parse(readFileSync(join(packageDir, "package.json"), "utf8"))
-      .version
-  } catch (e) {
-    return undefined
-  }
 }

@@ -5,13 +5,18 @@ import { getPatchDetailsFromCliString } from "./PackageDetails"
 import { join } from "./path"
 import { resolvePackagePath } from "./resolvePackagePath"
 
+const HASH = "hXErYF6ZrdpweGIFH-nM4Q"
+const OTHER_HASH = "4cO0ZloNu8RvnBPVrlAb_Q"
+
 describe("resolvePackagePath", () => {
+  let rootPath: string
   let appPath: string
   let cleanup: () => void
 
   beforeEach(() => {
     const tmp = dirSync({ unsafeCleanup: true })
-    appPath = realpathSync(tmp.name)
+    rootPath = realpathSync(tmp.name)
+    appPath = rootPath
     cleanup = tmp.removeCallback
   })
 
@@ -19,17 +24,19 @@ describe("resolvePackagePath", () => {
     cleanup()
   })
 
-  function addStoreEntry(entry: string, name: string, version: string) {
-    const packageDir = join(
-      appPath,
+  function addStoreEntry(name: string, version: string, hash = HASH) {
+    const storePath = join(
       "node_modules/.store",
-      entry,
+      `${name}@${version}-${hash}`,
       "node_modules",
       name,
     )
-    mkdirpSync(packageDir)
-    writeFileSync(join(packageDir, "package.json"), JSON.stringify({ version }))
-    return join("node_modules/.store", entry, "node_modules", name)
+    mkdirpSync(join(appPath, storePath))
+    writeFileSync(
+      join(appPath, storePath, "package.json"),
+      JSON.stringify({ name, version }),
+    )
+    return storePath
   }
 
   function link(from: string, to: string) {
@@ -55,7 +62,7 @@ describe("resolvePackagePath", () => {
 
   it("returns the original path when the package exists", () => {
     mkdirpSync(join(appPath, "node_modules/some-package"))
-    addStoreEntry("some-package@1.0.0-hash", "some-package", "1.0.0")
+    addStoreEntry("some-package", "1.0.0")
 
     expect(resolve("some-package")).toBe("node_modules/some-package")
   })
@@ -65,36 +72,38 @@ describe("resolvePackagePath", () => {
   })
 
   it("returns the original path when the package is not in .store", () => {
-    addStoreEntry("other@1.0.0-hash", "other", "1.0.0")
+    addStoreEntry("other", "1.0.0")
 
     expect(resolve("some-package")).toBe("node_modules/some-package")
   })
 
   it("resolves a transitive package from .store", () => {
-    const storePath = addStoreEntry("ms@2.1.2-hash", "ms", "2.1.2")
+    const storePath = addStoreEntry("ms", "2.1.2")
 
     expect(resolve("ms")).toBe(storePath)
   })
 
   it("does not match packages sharing a name prefix", () => {
-    addStoreEntry("ms-extra@1.0.0-hash", "ms-extra", "1.0.0")
+    addStoreEntry("ms-extra", "1.0.0")
 
     expect(resolve("ms")).toBe("node_modules/ms")
   })
 
   it("resolves a scoped transitive package from .store", () => {
-    const storePath = addStoreEntry(
-      "@babel/highlight@7.25.9-hash",
-      "@babel/highlight",
-      "7.25.9",
-    )
+    const storePath = addStoreEntry("@babel/highlight", "7.25.9")
 
     expect(resolve("@babel/highlight")).toBe(storePath)
   })
 
+  it("resolves prerelease versions from the store entry name", () => {
+    const storePath = addStoreEntry("ms", "3.0.0-canary.1")
+
+    expect(resolve("ms", "3.0.0-canary.1")).toBe(storePath)
+  })
+
   it("picks the lockfile version when .store has several versions", () => {
-    addStoreEntry("ms@2.0.0-hash", "ms", "2.0.0")
-    const storePath = addStoreEntry("ms@2.1.2-hash", "ms", "2.1.2")
+    addStoreEntry("ms", "2.0.0", OTHER_HASH)
+    const storePath = addStoreEntry("ms", "2.1.2")
     writeLockfile({ "node_modules/ms": { version: "2.1.2" } })
 
     expect(resolve("ms")).toBe(storePath)
@@ -102,31 +111,54 @@ describe("resolvePackagePath", () => {
   })
 
   it("falls back to the given version without a lockfile entry", () => {
-    addStoreEntry("ms@2.0.0-hash", "ms", "2.0.0")
-    const storePath = addStoreEntry("ms@2.1.2-hash", "ms", "2.1.2")
+    addStoreEntry("ms", "2.0.0", OTHER_HASH)
+    const storePath = addStoreEntry("ms", "2.1.2")
 
     expect(resolve("ms", "2.1.2")).toBe(storePath)
   })
 
   it("does not guess between several versions", () => {
-    addStoreEntry("ms@2.0.0-hash", "ms", "2.0.0")
-    addStoreEntry("ms@2.1.2-hash", "ms", "2.1.2")
+    addStoreEntry("ms", "2.0.0", OTHER_HASH)
+    addStoreEntry("ms", "2.1.2")
 
     expect(resolve("ms")).toBe("node_modules/ms")
     expect(resolve("ms", "3.0.0")).toBe("node_modules/ms")
   })
 
-  it("resolves a nested package through its parent's store entry", () => {
-    const parentPath = addStoreEntry(
-      "finalhandler@1.2.0-hash",
-      "finalhandler",
-      "1.2.0",
+  it("does not substitute another version for the lockfile version", () => {
+    addStoreEntry("ms", "2.0.0")
+    writeLockfile({ "node_modules/ms": { version: "2.1.2" } })
+
+    expect(resolve("ms", "2.0.0")).toBe("node_modules/ms")
+  })
+
+  it("does not guess between same-version entries", () => {
+    addStoreEntry("ms", "2.1.2")
+    addStoreEntry("ms", "2.1.2", OTHER_HASH)
+    writeLockfile({ "node_modules/ms": { version: "2.1.2" } })
+
+    expect(resolve("ms")).toBe("node_modules/ms")
+  })
+
+  it("keeps resolving after a patch changes the package.json version", () => {
+    const storePath = addStoreEntry("ms", "2.1.2")
+    addStoreEntry("ms", "2.0.0", OTHER_HASH)
+    writeFileSync(
+      join(appPath, storePath, "package.json"),
+      JSON.stringify({ version: "2.1.2-patched" }),
     )
-    addStoreEntry("ms@2.1.2-hash", "ms", "2.1.2")
-    const nestedPath = addStoreEntry("ms@2.0.0-hash", "ms", "2.0.0")
+    writeLockfile({ "node_modules/ms": { version: "2.1.2" } })
+
+    expect(resolve("ms")).toBe(storePath)
+  })
+
+  it("resolves a nested package through its parent's store entry", () => {
+    const parentPath = addStoreEntry("finalhandler", "1.2.0")
+    addStoreEntry("ms", "2.1.2")
+    const nestedPath = addStoreEntry("ms", "2.0.0", OTHER_HASH)
     link("node_modules/finalhandler", parentPath)
     link(
-      "node_modules/.store/finalhandler@1.2.0-hash/node_modules/ms",
+      `node_modules/.store/finalhandler@1.2.0-${HASH}/node_modules/ms`,
       nestedPath,
     )
 
@@ -134,13 +166,9 @@ describe("resolvePackagePath", () => {
   })
 
   it("resolves a nested package whose lockfile parent is not its dependent", () => {
-    const parentPath = addStoreEntry(
-      "finalhandler@1.2.0-hash",
-      "finalhandler",
-      "1.2.0",
-    )
-    const directPath = addStoreEntry("ms@2.1.2-hash", "ms", "2.1.2")
-    const nestedPath = addStoreEntry("ms@2.0.0-hash", "ms", "2.0.0")
+    const parentPath = addStoreEntry("finalhandler", "1.2.0")
+    const directPath = addStoreEntry("ms", "2.1.2")
+    const nestedPath = addStoreEntry("ms", "2.0.0", OTHER_HASH)
     link("node_modules/finalhandler", parentPath)
     link("node_modules/ms", directPath)
     writeLockfile({
@@ -151,35 +179,33 @@ describe("resolvePackagePath", () => {
     expect(resolve("finalhandler/ms")).toBe(nestedPath)
   })
 
-  it("does not substitute another version for the lockfile version", () => {
-    addStoreEntry("ms@2.0.0-hash", "ms", "2.0.0")
-    writeLockfile({ "node_modules/ms": { version: "2.1.2" } })
-
-    expect(resolve("ms", "2.0.0")).toBe("node_modules/ms")
-  })
-
   it("resolves a scoped nested package through a scoped parent", () => {
-    const parentPath = addStoreEntry(
-      "@babel/code-frame@7.24.7-hash",
-      "@babel/code-frame",
-      "7.24.7",
-    )
-    const nestedPath = addStoreEntry(
-      "@babel/highlight@7.25.9-hash",
-      "@babel/highlight",
-      "7.25.9",
-    )
+    const parentPath = addStoreEntry("@babel/code-frame", "7.24.7")
+    const nestedPath = addStoreEntry("@babel/highlight", "7.25.9")
     link("node_modules/@babel/code-frame", parentPath)
     link(
-      "node_modules/.store/@babel/code-frame@7.24.7-hash/node_modules/@babel/highlight",
+      `node_modules/.store/@babel/code-frame@7.24.7-${HASH}/node_modules/@babel/highlight`,
       nestedPath,
     )
 
     expect(resolve("@babel/code-frame/@babel/highlight")).toBe(nestedPath)
   })
 
+  it("resolves a nested package in a workspace linked to the root .store", () => {
+    const parentPath = addStoreEntry("parent", "1.0.0")
+    const childPath = addStoreEntry("child", "1.0.0")
+    link(
+      `node_modules/.store/parent@1.0.0-${HASH}/node_modules/child`,
+      childPath,
+    )
+    link("packages/a/node_modules/parent", parentPath)
+    appPath = join(rootPath, "packages/a")
+
+    expect(resolve("parent/child")).toBe(join("../..", childPath))
+  })
+
   it("returns the original path when a nested package is missing", () => {
-    const parentPath = addStoreEntry("parent@1.0.0-hash", "parent", "1.0.0")
+    const parentPath = addStoreEntry("parent", "1.0.0")
     link("node_modules/parent", parentPath)
 
     expect(resolve("parent/child")).toBe(
@@ -187,11 +213,21 @@ describe("resolvePackagePath", () => {
     )
   })
 
+  it("leaves regular installs untouched", () => {
+    mkdirpSync(join(appPath, "node_modules/parent"))
+    mkdirpSync(join(appPath, "node_modules/child"))
+    addStoreEntry("other", "1.0.0")
+
+    expect(resolve("parent/child")).toBe(
+      "node_modules/parent/node_modules/child",
+    )
+  })
+
   it("does not resolve nested packages outside appPath", () => {
-    appPath = join(appPath, "app")
-    const parentPath = addStoreEntry("parent@1.0.0-hash", "parent", "1.0.0")
+    appPath = join(rootPath, "app")
+    const parentPath = addStoreEntry("parent", "1.0.0")
     link("node_modules/parent", parentPath)
-    mkdirpSync(join(appPath, "../node_modules/child"))
+    mkdirpSync(join(rootPath, "node_modules/child"))
 
     expect(resolve("parent/child")).toBe(
       "node_modules/parent/node_modules/child",

@@ -82,6 +82,17 @@ export function makePatch({
   }
 
   const resolvedPackagePath = resolvePackagePath({ appPath, packageDetails })
+  const packagePath = join(appPath, resolvedPackagePath)
+  const packageJsonPath = join(packagePath, "package.json")
+
+  if (!existsSync(packageJsonPath)) {
+    printNoPackageFoundError(
+      packagePathSpecifier,
+      join(appPath, packageDetails.path, "package.json"),
+    )
+    process.exit(1)
+  }
+
   const state = getPatchApplicationState(packageDetails, resolvedPackagePath)
   const isRebasing = state?.isRebasing ?? false
 
@@ -147,16 +158,6 @@ export function makePatch({
     mode.type !== "append"
 
   const appPackageJson = require(join(appPath, "package.json"))
-  const packagePath = join(appPath, resolvedPackagePath)
-  const packageJsonPath = join(packagePath, "package.json")
-
-  if (!existsSync(packageJsonPath)) {
-    printNoPackageFoundError(
-      packagePathSpecifier,
-      join(appPath, packageDetails.path, "package.json"),
-    )
-    process.exit(1)
-  }
 
   const tmpRepo = dirSync({ unsafeCleanup: true })
   const tmpRepoPackagePath = join(tmpRepo.name, packageDetails.path)

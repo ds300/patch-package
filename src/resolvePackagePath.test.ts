@@ -234,6 +234,25 @@ describe("resolvePackagePath", () => {
     expect(resolve("@isaacs/cliui/string-width-cjs")).toBe(aliasedPath)
   })
 
+  it("does not resolve a nested path the lockfile hoists elsewhere", () => {
+    const parentPath = addStoreEntry("esbuild", "0.20.0")
+    const childPath = addStoreEntry("@esbuild/darwin-arm64", "0.20.0")
+    link("node_modules/esbuild", parentPath)
+    link(
+      `node_modules/.store/esbuild@0.20.0-${HASH}/node_modules/@esbuild/darwin-arm64`,
+      childPath,
+    )
+    writeLockfile({
+      "node_modules/esbuild": { version: "0.20.0" },
+      "node_modules/@esbuild/darwin-arm64": { version: "0.20.0" },
+    })
+
+    expect(resolve("esbuild/@esbuild/darwin-arm64")).toBe(
+      "node_modules/esbuild/node_modules/@esbuild/darwin-arm64",
+    )
+    expect(resolve("@esbuild/darwin-arm64")).toBe(childPath)
+  })
+
   it("returns the original path when a nested package is missing", () => {
     const parentPath = addStoreEntry("parent", "1.0.0")
     link("node_modules/parent", parentPath)

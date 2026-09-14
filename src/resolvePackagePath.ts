@@ -25,6 +25,10 @@ export function resolvePackagePath({
   const appRealPath = realpathSync(appPath)
   const storeDir = join(appPath, "node_modules", ".store")
   const lockfilePackages = readLockfilePackages(appPath)
+  // makePatch reads the lockfile entry for this path, so it must exist
+  if (Object.keys(lockfilePackages).length && !lockfilePackages[path]) {
+    return path
+  }
   const lockfileVersion = lockfilePackages[path]?.version
   // npm aliases record the real package name, which is what .store uses
   const storeName = lockfilePackages[path]?.name || name
